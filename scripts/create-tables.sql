@@ -1,120 +1,136 @@
--- Enable Row Level Security
-ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
-
--- Create profiles table
-CREATE TABLE IF NOT EXISTS public.profiles (
-    id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-    email TEXT UNIQUE NOT NULL,
-    full_name TEXT,
-    username TEXT UNIQUE,
-    avatar_url TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+-- Create a table for public profiles
+create table profiles (
+  id uuid references auth.users on delete cascade not null primary key,
+  updated_at timestamp with time zone,
+  username text unique,
+  full_name text,
+  avatar_url text,
+  website text
 );
+
+alter table profiles enable row level security;
+
+create policy "Public profiles are viewable by everyone."
+  on profiles for select
+  using (true);
+
+create policy "Users can insert their own profile."
+  on profiles for insert
+  with check (auth.uid() = id);
+
+create policy "Users can update own profile."
+  on profiles for update
+  using (auth.uid() = id);
+
+-- Set up Storage!
+insert into storage.buckets (id, name)
+values ('avatars', 'avatars');
+
+-- Set up access controls for storage.
+-- See https://supabase.com/docs/guides/storage/security/row-level-security#policies-for-public-access
+create policy "Avatar images are publicly accessible."
+  on storage.objects for select
+  using (bucket_id = 'avatars');
+
+create policy "Anyone can upload an avatar."
+  on storage.objects for insert
+  with check (bucket_id = 'avatars');
+
+create policy "Anyone can update their own avatar."
+  on storage.objects for update
+  using (auth.uid() = owner)
+  with check (bucket_id = 'avatars');
+
 
 -- Create tasks table
-CREATE TABLE IF NOT EXISTS public.tasks (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-    title TEXT NOT NULL,
-    description TEXT,
-    completed BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+create table tasks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete cascade not null,
+  title text not null,
+  completed boolean default false,
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone default now(),
+  due_date timestamp with time zone -- Added for sorting
 );
+
+alter table tasks enable row level security;
+
+create policy "Tasks are viewable by their owners."
+  on tasks for select
+  using (auth.uid() = user_id);
+
+create policy "Owners can create tasks."
+  on tasks for insert
+  with check (auth.uid() = user_id);
+
+create policy "Owners can update their tasks."
+  on tasks for update
+  using (auth.uid() = user_id);
+
+create policy "Owners can delete their tasks."
+  on tasks for delete
+  using (auth.uid() = user_id);
 
 -- Create goals table
-CREATE TABLE IF NOT EXISTS public.goals (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-    title TEXT NOT NULL,
-    description TEXT,
-    target_date DATE,
-    status TEXT CHECK (status IN ('not_started', 'on_track', 'at_risk', 'completed')) DEFAULT 'not_started',
-    progress INTEGER DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+create table goals (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete cascade not null,
+  title text not null,
+  description text,
+  target_value numeric,
+  unit text,
+  progress numeric default 0,
+  status text default 'pending', -- e.g., 'pending', 'in-progress', 'completed', 'on-hold'
+  due_date timestamp with time zone,
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone default now()
 );
 
--- Enable Row Level Security
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.goals ENABLE ROW LEVEL SECURITY;
+alter table goals enable row level security;
 
--- Create policies for profiles
-CREATE POLICY "Users can view own profile" ON public.profiles
-    FOR SELECT USING (auth.uid() = id);
+create policy "Goals are viewable by their owners."
+  on goals for select
+  using (auth.uid() = user_id);
 
-CREATE POLICY "Users can update own profile" ON public.profiles
-    FOR UPDATE USING (auth.uid() = id);
+create policy "Owners can create goals."
+  on goals for insert
+  with check (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert own profile" ON public.profiles
-    FOR INSERT WITH CHECK (auth.uid() = id);
+create policy "Owners can update their goals."
+  on goals for update
+  using (auth.uid() = user_id);
 
--- Create policies for tasks
-CREATE POLICY "Users can view own tasks" ON public.tasks
-    FOR SELECT USING (auth.uid() = user_id);
+create policy "Owners can delete their goals."
+  on goals for delete
+  using (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert own tasks" ON public.tasks
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
+-- Create journal_entries table
+create table journal_entries (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete cascade not null,
+  title text not null,
+  content text,
+  mood text, -- e.g., 'happy', 'sad', 'neutral', 'stressed'
+  tags text[], -- Array of text tags
+  template_name text, -- e.g., 'Daily Reflection', 'Gratitude Log'
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone default now()
+);
 
-CREATE POLICY "Users can update own tasks" ON public.tasks
-    FOR UPDATE USING (auth.uid() = user_id);
+alter table journal_entries enable row level security;
 
-CREATE POLICY "Users can delete own tasks" ON public.tasks
-    FOR DELETE USING (auth.uid() = user_id);
+create policy "Journal entries are viewable by their owners."
+  on journal_entries for select
+  using (auth.uid() = user_id);
 
--- Create policies for goals
-CREATE POLICY "Users can view own goals" ON public.goals
-    FOR SELECT USING (auth.uid() = user_id);
+create policy "Owners can create journal entries."
+  on journal_entries for insert
+  with check (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert own goals" ON public.goals
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
+create policy "Owners can update their journal entries."
+  on journal_entries for update
+  using (auth.uid() = user_id);
 
-CREATE POLICY "Users can update own goals" ON public.goals
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own goals" ON public.goals
-    FOR DELETE USING (auth.uid() = user_id);
-
--- Create function to handle new user registration
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-    INSERT INTO public.profiles (id, email, full_name)
-    VALUES (
-        NEW.id,
-        NEW.email,
-        COALESCE(NEW.raw_user_meta_data->>'full_name', '')
-    );
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Create trigger for new user registration
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-    AFTER INSERT ON auth.users
-    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- Create function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION public.update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = TIMEZONE('utc'::text, NOW());
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create triggers for updated_at
-CREATE TRIGGER update_profiles_updated_at
-    BEFORE UPDATE ON public.profiles
-    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER update_tasks_updated_at
-    BEFORE UPDATE ON public.tasks
-    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER update_goals_updated_at
-    BEFORE UPDATE ON public.goals
-    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+create policy "Owners can delete their journal entries."
+  on journal_entries for delete
+  using (auth.uid() = user_id);

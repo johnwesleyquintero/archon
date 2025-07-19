@@ -9,48 +9,45 @@ import { Plus } from "lucide-react"
 
 interface TaskInputProps {
   onAddTask: (title: string) => void
-  placeholder?: string
   disabled?: boolean
 }
 
-export function TaskInput({ onAddTask, placeholder = "Add a new task...", disabled = false }: TaskInputProps) {
-  const [inputValue, setInputValue] = useState("")
+export function TaskInput({ onAddTask, disabled = false }: TaskInputProps) {
+  const [newTask, setNewTask] = useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (inputValue.trim() && !disabled) {
-      onAddTask(inputValue.trim())
-      setInputValue("")
+  const handleAddTask = () => {
+    if (newTask.trim()) {
+      onAddTask(newTask.trim())
+      setNewTask("")
     }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      handleSubmit(e)
+      handleAddTask()
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 pt-2 border-t border-slate-100">
+    <div className="flex gap-2 border-t border-slate-100 pt-2 dark:border-slate-800">
       <Input
-        type="text"
-        placeholder={placeholder}
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
+        placeholder="Add a new task..."
+        value={newTask}
+        onChange={(e) => setNewTask(e.target.value)}
         onKeyPress={handleKeyPress}
+        className="flex-1 text-sm focus-visible:ring-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus-visible:ring-slate-600"
         disabled={disabled}
-        className="flex-1 h-9 text-sm border-slate-200 focus:border-slate-400 focus:ring-slate-400"
         aria-label="New task title"
       />
       <Button
-        type="submit"
+        onClick={handleAddTask}
         size="sm"
-        disabled={!inputValue.trim() || disabled}
-        className="h-9 w-9 p-0 bg-slate-900 hover:bg-slate-800 disabled:opacity-50"
+        className="h-9 w-9 p-0 bg-slate-900 hover:bg-slate-800 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
+        disabled={!newTask.trim() || disabled}
         aria-label="Add task"
       >
         <Plus className="h-4 w-4" />
       </Button>
-    </form>
+    </div>
   )
 }
