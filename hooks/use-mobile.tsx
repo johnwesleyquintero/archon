@@ -3,24 +3,24 @@
 import { useEffect, useState } from "react"
 
 /**
- * Responsive helper – returns `true` when `window.innerWidth` is below
- * the provided Tailwind breakpoint (default = 768 px = `md`).
+ * Screens ≤ 768 px are considered “mobile”.
  */
-export function useIsMobile(breakpoint = 768) {
-  const [isMobile, setIsMobile] = useState<boolean>(false)
+export function useIsMobile() {
+  const [isMobile, setIsMobile] = useState<boolean>(typeof window === "undefined" ? false : window.innerWidth <= 768)
 
   useEffect(() => {
-    function update() {
-      setIsMobile(window.innerWidth < breakpoint)
-    }
+    const mq = window.matchMedia("(max-width: 768px)")
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
 
-    update()
-    window.addEventListener("resize", update)
-    return () => window.removeEventListener("resize", update)
-  }, [breakpoint])
+    // Initial value & listener
+    setIsMobile(mq.matches)
+    mq.addEventListener("change", handler)
+
+    return () => mq.removeEventListener("change", handler)
+  }, [])
 
   return isMobile
 }
 
-/* alias kept for older imports */
+/* Older components import { useMobile } – keep alias. */
 export const useMobile = useIsMobile

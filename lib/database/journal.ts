@@ -1,50 +1,50 @@
-import { supabase } from "@/lib/supabase/server"
-import type { Tables } from "@/lib/supabase/types"
+import { supabase } from "../supabase/auth"
+import type { Database } from "../supabase/types"
 
-/* ---------- Templates ---------- */
+type JournalRow = Database["public"]["Tables"]["journal_entries"]["Row"]
+type JournalInsert = Database["public"]["Tables"]["journal_entries"]["Insert"]
+type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"]
+type TemplateRow = Database["public"]["Tables"]["journal_templates"]["Row"]
 
-export async function getJournalTemplates() {
-  const { data, error } = await supabase.from("journal_templates").select("*")
-  if (error) throw error
-  return data as Tables<"journal_templates">[]
-}
-
-/* ---------- Entries CRUD ---------- */
-
+/* ─────────────────────────
+   CRUD – Journal entries
+   ───────────────────────── */
 export async function getJournalEntries(userId: string) {
   const { data, error } = await supabase
     .from("journal_entries")
     .select("*")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
+
   if (error) throw error
-  return data as Tables<"journal_entries">[]
+  return data as JournalRow[]
 }
 
-export async function addJournalEntry(
-  userId: string,
-  values: Omit<Tables<"journal_entries">, "id" | "user_id" | "created_at">,
-) {
-  const { data, error } = await supabase
-    .from("journal_entries")
-    .insert({ ...values, user_id: userId })
-    .select()
-    .single()
+export async function addJournalEntry(entry: JournalInsert) {
+  const { data, error } = await supabase.from("journal_entries").insert(entry).single<JournalRow>()
+
   if (error) throw error
-  return data as Tables<"journal_entries">
+  return data
 }
 
-export async function updateJournalEntry(
-  entryId: string,
-  values: Partial<Omit<Tables<"journal_entries">, "id" | "user_id">>,
-) {
-  const { data, error } = await supabase.from("journal_entries").update(values).eq("id", entryId).select().single()
+export async function updateJournalEntry(id: string, patch: JournalUpdate) {
+  const { data, error } = await supabase.from("journal_entries").update(patch).eq("id", id).single<JournalRow>()
+
   if (error) throw error
-  return data as Tables<"journal_entries">
+  return data
 }
 
-export async function deleteJournalEntry(entryId: string) {
-  const { error } = await supabase.from("journal_entries").delete().eq("id", entryId)
+export async function deleteJournalEntry(id: string) {
+  const { error } = await supabase.from("journal_entries").delete().eq("id", id)
   if (error) throw error
-  return true
+}
+
+/* ─────────────────────────
+   Templates
+   ───────────────────────── */
+export async function getJournalTemplates() {
+  const { data, error } = await supabase.from("journal_templates").select("*").order("title", { ascending: true })
+
+  if (error) throw error
+  return data as TemplateRow[]
 }

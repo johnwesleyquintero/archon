@@ -1,5 +1,5 @@
 {
-  "name": "archon-dashboard",
+  "name": "my-v0-project",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -42,6 +42,7 @@
     "@supabase/supabase-js": "latest",
     "@vercel/blob": "latest",
     "ai": "latest",
+    "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "latest",
@@ -50,28 +51,26 @@
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
     "nanoid": "latest",
-    "next": "15.2.4",
+    "next": "14.2.16",
     "next-themes": "latest",
-    "react": "^19",
+    "react": "^18",
     "react-day-picker": "latest",
-    "react-dom": "^19",
+    "react-dom": "^18",
     "react-hook-form": "latest",
     "react-resizable-panels": "latest",
     "recharts": "latest",
     "sonner": "latest",
     "tailwind-merge": "^2.5.5",
-    "tailwindcss": "^3.4.4",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "latest",
-    "zod": "^3.23.8"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^22",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.3",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
     "postcss": "^8.5",
+    "tailwindcss": "^3.4.17",
     "typescript": "^5"
   }
 }

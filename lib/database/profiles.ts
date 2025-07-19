@@ -1,17 +1,28 @@
-import { supabase } from "@/lib/supabase/server"
-import type { Tables } from "@/lib/supabase/types"
+import { supabase } from "../supabase/auth"
+import type { Database } from "../supabase/types"
 
-export async function getProfile(userId: string) {
-  const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
+type ProfilesRow = Database["public"]["Tables"]["profiles"]["Row"]
+type ProfilesUpdate = Database["public"]["Tables"]["profiles"]["Update"]
+
+/* ──────────────────────────────────────────────────────────
+   Read
+   ────────────────────────────────────────────────────────── */
+export async function getProfile(id: string) {
+  const { data, error } = await supabase.from("profiles").select("*").eq("id", id).single<ProfilesRow>()
+
   if (error) throw error
-  return data as Tables<"profiles">
+  return data
 }
 
-export async function updateProfile(userId: string, payload: Partial<Omit<Tables<"profiles">, "id">>) {
-  const { data, error } = await supabase.from("profiles").update(payload).eq("id", userId).select().single()
+/* ──────────────────────────────────────────────────────────
+   Update / Upsert
+   ────────────────────────────────────────────────────────── */
+export async function updateProfile(id: string, patch: ProfilesUpdate) {
+  const { data, error } = await supabase.from("profiles").update(patch).eq("id", id).single<ProfilesRow>()
+
   if (error) throw error
-  return data as Tables<"profiles">
+  return data
 }
 
-/* alias kept for backward-compat */
+/* Back-compat alias (some older code calls upsertProfile) */
 export const upsertProfile = updateProfile

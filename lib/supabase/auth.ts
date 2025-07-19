@@ -1,21 +1,19 @@
-import { cookies } from "next/headers"
-import { supabase } from "@/lib/supabase/server"
-import type { User } from "@supabase/supabase-js"
+/**
+ * Lightweight helpers that wrap the server-side Supabase client.
+ */
+import { supabase } from "./server"
 
 /**
- * Try to fetch the currently authenticated user using the Auth helpers + cookies.
- * Returns `null` when the user is not signed in.
+ * Returns the signed-in user (or null) inside a Server Action /
+ * Route Handler / RSC.
  */
-export async function getUser(): Promise<User | null> {
-  const accessToken = cookies().get("sb-access-token")?.value
-  if (!accessToken) return null
-
-  const { data, error } = await supabase.auth.getUser(accessToken)
-  if (error) {
-    console.error("[getUser] failed:", error)
-    return null
-  }
-  return data.user
+export async function getUser() {
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+  if (error) console.error("[Supabase] getUser error:", error)
+  return user ?? null
 }
 
-export { supabase } // convenient re-export for callers that only import from this module
+export { supabase } from "./server"
