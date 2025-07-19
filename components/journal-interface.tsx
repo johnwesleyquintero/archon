@@ -1,52 +1,42 @@
 "use client"
-
-import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { JournalList } from "@/components/journal-list"
-import { JournalEditor } from "@/components/journal-editor"
+import { JournalEditorWithAttachments } from "@/components/journal-editor-with-attachments" // Use the one with attachments
 import { JournalTemplates } from "@/components/journal-templates"
+import { useJournal } from "@/hooks/use-journal"
+import { getJournalTemplates } from "@/lib/database/journal" // Server Action for templates
+import type { Database } from "@/lib/supabase/types"
 
-interface JournalEntry {
-  id: string
-  title: string
-  content: string
-  createdAt: Date
-  updatedAt: Date
-}
-
-interface JournalTemplate {
-  id: string
-  name: string
-  description: string
-  icon: React.ElementType
-  category: "daily" | "reflection" | "planning" | "creative" | "wellness"
-  title: string
-  content: string
-  color: string
-}
+type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"]
+type JournalTemplate = Database["public"]["Tables"]["journal_templates"]["Row"]
 
 export function JournalInterface() {
-  const [entries, setEntries] = useState<JournalEntry[]>([
-    {
-      id: "1",
-      title: "Morning Reflections",
-      content: `Today started with a beautiful sunrise. I've been thinking about **personal growth** and how important it is to:\n\n- Take time for reflection\n- Set meaningful goals\n- Practice gratitude daily\n\nThe *quiet moments* in the morning really help me center myself for the day ahead.`,
-      createdAt: new Date(2024, 0, 15),
-      updatedAt: new Date(2024, 0, 15),
-    },
-    {
-      id: "2",
-      title: "Weekly Review - Week of Monday, January 8, 2024",
-      content: `## Weekly Review & Planning\n\n**Week of:** Monday, January 8, 2024\n\n### Looking Back\n**Biggest Wins This Week:**\n- Completed the project proposal ahead of schedule\n- Started a new morning routine with meditation\n- Had a great conversation with my mentor\n\n**Challenges I Faced:**\n- Struggled with time management on Tuesday\n- Felt overwhelmed with the new client requirements\n\n**Lessons Learned:**\n- Breaking large tasks into smaller chunks helps with overwhelm\n- Morning meditation really does set a better tone for the day\n\n### Looking Ahead\n**Top 3 Priorities for Next Week:**\n1. Finalize the client presentation\n2. Schedule team one-on-ones\n3. Plan the quarterly review meeting`,
-      createdAt: new Date(2024, 0, 14),
-      updatedAt: new Date(2024, 0, 14),
-    },
-  ])
-
-  const [selectedEntryId, setSelectedEntryId] = useState<string | null>("1")
+  const { entries, isLoading, error, isMutating, addEntry, updateEntry, deleteEntry, refetchEntries } = useJournal()
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
+  const [templates, setTemplates] = useState<JournalTemplate[]>([])
+  const [templatesLoading, setTemplatesLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      setTemplatesLoading(true)
+      const { data, error: templateError } = await getJournalTemplates()
+      if (templateError) {
+        console.error("Error fetching templates:", templateError)
+      } else {
+        setTemplates(data || [])
+      }
+      setTemplatesLoading(false)
+    }
+    fetchTemplates()
+  }, [])
+
+  useEffect(() => {
+    if (!selectedEntryId && entries.length > 0) {
+      setSelectedEntryId(entries[0].id) // Select the first entry by default if none selected
+    }
+  }, [entries, selectedEntryId])
 
   const selectedEntry = entries.find((entry) => entry.id === selectedEntryId) || null
 
@@ -55,53 +45,78 @@ export function JournalInterface() {
     setHasUnsavedChanges(false)
   }
 
-  const handleCreateEntry = () => {
-    const newEntry: JournalEntry = {
-      id: Date.now().toString(),
-      title: "",
+  const handleCreateEntry = async () => {
+    const newEntryData = {
+      title: "New Entry",
       content: "",
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      attachments: [],
     }
-
-    setEntries([newEntry, ...entries])
-    setSelectedEntryId(newEntry.id)
+    await addEntry(newEntryData)
+    // The useJournal hook will update the state and revalidate,
+    // so we just need to ensure the new entry is selected.
+    // This might require a slight delay or a more sophisticated way to get the new ID.
+    // For now, the optimistic update in useJournal will handle it.
     setHasUnsavedChanges(false)
   }
 
-  const handleCreateFromTemplate = (template: JournalTemplate) => {
-    const newEntry: JournalEntry = {
-      id: Date.now().toString(),
+  const handleCreateFromTemplate = async (template: JournalTemplate) => {
+    const newEntryData = {
       title: template.title,
       content: template.content,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      attachments: [],
     }
-
-    setEntries([newEntry, ...entries])
-    setSelectedEntryId(newEntry.id)
+    await addEntry(newEntryData)
     setHasUnsavedChanges(false)
+    setShowTemplates(false) // Close template modal
   }
 
-  const handleUpdateEntry = (entryId: string, updates: Partial<JournalEntry>) => {
-    setEntries((prev) =>
-      prev.map((entry) =>
-        entry.id === entryId
-          ? {
-              ...entry,
-              ...updates,
-              updatedAt: new Date(),
-            }
-          : entry,
-      ),
+  const handleUpdateEntry = async (entryId: string, updates: Partial<JournalEntry>) => {
+    // This function is called frequently as user types.
+    // We'll update local state immediately for responsiveness,
+    // and then trigger a debounced save or save on blur/button click.
+    entries.map((entry) =>
+      entry.id === entryId
+        ? {
+            ...entry,
+            ...updates,
+            updated_at: new Date().toISOString(),
+          }
+        : entry,
     )
     setHasUnsavedChanges(true)
   }
 
-  const handleSaveEntry = () => {
-    setHasUnsavedChanges(false)
-    // In a real app, you would save to a backend here
-    console.log("Entry saved!")
+  const handleSaveEntry = async () => {
+    if (selectedEntry && hasUnsavedChanges) {
+      const { id, title, content, attachments } = selectedEntry
+      await updateEntry(id, { title, content, attachments })
+      setHasUnsavedChanges(false)
+    }
+  }
+
+  const handleDeleteEntry = async (entryId: string) => {
+    if (window.confirm("Are you sure you want to delete this journal entry?")) {
+      await deleteEntry(entryId)
+      if (selectedEntryId === entryId) {
+        setSelectedEntryId(null) // Deselect if the current entry is deleted
+      }
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="h-[600px] flex items-center justify-center border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
+        <p className="text-slate-500">Loading journal entries...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="h-[600px] flex items-center justify-center border border-red-200 rounded-lg overflow-hidden bg-red-50 shadow-sm text-red-700">
+        <p>Error: {error.message}</p>
+      </div>
+    )
   }
 
   return (
@@ -115,16 +130,19 @@ export function JournalInterface() {
             onSelectEntry={handleSelectEntry}
             onCreateEntry={handleCreateEntry}
             onShowTemplates={() => setShowTemplates(true)}
+            onDeleteEntry={handleDeleteEntry}
+            isMutating={isMutating}
           />
         </div>
 
         {/* Right Pane - Journal Editor */}
         <div className="flex-1">
-          <JournalEditor
+          <JournalEditorWithAttachments
             entry={selectedEntry}
             onUpdateEntry={handleUpdateEntry}
             onSaveEntry={handleSaveEntry}
             hasUnsavedChanges={hasUnsavedChanges}
+            isMutating={isMutating}
           />
         </div>
       </div>
@@ -134,6 +152,8 @@ export function JournalInterface() {
         isOpen={showTemplates}
         onClose={() => setShowTemplates(false)}
         onSelectTemplate={handleCreateFromTemplate}
+        templates={templates}
+        isLoading={templatesLoading}
       />
     </>
   )

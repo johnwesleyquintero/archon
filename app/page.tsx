@@ -1,5 +1,6 @@
 "use client"
 
+import { redirect } from "next/navigation"
 import { AppSidebar } from "@/components/app-sidebar"
 import { TodoList } from "@/components/todo-list"
 import { DashboardHeader } from "@/components/dashboard-header"
@@ -15,7 +16,10 @@ import {
 } from "@/components/ui/breadcrumb"
 import { GoalTracker } from "@/components/goal-tracker"
 
-export default function Page() {
+export default function HomePage() {
+  // Redirect to the dashboard or login page
+  redirect("/dashboard")
+
   return (
     <SidebarProvider>
       <AppSidebar />

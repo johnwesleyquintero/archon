@@ -1,8 +1,6 @@
-// This file was previously abbreviated. Here is its full content.
 import type { EmailOtpType } from "@supabase/supabase-js"
-import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
-
+import { cookies } from "next/headers"
 import { createServerClient } from "@supabase/ssr"
 
 export async function GET(request: Request) {
@@ -18,24 +16,25 @@ export async function GET(request: Request) {
 
   if (token_hash && type) {
     const cookieStore = cookies()
-    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-        set(name: string, value: string, options: any) {
-          cookieStore.set({ name, value, ...options })
-        },
-        remove(name: string, options: any) {
-          cookieStore.set({ name, value: "", ...options })
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use service role key for server-side operations
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+          set(name: string, value: string, options: any) {
+            cookieStore.set(name, value, options)
+          },
+          remove(name: string, options: any) {
+            cookieStore.set(name, "", options)
+          },
         },
       },
-    })
+    )
 
-    const { error } = await supabase.auth.verifyOtp({
-      type,
-      token_hash,
-    })
+    const { error } = await supabase.auth.verifyOtp({ type, token_hash })
     if (!error) {
       redirectTo.searchParams.delete("next")
       return NextResponse.redirect(redirectTo)
@@ -44,5 +43,6 @@ export async function GET(request: Request) {
 
   // return the user to an error page with some instructions
   redirectTo.pathname = "/auth/auth-code-error"
+  redirectTo.searchParams.set("message", "Could not verify email OTP.")
   return NextResponse.redirect(redirectTo)
 }

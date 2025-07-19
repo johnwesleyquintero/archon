@@ -1,60 +1,52 @@
-// Common SVG props for wireframe style
-const commonSvgProps = {
-  stroke: "currentColor",
-  fill: "none",
-  strokeWidth: "2",
-  strokeLinecap: "round" as const,
-}
+"use client"
 
-// Component 1: BarChartPlaceholder
-export function BarChartPlaceholder() {
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { BarChart, LineChart, PieChart } from "lucide-react" // Using Lucide icons for placeholders
+
+export function PlaceholderInfographics() {
   return (
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" {...commonSvgProps}>
-      {/* X-axis */}
-      <line x1="10" y1="90" x2="90" y2="90" />
-      {/* Y-axis */}
-      <line x1="10" y1="90" x2="10" y2="10" />
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Sales Trend</CardTitle>
+          <LineChart className="h-4 w-4 text-slate-500" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">$1,234,567</div>
+          <p className="text-xs text-slate-500">Year-to-date sales</p>
+          <div className="mt-4 h-32 w-full bg-slate-100 rounded-md flex items-center justify-center text-slate-400 text-sm">
+            Line Chart Placeholder
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Bars */}
-      <rect x="20" y="60" width="15" height="30" />
-      <rect x="40" y="40" width="15" height="50" />
-      <rect x="60" y="70" width="15" height="20" />
-      <rect x="80" y="50" width="15" height="40" />
-    </svg>
-  )
-}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">User Acquisition</CardTitle>
+          <BarChart className="h-4 w-4 text-slate-500" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">8,765 New Users</div>
+          <p className="text-xs text-slate-500">Last 30 days</p>
+          <div className="mt-4 h-32 w-full bg-slate-100 rounded-md flex items-center justify-center text-slate-400 text-sm">
+            Bar Chart Placeholder
+          </div>
+        </CardContent>
+      </Card>
 
-// Component 2: LineChartPlaceholder
-export function LineChartPlaceholder() {
-  return (
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" {...commonSvgProps}>
-      {/* X-axis */}
-      <line x1="10" y1="90" x2="90" y2="90" />
-      {/* Y-axis */}
-      <line x1="10" y1="90" x2="10" y2="10" />
-
-      {/* Line path */}
-      <polyline points="15,80 30,40 45,70 60,30 75,60 85,20" />
-    </svg>
-  )
-}
-
-// Component 3: PieChartPlaceholder
-export function PieChartPlaceholder() {
-  return (
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" {...commonSvgProps}>
-      {/* Circle */}
-      <circle cx="50" cy="50" r="40" />
-
-      {/* Slices (using paths for clean cuts) */}
-      {/* Slice 1 */}
-      <path d="M50 50 L50 10 A40 40 0 0 1 84.64 30 L50 50 Z" />
-      {/* Slice 2 */}
-      <path d="M50 50 L84.64 30 A40 40 0 0 1 84.64 70 L50 50 Z" />
-      {/* Slice 3 */}
-      <path d="M50 50 L84.64 70 A40 40 0 0 1 15.36 70 L50 50 Z" />
-      {/* Slice 4 */}
-      <path d="M50 50 L15.36 70 A40 40 0 0 1 50 10 L50 50 Z" />
-    </svg>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Revenue Breakdown</CardTitle>
+          <PieChart className="h-4 w-4 text-slate-500" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">Product Categories</div>
+          <p className="text-xs text-slate-500">Distribution of revenue</p>
+          <div className="mt-4 h-32 w-full bg-slate-100 rounded-md flex items-center justify-center text-slate-400 text-sm">
+            Pie Chart Placeholder
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

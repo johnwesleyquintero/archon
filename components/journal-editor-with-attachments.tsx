@@ -1,6 +1,8 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
+
+import { useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -9,60 +11,62 @@ import { Bold, Italic, List, Save, Paperclip, ImageIcon, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { FileUpload } from "@/components/file-upload"
 import { uploadFile } from "@/lib/blob"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { journalEntrySchema } from "@/lib/validators"
+import type { z } from "zod"
+import type { Database } from "@/lib/supabase/types"
 
-interface JournalEntry {
-  id: string
-  title: string
-  content: string
-  createdAt: Date
-  updatedAt: Date
-  attachments?: Array<{
-    url: string
-    filename: string
-    type: string
-  }>
-}
+type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"]
+type JournalEntryUpdate = Database["public"]["Tables"]["journal_entries"]["Update"]
 
 interface JournalEditorProps {
   entry: JournalEntry | null
-  onUpdateEntry: (entryId: string, updates: Partial<JournalEntry>) => void
+  onUpdateEntry: (entryId: string, updates: Partial<JournalEntryUpdate>) => void
   onSaveEntry: () => void
   hasUnsavedChanges: boolean
+  isMutating: boolean
 }
+
+type JournalFormValues = z.infer<typeof journalEntrySchema>
 
 export function JournalEditorWithAttachments({
   entry,
   onUpdateEntry,
   onSaveEntry,
   hasUnsavedChanges,
+  isMutating,
 }: JournalEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const [title, setTitle] = useState("")
-  const [content, setContent] = useState("")
   const [showAttachmentUpload, setShowAttachmentUpload] = useState(false)
-  const [attachments, setAttachments] = useState<Array<{ url: string; filename: string; type: string }>>([])
+
+  const form = useForm<JournalFormValues>({
+    resolver: zodResolver(journalEntrySchema),
+    defaultValues: {
+      title: "",
+      content: "",
+      attachments: [],
+    },
+  })
 
   useEffect(() => {
     if (entry) {
-      setTitle(entry.title)
-      setContent(entry.content)
-      setAttachments(entry.attachments || [])
+      form.reset({
+        title: entry.title,
+        content: entry.content || "",
+        attachments: entry.attachments || [],
+      })
     } else {
-      setTitle("")
-      setContent("")
-      setAttachments([])
+      form.reset({
+        title: "",
+        content: "",
+        attachments: [],
+      })
     }
-  }, [entry])
-
-  const handleTitleChange = (newTitle: string) => {
-    setTitle(newTitle)
-    if (entry) {
-      onUpdateEntry(entry.id, { title: newTitle })
-    }
-  }
+  }, [entry, form])
 
   const handleContentChange = (newContent: string) => {
-    setContent(newContent)
+    form.setValue("content", newContent, { shouldDirty: true, shouldValidate: true })
     if (entry) {
       onUpdateEntry(entry.id, { content: newContent })
     }
@@ -72,10 +76,12 @@ export function JournalEditorWithAttachments({
     const textarea = textareaRef.current
     if (!textarea) return
 
+    const currentContent = form.getValues("content")
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-    const selectedText = content.substring(start, end)
-    const newContent = content.substring(0, start) + before + selectedText + after + content.substring(end)
+    const selectedText = currentContent.substring(start, end)
+    const newContent =
+      currentContent.substring(0, start) + before + selectedText + after + currentContent.substring(end)
 
     handleContentChange(newContent)
 
@@ -92,9 +98,10 @@ export function JournalEditorWithAttachments({
     const textarea = textareaRef.current
     if (!textarea) return
 
+    const currentContent = form.getValues("content")
     const start = textarea.selectionStart
-    const lineStart = content.lastIndexOf("\n", start - 1) + 1
-    const newContent = content.substring(0, lineStart) + "- " + content.substring(lineStart)
+    const lineStart = currentContent.lastIndexOf("\n", start - 1) + 1
+    const newContent = currentContent.substring(0, lineStart) + "- " + currentContent.substring(lineStart)
 
     handleContentChange(newContent)
 
@@ -115,19 +122,19 @@ export function JournalEditorWithAttachments({
         // Determine file type category
         const fileType = file.type.startsWith("image/") ? "image" : "document"
 
-        // Add to attachments
+        // Add to attachments in form state
+        const currentAttachments = form.getValues("attachments") || []
         const newAttachment = {
           url: result.url,
           filename: file.name,
           type: fileType,
         }
+        const updatedAttachments = [...currentAttachments, newAttachment]
+        form.setValue("attachments", updatedAttachments, { shouldDirty: true, shouldValidate: true })
 
-        const updatedAttachments = [...attachments, newAttachment]
-        setAttachments(updatedAttachments)
-
-        // Update entry
+        // Update entry in parent state (which will trigger DB update)
         onUpdateEntry(entry.id, {
-          attachments: updatedAttachments,
+          attachments: updatedAttachments as any, // Cast to any because Supabase types might not match exactly
         })
 
         return { url: result.url, success: true }
@@ -147,15 +154,17 @@ export function JournalEditorWithAttachments({
   const removeAttachment = (url: string) => {
     if (!entry) return
 
-    const updatedAttachments = attachments.filter((attachment) => attachment.url !== url)
-    setAttachments(updatedAttachments)
-    onUpdateEntry(entry.id, { attachments: updatedAttachments })
+    const currentAttachments = form.getValues("attachments") || []
+    const updatedAttachments = currentAttachments.filter((attachment: any) => attachment.url !== url)
+    form.setValue("attachments", updatedAttachments, { shouldDirty: true, shouldValidate: true })
+    onUpdateEntry(entry.id, { attachments: updatedAttachments as any })
 
     // In a real app, you might want to also delete the file from blob storage
     // await deleteFile(url);
   }
 
-  const formatDate = (date: Date) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
     return date.toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
@@ -185,17 +194,20 @@ export function JournalEditorWithAttachments({
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <Input
-              value={title}
-              onChange={(e) => handleTitleChange(e.target.value)}
+              {...form.register("title")}
               placeholder="Entry title..."
               className="text-lg font-semibold border-0 px-0 shadow-none focus-visible:ring-0 placeholder:text-slate-400"
+              disabled={isMutating}
             />
-            <p className="text-xs text-slate-500 mt-1">{formatDate(entry.createdAt)}</p>
+            {form.formState.errors.title && (
+              <p className="text-sm text-red-500">{form.formState.errors.title.message}</p>
+            )}
+            <p className="text-xs text-slate-500 mt-1">{formatDate(entry.created_at)}</p>
           </div>
           <Button
             onClick={onSaveEntry}
             size="sm"
-            disabled={!hasUnsavedChanges}
+            disabled={!hasUnsavedChanges || isMutating}
             className={cn(
               "transition-all duration-200",
               hasUnsavedChanges
@@ -204,19 +216,19 @@ export function JournalEditorWithAttachments({
             )}
           >
             <Save className="h-4 w-4 mr-1" />
-            {hasUnsavedChanges ? "Save" : "Saved"}
+            {isMutating ? "Saving..." : hasUnsavedChanges ? "Save" : "Saved"}
           </Button>
         </div>
 
         {/* Toolbar */}
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={handleBold} className="h-8 w-8 p-0">
+          <Button variant="ghost" size="sm" onClick={handleBold} className="h-8 w-8 p-0" disabled={isMutating}>
             <Bold className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={handleItalic} className="h-8 w-8 p-0">
+          <Button variant="ghost" size="sm" onClick={handleItalic} className="h-8 w-8 p-0" disabled={isMutating}>
             <Italic className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={handleBulletList} className="h-8 w-8 p-0">
+          <Button variant="ghost" size="sm" onClick={handleBulletList} className="h-8 w-8 p-0" disabled={isMutating}>
             <List className="h-4 w-4" />
           </Button>
           <Button
@@ -224,6 +236,7 @@ export function JournalEditorWithAttachments({
             size="sm"
             onClick={() => setShowAttachmentUpload(!showAttachmentUpload)}
             className={cn("h-8 w-8 p-0", showAttachmentUpload && "bg-slate-100")}
+            disabled={isMutating}
           >
             <Paperclip className="h-4 w-4" />
           </Button>
@@ -238,16 +251,17 @@ export function JournalEditorWithAttachments({
               onUpload={handleFileUpload}
               accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               buttonText="Select File"
+              disabled={isMutating}
             />
           </div>
         )}
 
         {/* Attachments Preview */}
-        {attachments.length > 0 && (
+        {form.watch("attachments") && form.watch("attachments").length > 0 && (
           <div className="pt-2">
-            <p className="text-xs font-medium text-slate-700 mb-2">Attachments ({attachments.length})</p>
+            <p className="text-xs font-medium text-slate-700 mb-2">Attachments ({form.watch("attachments").length})</p>
             <div className="flex flex-wrap gap-2">
-              {attachments.map((attachment) => (
+              {form.watch("attachments").map((attachment: any) => (
                 <div
                   key={attachment.url}
                   className="group relative border border-slate-200 rounded-md p-1 hover:border-slate-300"
@@ -255,7 +269,7 @@ export function JournalEditorWithAttachments({
                   {attachment.type === "image" ? (
                     <div className="relative w-16 h-16">
                       <img
-                        src={attachment.url || "/placeholder.svg"}
+                        src={attachment.url || "/placeholder.png"}
                         alt={attachment.filename}
                         className="w-full h-full object-cover rounded"
                         onClick={() => insertImageInContent(attachment.url)}
@@ -266,6 +280,7 @@ export function JournalEditorWithAttachments({
                           size="sm"
                           onClick={() => insertImageInContent(attachment.url)}
                           className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 bg-white/80 hover:bg-white"
+                          disabled={isMutating}
                         >
                           <ImageIcon className="h-3 w-3" />
                         </Button>
@@ -283,6 +298,7 @@ export function JournalEditorWithAttachments({
                     size="sm"
                     onClick={() => removeAttachment(attachment.url)}
                     className="absolute -top-2 -right-2 h-5 w-5 p-0 bg-white border border-slate-200 rounded-full opacity-0 group-hover:opacity-100"
+                    disabled={isMutating}
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -297,7 +313,7 @@ export function JournalEditorWithAttachments({
       <div className="flex-1 p-4">
         <Textarea
           ref={textareaRef}
-          value={content}
+          value={form.watch("content")}
           onChange={(e) => handleContentChange(e.target.value)}
           placeholder="Start writing your thoughts..."
           className="w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 text-base leading-relaxed placeholder:text-slate-400"
@@ -306,14 +322,15 @@ export function JournalEditorWithAttachments({
             fontSize: "16px",
             lineHeight: "1.7",
           }}
+          disabled={isMutating}
         />
       </div>
 
       {/* Status Bar */}
       <div className="px-4 py-2 border-t border-slate-100 bg-slate-50">
         <div className="flex items-center justify-between text-xs text-slate-500">
-          <span>{content.length} characters</span>
-          <span>Last updated: {entry.updatedAt.toLocaleTimeString()}</span>
+          <span>{form.watch("content")?.length || 0} characters</span>
+          <span>Last updated: {new Date(entry.updated_at).toLocaleTimeString()}</span>
         </div>
       </div>
     </div>

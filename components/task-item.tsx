@@ -1,41 +1,62 @@
 "use client"
 
-// This file was previously abbreviated. Here is its full content.
+import React from "react"
+
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
-import { Trash2 } from "lucide-react"
+import { Trash2, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
 
 interface TaskItemProps {
   id: string
   title: string
   completed: boolean
-  onToggle: (id: string) => void
+  onToggle: (id: string, completed: boolean) => void
   onDelete: (id: string) => void
+  disabled?: boolean // Added disabled prop
 }
 
-export function TaskItem({ id, title, completed, onToggle, onDelete }: TaskItemProps) {
-  const [isHovered, setIsHovered] = useState(false)
+export function TaskItem({ id, title, completed, onToggle, onDelete, disabled = false }: TaskItemProps) {
+  const [isToggling, setIsToggling] = React.useState(false)
+  const [isDeleting, setIsDeleting] = React.useState(false)
+
+  const handleToggle = async () => {
+    setIsToggling(true)
+    try {
+      await onToggle(id, !completed)
+    } catch (error) {
+      console.error("Error toggling task:", error)
+    } finally {
+      setIsToggling(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    setIsDeleting(true)
+    try {
+      await onDelete(id)
+    } catch (error) {
+      console.error("Error deleting task:", error)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   return (
-    <div
-      className="flex items-center justify-between p-3 rounded-md bg-card text-card-foreground shadow-sm transition-all duration-200 ease-in-out"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className="flex items-center gap-3 flex-1">
+    <div className="flex items-center justify-between p-2 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+      <div className="flex items-center gap-3">
         <Checkbox
           id={`task-${id}`}
           checked={completed}
-          onCheckedChange={() => onToggle(id)}
+          onCheckedChange={handleToggle}
+          disabled={disabled || isToggling || isDeleting}
           aria-label={`Mark task "${title}" as ${completed ? "incomplete" : "complete"}`}
         />
         <label
           htmlFor={`task-${id}`}
           className={cn(
-            "text-base font-medium cursor-pointer flex-1",
-            completed && "line-through text-muted-foreground opacity-70",
+            "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+            completed && "line-through text-slate-500 dark:text-slate-400",
           )}
         >
           {title}
@@ -44,11 +65,12 @@ export function TaskItem({ id, title, completed, onToggle, onDelete }: TaskItemP
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => onDelete(id)}
-        className={cn("ml-2 h-8 w-8 transition-opacity duration-200", isHovered ? "opacity-100" : "opacity-0")}
+        onClick={handleDelete}
+        disabled={disabled || isToggling || isDeleting}
+        className="text-slate-500 hover:text-destructive dark:text-slate-400 dark:hover:text-destructive"
         aria-label={`Delete task "${title}"`}
       >
-        <Trash2 className="h-4 w-4 text-destructive" />
+        {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
       </Button>
     </div>
   )

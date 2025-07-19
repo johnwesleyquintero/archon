@@ -1,177 +1,143 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import {
-  getTasks,
-  addTask as dbAddTask,
-  toggleTask as dbToggleTask,
-  deleteTask as dbDeleteTask,
-} from "@/lib/database/tasks"
-import type { Task, TaskFilterType, TaskSortType } from "@/lib/supabase/types"
-import { useAuth } from "@/contexts/auth-context" // Import useAuth to get user ID
+import { useState, useEffect, useCallback, useTransition } from "react"
+import { getTasks, addTask, toggleTask, deleteTask } from "@/lib/database/tasks"
+import type { Database } from "@/lib/supabase/types"
+import { useAuth } from "@/contexts/auth-context"
 
-interface UseTasksProps {
-  initialFilter?: TaskFilterType
-  initialSort?: TaskSortType
-}
+type Task = Database["public"]["Tables"]["tasks"]["Row"]
 
-interface UseTasksResult {
-  tasks: Task[]
-  isLoading: boolean
-  error: string | null
-  filter: TaskFilterType
-  sort: TaskSortType
-  setFilter: (filter: TaskFilterType) => void
-  setSort: (sort: TaskSortType) => void
-  addTask: (title: string) => Promise<void>
-  toggleTask: (id: string) => Promise<void>
-  deleteTask: (id: string) => Promise<void>
-  refetchTasks: () => Promise<void>
-}
-
-export function useTasks({ initialFilter = "all", initialSort = "newest" }: UseTasksProps = {}): UseTasksResult {
-  const { user, isLoading: isAuthLoading } = useAuth() // Get user from auth context
+export function useTasks() {
+  const { user } = useAuth()
   const [tasks, setTasks] = useState<Task[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [filter, setFilter] = useState<TaskFilterType>(initialFilter)
-  const [sort, setSort] = useState<TaskSortType>(initialSort)
+  const [isPending, startTransition] = useTransition()
 
   const fetchTasks = useCallback(async () => {
-    if (!user?.id) {
-      // If user is not logged in or still loading auth, don't fetch tasks
+    if (!user) {
       setTasks([])
-      setIsLoading(false)
+      setLoading(false)
       return
     }
-
-    setIsLoading(true)
+    setLoading(true)
     setError(null)
     try {
-      const { data, error: dbError } = await getTasks(user.id, filter, sort)
-      if (dbError) {
-        throw new Error(dbError.message)
-      }
-      setTasks(data || [])
-    } catch (err: any) {
+      const fetchedTasks = await getTasks()
+      setTasks(fetchedTasks)
+    } catch (err) {
       console.error("Failed to fetch tasks:", err)
-      setError(err.message || "Failed to load tasks. Please try again.")
+      setError("Failed to load tasks. Please try again.")
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
-  }, [user?.id, filter, sort])
+  }, [user])
 
   useEffect(() => {
-    if (!isAuthLoading) {
-      // Only fetch tasks once auth state is known
-      fetchTasks()
-    }
-  }, [fetchTasks, isAuthLoading])
+    fetchTasks()
+  }, [fetchTasks])
 
-  const addTask = useCallback(
+  const handleAddTask = useCallback(
     async (title: string) => {
-      const tempId = `temp-${Date.now()}` // Declare tempId variable
-      if (!user?.id) {
-        setError("User not authenticated. Cannot add task.")
+      if (!user) {
+        setError("You must be logged in to add tasks.")
         return
       }
-      try {
-        // Optimistic update
-        const newTask: Task = {
-          id: tempId,
-          title,
-          completed: false,
-          user_id: user.id,
-          created_at: new Date().toISOString(),
-          due_date: null,
-        }
-        setTasks((prevTasks) => [...prevTasks, newTask])
+      setError(null)
+      startTransition(async () => {
+        try {
+          // Optimistic update
+          const tempId = `temp-${Date.now()}`
+          const newTask: Task = {
+            id: tempId,
+            title,
+            completed: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            user_id: user.id, // Use actual user ID for optimistic update
+          }
+          setTasks((prev) => [newTask, ...prev])
 
-        const { data, error: dbError } = await dbAddTask(user.id, title)
-        if (dbError) {
-          throw new Error(dbError.message)
+          const addedTask = await addTask(title)
+          if (addedTask) {
+            setTasks((prev) => prev.map((task) => (task.id === tempId ? addedTask : task)))
+          } else {
+            // Revert optimistic update if actual add failed
+            setTasks((prev) => prev.filter((task) => task.id !== tempId))
+            setError("Failed to add task.")
+          }
+        } catch (err: any) {
+          console.error("Error adding task:", err)
+          setError(err.message || "Failed to add task.")
+          // Revert optimistic update on error
+          setTasks((prev) => prev.filter((task) => task.id !== `temp-${Date.now()}`))
         }
-        // Replace temporary task with actual task from DB
-        setTasks((prevTasks) => prevTasks.map((task) => (task.id === tempId ? data[0] : task)))
-      } catch (err: any) {
-        console.error("Failed to add task:", err)
-        setError(err.message || "Failed to add task.")
-        // Revert optimistic update
-        setTasks((prevTasks) => prevTasks.filter((task) => task.id !== tempId))
-      }
+      })
     },
-    [user?.id],
+    [user],
   )
 
-  const toggleTask = useCallback(
-    async (id: string) => {
-      if (!user?.id) {
-        setError("User not authenticated. Cannot toggle task.")
+  const handleToggleTask = useCallback(
+    async (id: string, completed: boolean) => {
+      if (!user) {
+        setError("You must be logged in to update tasks.")
         return
       }
-      try {
-        // Optimistic update
-        setTasks((prevTasks) =>
-          prevTasks.map((task) => (task.id === id ? { ...task, completed: !task.completed } : task)),
-        )
-
-        const taskToUpdate = tasks.find((task) => task.id === id)
-        if (!taskToUpdate) return
-
-        const { error: dbError } = await dbToggleTask(user.id, id, !taskToUpdate.completed)
-        if (dbError) {
-          throw new Error(dbError.message)
+      setError(null)
+      startTransition(async () => {
+        try {
+          // Optimistic update
+          setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, completed: completed } : task)))
+          const updatedTask = await toggleTask(id, completed)
+          if (!updatedTask) {
+            // Revert optimistic update if actual update failed
+            setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, completed: !completed } : task)))
+            setError("Failed to update task status.")
+          }
+        } catch (err: any) {
+          console.error("Error toggling task:", err)
+          setError(err.message || "Failed to update task status.")
+          // Revert optimistic update on error
+          setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, completed: !completed } : task)))
         }
-      } catch (err: any) {
-        console.error("Failed to toggle task:", err)
-        setError(err.message || "Failed to update task status.")
-        // Revert optimistic update
-        setTasks((prevTasks) =>
-          prevTasks.map((task) => (task.id === id ? { ...task, completed: !task.completed } : task)),
-        )
-      }
+      })
     },
-    [tasks, user?.id],
-  ) // Dependency on tasks for finding taskToUpdate
+    [user],
+  )
 
-  const deleteTask = useCallback(
+  const handleDeleteTask = useCallback(
     async (id: string) => {
-      if (!user?.id) {
-        setError("User not authenticated. Cannot delete task.")
+      if (!user) {
+        setError("You must be logged in to delete tasks.")
         return
       }
-      try {
-        // Optimistic update
-        setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id))
+      setError(null)
+      startTransition(async () => {
+        try {
+          // Optimistic update
+          const originalTasks = tasks
+          setTasks((prev) => prev.filter((task) => task.id !== id))
 
-        const { error: dbError } = await dbDeleteTask(user.id, id)
-        if (dbError) {
-          throw new Error(dbError.message)
+          await deleteTask(id)
+        } catch (err: any) {
+          console.error("Error deleting task:", err)
+          setError(err.message || "Failed to delete task.")
+          // Revert optimistic update on error
+          setTasks(tasks) // Restore original tasks
         }
-      } catch (err: any) {
-        console.error("Failed to delete task:", err)
-        setError(err.message || "Failed to delete task.")
-        // Revert optimistic update (re-add the task if deletion failed)
-        const originalTask = tasks.find((task) => task.id === id)
-        if (originalTask) {
-          setTasks((prevTasks) => [...prevTasks, originalTask])
-        }
-      }
+      })
     },
-    [tasks, user?.id],
-  ) // Dependency on tasks for finding originalTask
+    [user, tasks],
+  )
 
   return {
     tasks,
-    isLoading: isLoading || isAuthLoading,
+    loading,
     error,
-    filter,
-    sort,
-    setFilter,
-    setSort,
-    addTask,
-    toggleTask,
-    deleteTask,
+    isMutating: isPending, // Use isPending from useTransition for mutation state
+    addTask: handleAddTask,
+    toggleTask: handleToggleTask,
+    deleteTask: handleDeleteTask,
     refetchTasks: fetchTasks,
   }
 }

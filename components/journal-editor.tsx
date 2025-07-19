@@ -1,3 +1,5 @@
+// This file is now deprecated and replaced by journal-editor-with-attachments.tsx
+// Keeping it here for reference if needed, but it's not actively used.
 "use client"
 
 import { useState, useRef, useEffect } from "react"

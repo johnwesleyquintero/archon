@@ -10,55 +10,19 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'avatars.githubusercontent.com',
-        port: '',
-        pathname: '**',
+        hostname: '**.supabase.co',
       },
       {
         protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-        port: '',
-        pathname: '**',
+        hostname: '**.vercel-storage.com',
       },
       {
         protocol: 'https',
-        hostname: 'cdn.sanity.io',
-        port: '',
-        pathname: '**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'source.unsplash.com',
-        port: '',
-        pathname: '**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-        port: '',
-        pathname: '**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'blob.v0.dev', // For v0 generated placeholder images
-        port: '',
-        pathname: '**',
-      },
-      {
-        protocol: 'https',
-        hostname: '*.supabase.co', // For Supabase storage
-        port: '',
-        pathname: '**',
+        hostname: '**.v0.dev',
       },
     ],
     unoptimized: true,
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

@@ -1,52 +1,91 @@
-import { debugEnvironment } from "@/lib/supabase/config"
+"use client"
+
+import { useAuth } from "@/contexts/auth-context"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { useState } from "react"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function DebugPage() {
-  const validation = debugEnvironment()
+  const { user, profile, isLoading, error, refetchProfile } = useAuth()
+  const [isRefetching, setIsRefetching] = useState(false)
+
+  const handleRefetchProfile = async () => {
+    setIsRefetching(true)
+    await refetchProfile()
+    setIsRefetching(false)
+  }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Supabase Configuration Debug</h1>
+    <div className="p-6 space-y-6">
+      <h1 className="text-3xl font-bold">Debug Information</h1>
 
-      <div className="space-y-4">
-        <div className="bg-slate-100 p-4 rounded-lg">
-          <h2 className="font-semibold mb-2">Configuration Status</h2>
-          <p className={`text-sm ${validation.isValid ? "text-green-600" : "text-red-600"}`}>
-            {validation.isValid ? "✅ Configuration is valid" : "❌ Configuration has errors"}
+      <Card>
+        <CardHeader>
+          <CardTitle>Authentication Status</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <p>
+            <strong>Loading:</strong> {isLoading ? "Yes" : "No"}
           </p>
-        </div>
+          <p>
+            <strong>User ID:</strong> {user?.id || "N/A"}
+          </p>
+          <p>
+            <strong>User Email:</strong> {user?.email || "N/A"}
+          </p>
+          <p>
+            <strong>Auth Error:</strong> {error ? error.message : "None"}
+          </p>
+          <Button onClick={handleRefetchProfile} disabled={isRefetching}>
+            {isRefetching ? <Spinner size="sm" /> : "Refetch Profile"}
+          </Button>
+        </CardContent>
+      </Card>
 
-        {validation.errors.length > 0 && (
-          <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
-            <h3 className="font-semibold text-red-800 mb-2">Errors:</h3>
-            <ul className="list-disc list-inside text-sm text-red-700">
-              {validation.errors.map((error, index) => (
-                <li key={index}>{error}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+      <Card>
+        <CardHeader>
+          <CardTitle>User Profile Data</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <p>
+            <strong>Full Name:</strong> {profile?.full_name || "N/A"}
+          </p>
+          <p>
+            <strong>Username:</strong> {profile?.username || "N/A"}
+          </p>
+          <p>
+            <strong>Avatar URL:</strong> {profile?.avatar_url || "N/A"}
+          </p>
+          <p>
+            <strong>Created At:</strong> {profile?.created_at ? new Date(profile.created_at).toLocaleString() : "N/A"}
+          </p>
+          <p>
+            <strong>Updated At:</strong> {profile?.updated_at ? new Date(profile.updated_at).toLocaleString() : "N/A"}
+          </p>
+        </CardContent>
+      </Card>
 
-        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-          <h3 className="font-semibold text-blue-800 mb-2">Configuration Values:</h3>
-          <div className="text-sm text-blue-700 space-y-1">
-            <p>URL: {validation.config.url ? `${validation.config.url.substring(0, 30)}...` : "Not set"}</p>
-            <p>
-              Anon Key: {validation.config.anonKey ? `${validation.config.anonKey.substring(0, 20)}...` : "Not set"}
-            </p>
-            <p>Service Role Key: {validation.config.serviceRoleKey ? "Set" : "Not set"}</p>
-          </div>
-        </div>
-
-        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-          <h3 className="font-semibold text-yellow-800 mb-2">Troubleshooting Steps:</h3>
-          <ol className="list-decimal list-inside text-sm text-yellow-700 space-y-1">
-            <li>Check if .env.local exists in your project root</li>
-            <li>Verify your Supabase project URL and keys in the Supabase dashboard</li>
-            <li>Restart your development server after changing environment variables</li>
-            <li>If using Vercel, check your project environment variables</li>
-          </ol>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Environment Variables (Public)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <p>
+            <strong>NEXT_PUBLIC_SUPABASE_URL:</strong> {process.env.NEXT_PUBLIC_SUPABASE_URL ? "Set" : "Not Set"}
+          </p>
+          <p>
+            <strong>NEXT_PUBLIC_SUPABASE_ANON_KEY:</strong>{" "}
+            {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "Set" : "Not Set"}
+          </p>
+          <p>
+            <strong>NEXT_PUBLIC_VERCEL_URL:</strong> {process.env.NEXT_PUBLIC_VERCEL_URL || "Not Set"}
+          </p>
+          <p>
+            <strong>NEXT_PUBLIC_VERCEL_ENV:</strong> {process.env.NEXT_PUBLIC_VERCEL_ENV || "Not Set"}
+          </p>
+        </CardContent>
+      </Card>
     </div>
   )
 }

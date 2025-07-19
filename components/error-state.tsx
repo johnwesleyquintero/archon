@@ -1,31 +1,22 @@
-"use client"
-
-// This file was previously abbreviated. Here is its full content.
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { type LucideIcon, AlertTriangle } from "lucide-react" // Default icon
+import { AlertCircle } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface ErrorStateProps {
-  icon?: LucideIcon
-  title: string
   message: string
-  onRetry?: () => void
-  className?: string
+  description?: string
 }
 
-export function ErrorState({
-  icon: Icon = AlertTriangle, // Default to AlertTriangle
-  title,
-  message,
-  onRetry,
-  className,
-}: ErrorStateProps) {
+export function ErrorState({ message, description }: ErrorStateProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center text-center py-12 px-4", className)}>
-      <Icon className="h-12 w-12 text-destructive mb-4" />
-      <h2 className="text-xl font-semibold text-foreground mb-2">{title}</h2>
-      <p className="text-muted-foreground mb-6 max-w-sm">{message}</p>
-      {onRetry && <Button onClick={onRetry}>Retry</Button>}
+    <div className="p-4">
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          {message}
+          {description && <p className="mt-1 text-sm">{description}</p>}
+        </AlertDescription>
+      </Alert>
     </div>
   )
 }

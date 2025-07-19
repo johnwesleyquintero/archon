@@ -1,24 +1,21 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Calendar, FileText } from "lucide-react"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Plus, LayoutTemplate, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { Database } from "@/lib/supabase/types"
 
-interface JournalEntry {
-  id: string
-  title: string
-  content: string
-  createdAt: Date
-  updatedAt: Date
-}
+type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"]
 
 interface JournalListProps {
   entries: JournalEntry[]
   selectedEntryId: string | null
-  onSelectEntry: (entryId: string) => void
+  onSelectEntry: (id: string) => void
   onCreateEntry: () => void
   onShowTemplates: () => void
+  onDeleteEntry: (id: string) => void
+  isMutating: boolean
 }
 
 export function JournalList({
@@ -27,108 +24,73 @@ export function JournalList({
   onSelectEntry,
   onCreateEntry,
   onShowTemplates,
+  onDeleteEntry,
+  isMutating,
 }: JournalListProps) {
-  const formatDate = (date: Date) => {
-    const now = new Date()
-    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-
-    if (diffInDays === 0) {
-      return "Today"
-    } else if (diffInDays === 1) {
-      return "Yesterday"
-    } else if (diffInDays < 7) {
-      return `${diffInDays} days ago`
-    } else {
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
-      })
-    }
-  }
-
-  const getPreviewText = (content: string) => {
-    // Remove markdown formatting for preview
-    const plainText = content.replace(/[#*_`]/g, "").trim()
-    return plainText.length > 60 ? plainText.substring(0, 60) + "..." : plainText
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
   }
 
   return (
     <div className="h-full flex flex-col border-r border-slate-200 bg-slate-50">
-      {/* Header */}
-      <div className="p-4 border-b border-slate-200 bg-white">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-slate-900">Journal Entries</h2>
-          <div className="flex gap-2">
-            <Button onClick={onShowTemplates} size="sm" variant="outline">
-              <FileText className="h-4 w-4 mr-1" />
-              Templates
-            </Button>
-            <Button onClick={onCreateEntry} size="sm" className="bg-slate-900 hover:bg-slate-800">
-              <Plus className="h-4 w-4 mr-1" />
-              New Entry
-            </Button>
-          </div>
+      <div className="p-4 border-b border-slate-200">
+        <h2 className="text-lg font-semibold text-slate-900 mb-3">My Journal</h2>
+        <div className="flex flex-col gap-2">
+          <Button
+            onClick={onCreateEntry}
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white"
+            disabled={isMutating}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Entry
+          </Button>
+          <Button variant="outline" onClick={onShowTemplates} className="w-full bg-transparent" disabled={isMutating}>
+            <LayoutTemplate className="h-4 w-4 mr-2" />
+            Templates
+          </Button>
         </div>
-        <p className="text-sm text-slate-600">{entries.length} entries</p>
       </div>
 
-      {/* Entries List */}
-      <div className="flex-1 overflow-y-auto">
+      <ScrollArea className="flex-1 py-2">
         {entries.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">
-            <Calendar className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-            <p className="text-sm font-medium">No journal entries yet</p>
-            <p className="text-xs mt-1">Create your first entry or use a template to get started</p>
-            <div className="mt-4 space-y-2">
-              <Button onClick={onCreateEntry} size="sm" variant="outline" className="w-full bg-transparent">
-                <Plus className="h-4 w-4 mr-1" />
-                Blank Entry
-              </Button>
-              <Button onClick={onShowTemplates} size="sm" variant="outline" className="w-full bg-transparent">
-                <FileText className="h-4 w-4 mr-1" />
-                Use Template
-              </Button>
-            </div>
-          </div>
+          <div className="p-4 text-center text-slate-500 text-sm">No entries yet. Create one!</div>
         ) : (
-          <div className="p-2 space-y-1">
+          <nav className="grid gap-1 p-2">
             {entries.map((entry) => (
-              <Card
+              <div
                 key={entry.id}
                 className={cn(
-                  "cursor-pointer transition-all duration-200 hover:shadow-sm border-0",
-                  selectedEntryId === entry.id
-                    ? "bg-white shadow-sm ring-2 ring-slate-200"
-                    : "bg-transparent hover:bg-white/50",
+                  "flex items-center justify-between rounded-md p-3 text-sm font-medium transition-colors hover:bg-slate-100",
+                  selectedEntryId === entry.id ? "bg-slate-100 text-slate-900" : "text-slate-700",
                 )}
-                onClick={() => onSelectEntry(entry.id)}
               >
-                <CardContent className="p-3">
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3
-                        className={cn(
-                          "font-medium text-sm leading-tight line-clamp-2",
-                          selectedEntryId === entry.id ? "text-slate-900" : "text-slate-700",
-                        )}
-                      >
-                        {entry.title || "Untitled Entry"}
-                      </h3>
-                      <span className="text-xs text-slate-500 shrink-0">{formatDate(entry.createdAt)}</span>
-                    </div>
-                    {entry.content && (
-                      <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
-                        {getPreviewText(entry.content)}
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                <button
+                  onClick={() => onSelectEntry(entry.id)}
+                  className="flex-1 text-left focus:outline-none"
+                  disabled={isMutating}
+                >
+                  <h3 className="font-medium truncate">{entry.title || "Untitled Entry"}</h3>
+                  <p className="text-xs text-slate-500 mt-1">{formatDate(entry.updated_at)}</p>
+                </button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDeleteEntry(entry.id)}
+                  className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-100 ml-2"
+                  disabled={isMutating}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             ))}
-          </div>
+          </nav>
         )}
-      </div>
+      </ScrollArea>
     </div>
   )
 }

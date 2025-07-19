@@ -1,65 +1,74 @@
-// This file was previously abbreviated. Here is its full content.
 "use client"
 
+import { useState, useMemo } from "react"
 import { TaskItem } from "./task-item"
+import { TaskFilterBar } from "./task-filter-bar"
 import { LoadingSkeleton } from "./loading-skeleton"
 import { EmptyState } from "./empty-state"
 import { ErrorState } from "./error-state"
-import { CheckSquare, AlertTriangle } from "lucide-react"
-import type { Task } from "@/lib/supabase/types"
+import { useTasks } from "@/hooks/use-tasks"
+import type { Database } from "@/lib/supabase/types"
+
+type Task = Database["public"]["Tables"]["tasks"]["Row"]
 
 interface TaskListProps {
-  tasks: Task[]
-  isLoading: boolean
-  error: string | null
-  onToggle: (id: string) => void
-  onDelete: (id: string) => void
-  onRetry: () => void // For retrying data fetch
-  onAddTaskClick: () => void // For EmptyState action
+  onAddTaskClick: () => void // Callback for "Add New Task" button
 }
 
-export function TaskList({ tasks, isLoading, error, onToggle, onDelete, onRetry, onAddTaskClick }: TaskListProps) {
-  if (isLoading) {
-    return <LoadingSkeleton rows={5} showCircle={true} className="p-4" />
+export function TaskList({ onAddTaskClick }: TaskListProps) {
+  const { tasks, loading, error, addTask, toggleTask, deleteTask, isMutating } = useTasks()
+  const [filter, setFilter] = useState<"all" | "active" | "completed">("all")
+
+  const filteredTasks = useMemo(() => {
+    if (filter === "active") {
+      return tasks.filter((task) => !task.completed)
+    } else if (filter === "completed") {
+      return tasks.filter((task) => task.completed)
+    }
+    return tasks
+  }, [tasks, filter])
+
+  if (loading) {
+    return <LoadingSkeleton />
   }
 
   if (error) {
-    return (
-      <ErrorState
-        icon={AlertTriangle}
-        title="Failed to Load Tasks"
-        message={error}
-        onRetry={onRetry}
-        className="py-8"
-      />
-    )
-  }
-
-  if (tasks.length === 0) {
-    return (
-      <EmptyState
-        icon={CheckSquare}
-        title="No Tasks for Today"
-        description="Add a task to get started and stay organized."
-        actionLabel="Add New Task"
-        onAction={onAddTaskClick}
-        className="py-8"
-      />
-    )
+    return <ErrorState message={error} description="Please try refreshing the page." />
   }
 
   return (
-    <div className="space-y-2">
-      {tasks.map((task) => (
-        <TaskItem
-          key={task.id}
-          id={task.id}
-          title={task.title}
-          completed={task.completed}
-          onToggle={onToggle}
-          onDelete={onDelete}
-        />
-      ))}
+    <div className="flex flex-col h-full">
+      <TaskFilterBar currentFilter={filter} onFilterChange={setFilter} />
+      <div className="flex-1 overflow-auto py-2">
+        {filteredTasks.length === 0 ? (
+          <EmptyState
+            message={
+              filter === "all" ? "No tasks yet!" : filter === "active" ? "No active tasks." : "No completed tasks."
+            }
+            description={
+              filter === "all" ? "Start by adding a new task below." : "Try changing your filter or adding new tasks."
+            }
+            buttonText={filter === "all" ? "Add New Task" : undefined}
+            onButtonClick={filter === "all" ? onAddTaskClick : undefined}
+            buttonDisabled={isMutating}
+          />
+        ) : (
+          <ul className="space-y-1">
+            {filteredTasks.map((task) => (
+              <li key={task.id}>
+                <TaskItem
+                  id={task.id}
+                  title={task.title}
+                  completed={task.completed}
+                  onToggle={toggleTask}
+                  onDelete={deleteTask}
+                  disabled={isMutating}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   )
 }

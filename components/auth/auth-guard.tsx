@@ -5,45 +5,44 @@ import type React from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
-import { Loader2 } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner" // Assuming you have a Spinner component
 
 interface AuthGuardProps {
   children: React.ReactNode
-  requireAuth?: boolean
-  redirectTo?: string
 }
 
-export function AuthGuard({ children, requireAuth = true, redirectTo = "/auth/signin" }: AuthGuardProps) {
-  const { user, loading } = useAuth()
+export function AuthGuard({ children }: AuthGuardProps) {
+  const { user, isLoading, error } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading) {
-      if (requireAuth && !user) {
-        router.push(redirectTo)
-      } else if (!requireAuth && user) {
-        router.push("/dashboard")
-      }
+    if (!isLoading && !user && !error) {
+      // If not loading, no user, and no error (meaning not an auth error page), redirect to login
+      router.push("/login")
     }
-  }, [user, loading, requireAuth, redirectTo, router])
+  }, [user, isLoading, error, router])
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
-          <p className="text-sm text-slate-600">Loading...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-slate-100">
+        <Spinner size="lg" />
       </div>
     )
   }
 
-  if (requireAuth && !user) {
-    return null // Will redirect
+  if (error) {
+    // Render error message or redirect to a specific error page
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-red-50 text-red-700 p-4">
+        <p>Authentication Error: {error.message}</p>
+      </div>
+    )
   }
 
-  if (!requireAuth && user) {
-    return null // Will redirect
+  if (!user) {
+    // This case should ideally be handled by the useEffect redirect,
+    // but as a fallback, return null or a minimal loading state.
+    return null
   }
 
   return <>{children}</>

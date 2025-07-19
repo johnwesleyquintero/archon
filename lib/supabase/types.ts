@@ -1,4 +1,3 @@
-// This file was previously abbreviated. Here is its full content.
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
@@ -6,33 +5,36 @@ export type Database = {
     Tables: {
       goals: {
         Row: {
+          attachments: string[] | null
           created_at: string
           description: string | null
-          due_date: string | null
           id: string
-          progress: number
-          status: string
+          status: Database["public"]["Enums"]["goal_status"]
+          target_date: string | null
           title: string
+          updated_at: string
           user_id: string
         }
         Insert: {
+          attachments?: string[] | null
           created_at?: string
           description?: string | null
-          due_date?: string | null
           id?: string
-          progress?: number
-          status?: string
+          status?: Database["public"]["Enums"]["goal_status"]
+          target_date?: string | null
           title: string
-          user_id: string
+          updated_at?: string
+          user_id?: string
         }
         Update: {
+          attachments?: string[] | null
           created_at?: string
           description?: string | null
-          due_date?: string | null
           id?: string
-          progress?: number
-          status?: string
+          status?: Database["public"]["Enums"]["goal_status"]
+          target_date?: string | null
           title?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -47,74 +49,35 @@ export type Database = {
       }
       journal_entries: {
         Row: {
-          content: Json | null
+          attachments: string[] | null
+          content: string | null
           created_at: string
           id: string
-          template_id: string | null
           title: string
+          updated_at: string
           user_id: string
         }
         Insert: {
-          content?: Json | null
+          attachments?: string[] | null
+          content?: string | null
           created_at?: string
           id?: string
-          template_id?: string | null
           title: string
-          user_id: string
+          updated_at?: string
+          user_id?: string
         }
         Update: {
-          content?: Json | null
+          attachments?: string[] | null
+          content?: string | null
           created_at?: string
           id?: string
-          template_id?: string | null
           title?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "journal_entries_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "journal_templates"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "journal_entries_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      journal_templates: {
-        Row: {
-          category: string
-          content_schema: Json
-          created_at: string
-          id: string
-          name: string
-          user_id: string | null
-        }
-        Insert: {
-          category: string
-          content_schema: Json
-          created_at?: string
-          id?: string
-          name: string
-          user_id?: string | null
-        }
-        Update: {
-          category?: string
-          content_schema?: Json
-          created_at?: string
-          id?: string
-          name?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "journal_templates_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -158,25 +121,25 @@ export type Database = {
         Row: {
           completed: boolean
           created_at: string
-          due_date: string | null
           id: string
           title: string
+          updated_at: string
           user_id: string
         }
         Insert: {
           completed?: boolean
           created_at?: string
-          due_date?: string | null
           id?: string
           title: string
-          user_id: string
+          updated_at?: string
+          user_id?: string
         }
         Update: {
           completed?: boolean
           created_at?: string
-          due_date?: string | null
           id?: string
           title?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -197,7 +160,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      goal_status: "pending" | "in_progress" | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -276,12 +239,3 @@ export type Enums<
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never
-
-export type Task = Tables<"tasks">
-export type Profile = Tables<"profiles">
-export type Goal = Tables<"goals">
-export type JournalEntry = Tables<"journal_entries">
-export type JournalTemplate = Tables<"journal_templates">
-
-export type TaskFilterType = "all" | "active" | "completed"
-export type TaskSortType = "newest" | "oldest" | "due_date"

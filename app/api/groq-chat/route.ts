@@ -1,34 +1,21 @@
-import { groq } from "@ai-sdk/groq"
 import { streamText } from "ai"
-import { NextResponse } from "next/server"
+import { createOpenAI } from "@ai-sdk/openai"
 
-// Allow streaming responses up to 30 seconds
-export const maxDuration = 30
+// IMPORTANT! Set the runtime to edge
+export const runtime = "edge"
+
+const groq = createOpenAI({
+  baseURL: "https://api.groq.com/openai/v1",
+  apiKey: process.env.GROQ_API_KEY,
+})
 
 export async function POST(req: Request) {
-  try {
-    // Extract the `messages` from the body of the request
-    const { messages } = await req.json()
+  const { messages } = await req.json()
 
-    // Validate messages input
-    if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json({ error: "Invalid messages format" }, { status: 400 })
-    }
+  const result = await streamText({
+    model: groq("llama3-8b-8192"), // You can choose other Groq models like 'mixtral-8x7b-32768'
+    messages,
+  })
 
-    // Call the Groq language model
-    // You can choose different models like 'llama-3.1-8b-instant', 'llama-3.3-70b-instruct-turbo', etc. [^1]
-    const result = streamText({
-      model: groq("llama-3.1-8b-instant"), // Using a fast and efficient model [^1]
-      messages,
-    })
-
-    // Respond with the stream
-    return result.toDataStreamResponse()
-  } catch (error) {
-    console.error("Error in Groq chat API route:", error)
-    return NextResponse.json(
-      { error: "Failed to generate text from Groq", details: error instanceof Error ? error.message : String(error) },
-      { status: 500 },
-    )
-  }
+  return result.to
 }

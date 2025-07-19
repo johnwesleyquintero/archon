@@ -1,29 +1,8 @@
-export function ArchonLogoSVG() {
-  return (
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      {/* Background: Dark charcoal-gray square with rounded corners */}
-      <rect x="0" y="0" width="100" height="100" rx="10" fill="#1A1A1A" />
-
-      {/* Foreground: Stylized, geometric letter "A" */}
-      <path
-        d="M 30 75 L 50 25 L 70 75 H 60 L 50 45 L 40 75 Z"
-        fill="none"
-        stroke="#8B5CF6" /* Electric purple */
-        strokeWidth="8"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-      {/* Horizontal bar of the A */}
-      <line
-        x1="40"
-        y1="60"
-        x2="60"
-        y2="60"
-        stroke="#8B5CF6" /* Electric purple */
-        strokeWidth="8"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
-}
+import type { SVGProps } from "react"
+const ArchonLogoSVG = (props: SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="none" viewBox="0 0 24 24" {...props}>
+    <path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20ZM8 12a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z" />
+    <path fill="currentColor" d="M12 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" />
+  </svg>
+)
+export { ArchonLogoSVG }

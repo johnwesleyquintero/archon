@@ -2,179 +2,99 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import { Upload, X, Loader2, Check, File } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { UploadCloud, CheckCircle, XCircle, Loader2 } from "lucide-react"
 
 interface FileUploadProps {
-  onUpload: (file: File) => Promise<{ url: string; success: boolean; error?: any }>
-  accept?: string
-  maxSize?: number // in MB
-  className?: string
+  onUpload: (file: File) => Promise<{ success: boolean; url?: string; error?: any }>
+  accept?: string // e.g., "image/*", "application/pdf", "image/png,image/jpeg"
   buttonText?: string
+  disabled?: boolean
 }
 
-export function FileUpload({
-  onUpload,
-  accept = "image/*",
-  maxSize = 5, // Default 5MB
-  className,
-  buttonText = "Upload File",
-}: FileUploadProps) {
-  const [isDragging, setIsDragging] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const [uploadSuccess, setUploadSuccess] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+export function FileUpload({ onUpload, accept, buttonText = "Upload File", disabled }: FileUploadProps) {
+  const [file, setFile] = useState<File | null>(null)
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle")
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
-
-  const handleDragLeave = () => {
-    setIsDragging(false)
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileSelection(e.dataTransfer.files[0])
+  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      setFile(event.target.files[0])
+      setUploadStatus("idle")
+      setErrorMessage(null)
     }
-  }
+  }, [])
 
-  const handleFileSelection = (file: File) => {
-    setUploadError(null)
-    setUploadSuccess(false)
-
-    // Validate file type
-    if (!file.type.match(accept.replace(/\*/g, ".*"))) {
-      setUploadError(`Invalid file type. Please select a ${accept.replace("*", "")} file.`)
+  const handleUpload = useCallback(async () => {
+    if (!file) {
+      setErrorMessage("Please select a file first.")
       return
     }
 
-    // Validate file size
-    if (file.size > maxSize * 1024 * 1024) {
-      setUploadError(`File is too large. Maximum size is ${maxSize}MB.`)
-      return
-    }
-
-    setSelectedFile(file)
-  }
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleFileSelection(e.target.files[0])
-    }
-  }
-
-  const handleUpload = async () => {
-    if (!selectedFile) return
-
-    setIsUploading(true)
-    setUploadError(null)
+    setUploadStatus("uploading")
+    setErrorMessage(null)
 
     try {
-      const result = await onUpload(selectedFile)
-
+      const result = await onUpload(file)
       if (result.success) {
-        setUploadSuccess(true)
-        setSelectedFile(null)
+        setUploadStatus("success")
+        setFile(null) // Clear file input after successful upload
       } else {
-        setUploadError("Upload failed. Please try again.")
+        setUploadStatus("error")
+        setErrorMessage(result.error?.message || "File upload failed.")
       }
-    } catch (error) {
-      setUploadError("An unexpected error occurred. Please try again.")
-      console.error("Upload error:", error)
-    } finally {
-      setIsUploading(false)
+    } catch (err: any) {
+      setUploadStatus("error")
+      setErrorMessage(err.message || "An unexpected error occurred during upload.")
     }
-  }
-
-  const resetUpload = () => {
-    setSelectedFile(null)
-    setUploadError(null)
-    setUploadSuccess(false)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
-  }
+  }, [file, onUpload])
 
   return (
-    <div className={cn("space-y-4", className)}>
-      <div
-        className={cn(
-          "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
-          isDragging ? "border-slate-400 bg-slate-50" : "border-slate-200",
-          uploadSuccess ? "border-green-200 bg-green-50" : "",
-          uploadError ? "border-red-200 bg-red-50" : "",
-          "hover:border-slate-300",
-        )}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <input ref={fileInputRef} type="file" accept={accept} onChange={handleFileInputChange} className="hidden" />
-
-        {uploadSuccess ? (
-          <div className="flex flex-col items-center justify-center text-green-600">
-            <Check className="h-10 w-10 mb-2" />
-            <p className="text-sm font-medium">File uploaded successfully!</p>
-            <Button variant="ghost" size="sm" onClick={resetUpload} className="mt-2">
-              Upload another file
-            </Button>
-          </div>
-        ) : selectedFile ? (
-          <div className="space-y-4">
-            <div className="flex items-center justify-center gap-2 text-slate-700">
-              <File className="h-8 w-8" />
-              <div className="text-left">
-                <p className="text-sm font-medium truncate max-w-[200px]">{selectedFile.name}</p>
-                <p className="text-xs text-slate-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-              </div>
-              <Button variant="ghost" size="sm" onClick={resetUpload} className="ml-2 h-8 w-8 p-0">
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <Button onClick={handleUpload} disabled={isUploading} className="bg-slate-900 hover:bg-slate-800">
-              {isUploading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload
-                </>
-              )}
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <div className="flex justify-center">
-              <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
-                <Upload className="h-5 w-5 text-slate-600" />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-slate-700">Drag and drop your file here</p>
-              <p className="text-xs text-slate-500">or click to browse (max {maxSize}MB)</p>
-            </div>
-            <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-              {buttonText}
-            </Button>
-          </div>
-        )}
+    <div className="space-y-3 p-4 border border-slate-200 rounded-md bg-slate-50">
+      <Label htmlFor="file-upload" className="sr-only">
+        {buttonText}
+      </Label>
+      <div className="flex items-center gap-3">
+        <Input
+          id="file-upload"
+          type="file"
+          accept={accept}
+          onChange={handleFileChange}
+          className="flex-1"
+          disabled={uploadStatus === "uploading" || disabled}
+        />
+        <Button
+          onClick={handleUpload}
+          disabled={!file || uploadStatus === "uploading" || disabled}
+          className="shrink-0 bg-slate-900 hover:bg-slate-800"
+        >
+          {uploadStatus === "uploading" ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...
+            </>
+          ) : (
+            <>
+              <UploadCloud className="mr-2 h-4 w-4" /> {buttonText}
+            </>
+          )}
+        </Button>
       </div>
 
-      {uploadError && (
-        <div className="text-sm text-red-600 bg-red-50 p-2 rounded border border-red-100">{uploadError}</div>
+      {file && uploadStatus === "idle" && <p className="text-sm text-slate-600">Selected: {file.name}</p>}
+
+      {uploadStatus === "success" && (
+        <div className="flex items-center text-green-600 text-sm">
+          <CheckCircle className="mr-2 h-4 w-4" /> Upload successful!
+        </div>
+      )}
+
+      {uploadStatus === "error" && errorMessage && (
+        <div className="flex items-center text-red-600 text-sm">
+          <XCircle className="mr-2 h-4 w-4" /> {errorMessage}
+        </div>
       )}
     </div>
   )

@@ -1,129 +1,110 @@
 "use client"
-import { BarChart3, Target, CheckSquare, Settings, LogOut, User, ChevronUp } from "lucide-react"
 
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { Home, Target, ListTodo, BookOpen, Settings, LogOut, User } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { ArchonLogoSVG } from "@/components/archon-logo-svg"
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { cn } from "@/lib/utils"
 
-// Menu items
-const items = [
-  {
-    title: "Dashboard",
-    url: "#",
-    icon: BarChart3,
-    isActive: false,
-  },
-  {
-    title: "Goals",
-    url: "#",
-    icon: Target,
-    isActive: false,
-  },
-  {
-    title: "Tasks",
-    url: "#",
-    icon: CheckSquare,
-    isActive: true,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-    isActive: false,
-  },
-]
+interface AppSidebarProps {
+  isCollapsed: boolean
+}
 
-export function AppSidebar() {
+export function AppSidebar({ isCollapsed }: AppSidebarProps) {
+  const pathname = usePathname()
+  const { user, signOut } = useAuth()
+  const router = useRouter()
+  const [isSigningOut, setIsSigningOut] = useState(false)
+
+  const navItems = [
+    { href: "/dashboard", icon: Home, label: "Dashboard" },
+    { href: "/goals", icon: Target, label: "Goals" },
+    { href: "/tasks", icon: ListTodo, label: "Tasks" },
+    { href: "/journal", icon: BookOpen, label: "Journal" },
+    { href: "/settings", icon: Settings, label: "Settings" },
+  ]
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true)
+    await signOut()
+    router.push("/login")
+    setIsSigningOut(false)
+  }
+
   return (
-    <Sidebar variant="inset">
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <BarChart3 className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Archon</span>
-                  <span className="truncate text-xs">Dashboard</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={item.isActive}>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size="lg"
-                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+    <aside
+      className={cn("flex flex-col border-r bg-slate-50 transition-all duration-200", isCollapsed ? "w-16" : "w-64")}
+    >
+      <div className="flex h-16 items-center justify-center border-b px-4">
+        <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+          <ArchonLogoSVG className={cn("h-6 w-6 transition-all duration-200", isCollapsed ? "mr-0" : "mr-2")} />
+          {!isCollapsed && <span className="text-lg">Archon</span>}
+        </Link>
+      </div>
+      <nav className="flex-1 grid items-start gap-2 p-4">
+        <TooltipProvider>
+          {navItems.map((item) => (
+            <Tooltip key={item.href}>
+              <TooltipTrigger asChild>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-slate-900 transition-all hover:bg-slate-100",
+                    pathname.startsWith(item.href) ? "bg-slate-100 text-slate-900" : "text-slate-600",
+                    isCollapsed ? "justify-center" : "",
+                  )}
                 >
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Avatar" />
-                    <AvatarFallback className="rounded-lg">JD</AvatarFallback>
-                  </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">John Doe</span>
-                    <span className="truncate text-xs">john@example.com</span>
-                  </div>
-                  <ChevronUp className="ml-auto size-4" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                side="bottom"
-                align="end"
-                sideOffset={4}
+                  <item.icon className="h-5 w-5" />
+                  {!isCollapsed && item.label}
+                </Link>
+              </TooltipTrigger>
+              {isCollapsed && <TooltipContent side="right">{item.label}</TooltipContent>}
+            </Tooltip>
+          ))}
+        </TooltipProvider>
+      </nav>
+      <div className="mt-auto p-4 border-t border-slate-200">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/settings"
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-slate-900 transition-all hover:bg-slate-100",
+                  pathname === "/settings" ? "bg-slate-100 text-slate-900" : "text-slate-600",
+                  isCollapsed ? "justify-center" : "",
+                )}
               >
-                <DropdownMenuItem>
-                  <User />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <LogOut />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
-    </Sidebar>
+                <User className="h-5 w-5" />
+                {!isCollapsed && "Profile"}
+              </Link>
+            </TooltipTrigger>
+            {isCollapsed && <TooltipContent side="right">Profile</TooltipContent>}
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-slate-900 transition-all hover:bg-slate-100 mt-2",
+                  isCollapsed ? "justify-center" : "",
+                )}
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+              >
+                <LogOut className="h-5 w-5" />
+                {!isCollapsed && (isSigningOut ? "Signing out..." : "Sign Out")}
+              </Button>
+            </TooltipTrigger>
+            {isCollapsed && <TooltipContent side="right">Sign Out</TooltipContent>}
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    </aside>
   )
 }

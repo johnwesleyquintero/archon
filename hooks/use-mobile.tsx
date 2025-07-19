@@ -1,19 +1,33 @@
+"use client"
+
 import * as React from "react"
 
 const MOBILE_BREAKPOINT = 768
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+/**
+ * Detects if the current viewport width is below `MOBILE_BREAKPOINT`
+ * and updates reactively on resize.
+ */
+export function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = React.useState(false)
 
   React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    }
-    mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
+    const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+
+    const handleChange = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+
+    // Initial check
+    handleChange()
+    mediaQuery.addEventListener("change", handleChange)
+
+    return () => mediaQuery.removeEventListener("change", handleChange)
   }, [])
 
-  return !!isMobile
+  return isMobile
 }
+
+/**
+ * Alias kept for backward-compatibility with older imports.
+ * You can safely remove this export after updating all callers.
+ */
+export { useIsMobile as useMobile }

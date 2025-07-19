@@ -1,19 +1,25 @@
-import * as React from "react"
+// This file is not used in the current project structure.
+// It was likely a placeholder or part of a different design.
+// Keeping it here for completeness but it can be removed if not needed.
+"use client"
 
-const MOBILE_BREAKPOINT = 768
+import { useState, useEffect } from "react"
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+export function useMobile() {
+  const [isMobile, setIsMobile] = useState(false)
 
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768) // Example breakpoint for mobile
     }
-    mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
+
+    checkMobile() // Check on mount
+    window.addEventListener("resize", checkMobile) // Check on resize
+
+    return () => {
+      window.removeEventListener("resize", checkMobile)
+    }
   }, [])
 
-  return !!isMobile
+  return isMobile
 }

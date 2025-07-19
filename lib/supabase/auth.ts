@@ -1,95 +1,59 @@
+import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
-import { createServerClient, type SupabaseClient, type CookieOptions } from "@supabase/ssr"
-import type { User } from "@supabase/supabase-js"
+import { redirect } from "next/navigation"
 
-/* -------------------------------------------------------------------------- */
-/*                               Helper: client                               */
-/* -------------------------------------------------------------------------- */
-
-function createSupabaseServerClient(): SupabaseClient {
+export async function getSession() {
   const cookieStore = cookies()
-
-  return createServerClient(
+  const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    // The service-role key is **server-only**. Never expose it to the browser.
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use service role key for server-side operations
     {
       cookies: {
         get(name: string) {
           return cookieStore.get(name)?.value
         },
-        set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set({ name, value, ...options })
-        },
-        remove(name: string, options: CookieOptions) {
-          cookieStore.set({ name, value: "", ...options })
+      },
+    },
+  )
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    return session
+  } catch (error) {
+    console.error("Error getting session:", error)
+    return null
+  }
+}
+
+export async function getUser() {
+  const cookieStore = cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use service role key for server-side operations
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
         },
       },
     },
   )
-}
-
-/* -------------------------------------------------------------------------- */
-/*                               Shared types                                 */
-/* -------------------------------------------------------------------------- */
-
-export interface Profile {
-  id: string
-  full_name: string | null
-  username: string | null
-  avatar_url: string | null
-  theme: "light" | "dark" | "system" | null
-  created_at: string | null
-  updated_at: string | null
-}
-
-export interface UserWithProfile {
-  user: User | null
-  profile: Profile | null
-}
-
-/* -------------------------------------------------------------------------- */
-/*                              Public helpers                                */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Safely get the current auth user on the **server**.
- * Returns `null` for anonymous visitors instead of throwing.
- */
-export async function getServerAuthUser(): Promise<User | null> {
-  const supabase = createSupabaseServerClient()
-
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession()
-
-  if (error && error.message !== "Auth session missing!") {
-    // Log unexpected errors but don’t break the page
-    console.error("Supabase session error:", error.message)
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    return user
+  } catch (error) {
+    console.error("Error getting user:", error)
+    return null
   }
-
-  return session?.user ?? null
 }
 
-/**
- * Fetches the auth user and their profile row.
- * Missing session is a normal state (returns `{ user: null, profile: null }`).
- */
-export async function getUserWithProfile(): Promise<UserWithProfile> {
-  const supabase = createSupabaseServerClient()
-
-  const user = await getServerAuthUser()
-  if (!user) {
-    return { user: null, profile: null }
+export async function requireAuth() {
+  const session = await getSession()
+  if (!session) {
+    redirect("/auth/signin")
   }
-
-  const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-  if (error && error.code !== "PGRST116") {
-    // PGRST116 = no rows returned
-    console.error("Error fetching profile:", error.message)
-  }
-
-  return { user, profile: profile ?? null }
+  return session
 }

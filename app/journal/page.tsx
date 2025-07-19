@@ -37,11 +37,10 @@ export default function JournalPage() {
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="space-y-4">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Personal Journal</h1>
-              <p className="text-slate-600 mt-1">Capture your thoughts, ideas, and reflections.</p>
+            <div className="flex flex-col gap-6">
+              <h1 className="text-2xl font-bold text-slate-900">Journal</h1>
+              <JournalInterface />
             </div>
-            <JournalInterface />
           </div>
         </div>
       </SidebarInset>

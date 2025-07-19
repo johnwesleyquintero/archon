@@ -1,65 +1,72 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Shield, Key, Trash2 } from "lucide-react"
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ProfileFormWithAvatar } from "@/components/profile-form-with-avatar"
+import { AppearanceSettings } from "@/components/appearance-settings"
+import { useAuth } from "@/contexts/auth-context"
 
 export function AccountSettings() {
+  const { user } = useAuth()
+
+  if (!user) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Account Settings</CardTitle>
+          <CardDescription>Manage your profile, preferences, and account details.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-slate-500">Please log in to view your account settings.</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Account</h1>
-        <p className="text-slate-600 mt-1">Manage your account security and preferences.</p>
-      </div>
-
-      <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Security
-            </CardTitle>
-            <CardDescription>Manage your account security settings and two-factor authentication.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
-              <div>
-                <h4 className="font-medium text-slate-900">Two-Factor Authentication</h4>
-                <p className="text-sm text-slate-600">Add an extra layer of security to your account</p>
-              </div>
-              <Button variant="outline" size="sm">
-                Enable
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Key className="h-5 w-5" />
-              Password
-            </CardTitle>
-            <CardDescription>Change your password to keep your account secure.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline">Change Password</Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-red-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <Trash2 className="h-5 w-5" />
-              Danger Zone
-            </CardTitle>
-            <CardDescription>Permanently delete your account and all associated data.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="destructive">Delete Account</Button>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>Account Settings</CardTitle>
+        <CardDescription>Manage your profile, preferences, and account details.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 h-10">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="appearance">Appearance</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
+          </TabsList>
+          <TabsContent value="profile" className="mt-4">
+            <ProfileFormWithAvatar />
+          </TabsContent>
+          <TabsContent value="appearance" className="mt-4">
+            <AppearanceSettings />
+          </TabsContent>
+          <TabsContent value="security" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Security Settings</CardTitle>
+                <CardDescription>Change your password and manage security preferences.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                  <div>
+                    <h4 className="font-medium text-slate-900">Two-Factor Authentication</h4>
+                    <p className="text-sm text-slate-600">Add an extra layer of security to your account</p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    Enable
+                  </Button>
+                </div>
+                <p className="text-sm text-slate-500">Password change functionality will be implemented here.</p>
+                {/* Add password change form here */}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   )
 }
