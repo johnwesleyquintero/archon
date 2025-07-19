@@ -1,136 +1,156 @@
--- Create a table for public profiles
-create table profiles (
-  id uuid references auth.users on delete cascade not null primary key,
-  updated_at timestamp with time zone,
-  username text unique,
+-- This file was previously abbreviated. Here is its its full content.
+-- Create profiles table
+CREATE TABLE public.profiles (
+  id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL PRIMARY KEY,
   full_name text,
   avatar_url text,
-  website text
+  username text UNIQUE,
+  updated_at timestamp with time zone
 );
 
-alter table profiles enable row level security;
+-- Set up Row Level Security (RLS) for profiles table
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
-create policy "Public profiles are viewable by everyone."
-  on profiles for select
-  using (true);
+CREATE POLICY "Public profiles are viewable by everyone."
+  ON public.profiles FOR SELECT
+  USING (true);
 
-create policy "Users can insert their own profile."
-  on profiles for insert
-  with check (auth.uid() = id);
+CREATE POLICY "Users can insert their own profile."
+  ON public.profiles FOR INSERT
+  WITH CHECK (auth.uid() = id);
 
-create policy "Users can update own profile."
-  on profiles for update
-  using (auth.uid() = id);
+CREATE POLICY "Users can update own profile."
+  ON public.profiles FOR UPDATE
+  USING (auth.uid() = id);
 
--- Set up Storage!
-insert into storage.buckets (id, name)
-values ('avatars', 'avatars');
+-- Create a trigger to automatically create a profile for new users
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, avatar_url)
+  VALUES (NEW.id, NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'avatar_url');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Set up access controls for storage.
--- See https://supabase.com/docs/guides/storage/security/row-level-security#policies-for-public-access
-create policy "Avatar images are publicly accessible."
-  on storage.objects for select
-  using (bucket_id = 'avatars');
-
-create policy "Anyone can upload an avatar."
-  on storage.objects for insert
-  with check (bucket_id = 'avatars');
-
-create policy "Anyone can update their own avatar."
-  on storage.objects for update
-  using (auth.uid() = owner)
-  with check (bucket_id = 'avatars');
-
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- Create tasks table
-create table tasks (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users on delete cascade not null,
-  title text not null,
-  completed boolean default false,
-  created_at timestamp with time zone default now(),
-  updated_at timestamp with time zone default now(),
+CREATE TABLE public.tasks (
+  id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+  user_id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  title text NOT NULL,
+  completed boolean DEFAULT false NOT NULL,
+  created_at timestamp with time zone DEFAULT now() NOT NULL,
   due_date timestamp with time zone -- Added for sorting
 );
 
-alter table tasks enable row level security;
+-- Set up RLS for tasks table
+ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 
-create policy "Tasks are viewable by their owners."
-  on tasks for select
-  using (auth.uid() = user_id);
+CREATE POLICY "Users can view their own tasks."
+  ON public.tasks FOR SELECT
+  USING (auth.uid() = user_id);
 
-create policy "Owners can create tasks."
-  on tasks for insert
-  with check (auth.uid() = user_id);
+CREATE POLICY "Users can create tasks."
+  ON public.tasks FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
 
-create policy "Owners can update their tasks."
-  on tasks for update
-  using (auth.uid() = user_id);
+CREATE POLICY "Users can update their own tasks."
+  ON public.tasks FOR UPDATE
+  USING (auth.uid() = user_id);
 
-create policy "Owners can delete their tasks."
-  on tasks for delete
-  using (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own tasks."
+  ON public.tasks FOR DELETE
+  USING (auth.uid() = user_id);
 
 -- Create goals table
-create table goals (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users on delete cascade not null,
-  title text not null,
+CREATE TABLE public.goals (
+  id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+  user_id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  title text NOT NULL,
   description text,
-  target_value numeric,
-  unit text,
-  progress numeric default 0,
-  status text default 'pending', -- e.g., 'pending', 'in-progress', 'completed', 'on-hold'
   due_date timestamp with time zone,
-  created_at timestamp with time zone default now(),
-  updated_at timestamp with time zone default now()
+  progress integer DEFAULT 0 NOT NULL,
+  status text DEFAULT 'pending' NOT NULL, -- e.g., 'pending', 'in-progress', 'completed', 'on-hold'
+  created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-alter table goals enable row level security;
+-- Set up RLS for goals table
+ALTER TABLE public.goals ENABLE ROW LEVEL SECURITY;
 
-create policy "Goals are viewable by their owners."
-  on goals for select
-  using (auth.uid() = user_id);
+CREATE POLICY "Users can view their own goals."
+  ON public.goals FOR SELECT
+  USING (auth.uid() = user_id);
 
-create policy "Owners can create goals."
-  on goals for insert
-  with check (auth.uid() = user_id);
+CREATE POLICY "Users can create goals."
+  ON public.goals FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
 
-create policy "Owners can update their goals."
-  on goals for update
-  using (auth.uid() = user_id);
+CREATE POLICY "Users can update their own goals."
+  ON public.goals FOR UPDATE
+  USING (auth.uid() = user_id);
 
-create policy "Owners can delete their goals."
-  on goals for delete
-  using (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own goals."
+  ON public.goals FOR DELETE
+  USING (auth.uid() = user_id);
 
 -- Create journal_entries table
-create table journal_entries (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users on delete cascade not null,
-  title text not null,
-  content text,
-  mood text, -- e.g., 'happy', 'sad', 'neutral', 'stressed'
-  tags text[], -- Array of text tags
-  template_name text, -- e.g., 'Daily Reflection', 'Gratitude Log'
-  created_at timestamp with time zone default now(),
-  updated_at timestamp with time zone default now()
+CREATE TABLE public.journal_entries (
+  id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+  user_id uuid REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  title text NOT NULL,
+  content jsonb, -- Use jsonb for flexible content structure
+  template_id uuid REFERENCES public.journal_templates (id),
+  created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-alter table journal_entries enable row level security;
+-- Set up RLS for journal_entries table
+ALTER TABLE public.journal_entries ENABLE ROW LEVEL SECURITY;
 
-create policy "Journal entries are viewable by their owners."
-  on journal_entries for select
-  using (auth.uid() = user_id);
+CREATE POLICY "Users can view their own journal entries."
+  ON public.journal_entries FOR SELECT
+  USING (auth.uid() = user_id);
 
-create policy "Owners can create journal entries."
-  on journal_entries for insert
-  with check (auth.uid() = user_id);
+CREATE POLICY "Users can create journal entries."
+  ON public.journal_entries FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
 
-create policy "Owners can update their journal entries."
-  on journal_entries for update
-  using (auth.uid() = user_id);
+CREATE POLICY "Users can update their own journal entries."
+  ON public.journal_entries FOR UPDATE
+  USING (auth.uid() = user_id);
 
-create policy "Owners can delete their journal entries."
-  on journal_entries for delete
-  using (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own journal entries."
+  ON public.journal_entries FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Create journal_templates table
+CREATE TABLE public.journal_templates (
+  id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+  name text NOT NULL,
+  category text NOT NULL, -- e.g., 'Daily', 'Reflection', 'Goal Setting'
+  content_schema jsonb NOT NULL, -- JSON schema for template content
+  user_id uuid REFERENCES auth.users ON DELETE CASCADE, -- Optional: allow user-specific templates
+  created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+-- Set up RLS for journal_templates table
+ALTER TABLE public.journal_templates ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public journal templates are viewable by everyone."
+  ON public.journal_templates FOR SELECT
+  USING (true);
+
+CREATE POLICY "Users can create their own journal templates."
+  ON public.journal_templates FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own journal templates."
+  ON public.journal_templates FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own journal templates."
+  ON public.journal_templates FOR DELETE
+  USING (auth.uid() = user_id);

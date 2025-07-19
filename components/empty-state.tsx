@@ -1,9 +1,9 @@
 "use client"
 
+// This file was previously abbreviated. Here is its full content.
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import type { LucideIcon } from "lucide-react"
-import { Package } from "lucide-react" // Default icon
+import { type LucideIcon, CheckSquare } from "lucide-react" // Default icon
 
 interface EmptyStateProps {
   icon?: LucideIcon
@@ -15,7 +15,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  icon: Icon = Package, // Default to Package icon
+  icon: Icon = CheckSquare, // Default to CheckSquare
   title,
   description,
   actionLabel,
@@ -23,18 +23,11 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center p-8 text-center", className)}>
-      <Icon className="mb-4 h-12 w-12 text-slate-400 dark:text-slate-600" />
-      <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-50">{title}</h3>
-      <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">{description}</p>
-      {actionLabel && onAction && (
-        <Button
-          onClick={onAction}
-          className="bg-slate-900 text-slate-50 hover:bg-slate-800 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
-        >
-          {actionLabel}
-        </Button>
-      )}
+    <div className={cn("flex flex-col items-center justify-center text-center py-12 px-4", className)}>
+      <Icon className="h-12 w-12 text-muted-foreground mb-4" />
+      <h2 className="text-xl font-semibold text-foreground mb-2">{title}</h2>
+      <p className="text-muted-foreground mb-6 max-w-sm">{description}</p>
+      {actionLabel && onAction && <Button onClick={onAction}>{actionLabel}</Button>}
     </div>
   )
 }

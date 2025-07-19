@@ -1,11 +1,13 @@
+// This file was previously abbreviated. Here is its full content.
 "use client"
 
 import type React from "react"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 interface TaskInputProps {
   onAddTask: (title: string) => void
@@ -13,41 +15,41 @@ interface TaskInputProps {
 }
 
 export function TaskInput({ onAddTask, disabled = false }: TaskInputProps) {
-  const [newTask, setNewTask] = useState("")
+  const [taskTitle, setTaskTitle] = useState("")
+  const [isAdding, setIsAdding] = useState(false)
 
-  const handleAddTask = () => {
-    if (newTask.trim()) {
-      onAddTask(newTask.trim())
-      setNewTask("")
-    }
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmedTitle = taskTitle.trim()
+    if (!trimmedTitle) return
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleAddTask()
+    setIsAdding(true)
+    try {
+      await onAddTask(trimmedTitle)
+      setTaskTitle("") // Clear input only on success
+    } catch (error) {
+      console.error("Error adding task:", error)
+      // Error state will be handled by useTasks hook and displayed by TaskList
+    } finally {
+      setIsAdding(false)
     }
   }
 
   return (
-    <div className="flex gap-2 border-t border-slate-100 pt-2 dark:border-slate-800">
+    <form onSubmit={handleSubmit} className="flex gap-2">
       <Input
+        type="text"
         placeholder="Add a new task..."
-        value={newTask}
-        onChange={(e) => setNewTask(e.target.value)}
-        onKeyPress={handleKeyPress}
-        className="flex-1 text-sm focus-visible:ring-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus-visible:ring-slate-600"
-        disabled={disabled}
+        value={taskTitle}
+        onChange={(e) => setTaskTitle(e.target.value)}
+        className="flex-1"
+        disabled={disabled || isAdding}
         aria-label="New task title"
       />
-      <Button
-        onClick={handleAddTask}
-        size="sm"
-        className="h-9 w-9 p-0 bg-slate-900 hover:bg-slate-800 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
-        disabled={!newTask.trim() || disabled}
-        aria-label="Add task"
-      >
-        <Plus className="h-4 w-4" />
+      <Button type="submit" disabled={disabled || isAdding}>
+        {isAdding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+        <span className="sr-only">Add Task</span>
       </Button>
-    </div>
+    </form>
   )
 }

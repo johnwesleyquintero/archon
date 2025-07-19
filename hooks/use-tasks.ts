@@ -3,12 +3,12 @@
 import { useState, useEffect, useCallback } from "react"
 import {
   getTasks,
-  createTask as dbCreateTask,
-  updateTask as dbUpdateTask,
+  addTask as dbAddTask,
+  toggleTask as dbToggleTask,
   deleteTask as dbDeleteTask,
 } from "@/lib/database/tasks"
 import type { Task, TaskFilterType, TaskSortType } from "@/lib/supabase/types"
-import { useAuth } from "@/contexts/auth-context" // Assuming useAuth provides current user ID
+import { useAuth } from "@/contexts/auth-context" // Import useAuth to get user ID
 
 interface UseTasksProps {
   initialFilter?: TaskFilterType
@@ -30,9 +30,7 @@ interface UseTasksResult {
 }
 
 export function useTasks({ initialFilter = "all", initialSort = "newest" }: UseTasksProps = {}): UseTasksResult {
-  const { user } = useAuth() // Get user from auth context
-  const userId = user?.id // Assuming user object has an 'id' property
-
+  const { user, isLoading: isAuthLoading } = useAuth() // Get user from auth context
   const [tasks, setTasks] = useState<Task[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -40,7 +38,8 @@ export function useTasks({ initialFilter = "all", initialSort = "newest" }: UseT
   const [sort, setSort] = useState<TaskSortType>(initialSort)
 
   const fetchTasks = useCallback(async () => {
-    if (!userId) {
+    if (!user?.id) {
+      // If user is not logged in or still loading auth, don't fetch tasks
       setTasks([])
       setIsLoading(false)
       return
@@ -49,7 +48,7 @@ export function useTasks({ initialFilter = "all", initialSort = "newest" }: UseT
     setIsLoading(true)
     setError(null)
     try {
-      const { data, error: dbError } = await getTasks(userId, filter, sort)
+      const { data, error: dbError } = await getTasks(user.id, filter, sort)
       if (dbError) {
         throw new Error(dbError.message)
       }
@@ -60,62 +59,53 @@ export function useTasks({ initialFilter = "all", initialSort = "newest" }: UseT
     } finally {
       setIsLoading(false)
     }
-  }, [userId, filter, sort]) // Re-fetch when userId, filter, or sort changes
+  }, [user?.id, filter, sort])
 
   useEffect(() => {
-    fetchTasks()
-  }, [fetchTasks])
+    if (!isAuthLoading) {
+      // Only fetch tasks once auth state is known
+      fetchTasks()
+    }
+  }, [fetchTasks, isAuthLoading])
 
   const addTask = useCallback(
     async (title: string) => {
-      if (!userId) {
+      const tempId = `temp-${Date.now()}` // Declare tempId variable
+      if (!user?.id) {
         setError("User not authenticated. Cannot add task.")
         return
       }
       try {
         // Optimistic update
-        const tempId = `temp-${Date.now()}`
         const newTask: Task = {
           id: tempId,
           title,
           completed: false,
-          user_id: userId,
+          user_id: user.id,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          due_date: null, // Assuming due_date can be null
+          due_date: null,
         }
-        setTasks((prevTasks) => {
-          const updatedTasks = [...prevTasks, newTask]
-          // Re-sort the optimistic list to maintain order if 'newest' or 'oldest'
-          if (sort === "newest") {
-            return updatedTasks.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-          } else if (sort === "oldest") {
-            return updatedTasks.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-          }
-          // For 'dueDate' or 'all' filter, the new task might not appear immediately if it doesn't match the filter
-          // or if due_date is not set. This is a known limitation of optimistic updates with complex filters.
-          return updatedTasks
-        })
+        setTasks((prevTasks) => [...prevTasks, newTask])
 
-        const { data, error: dbError } = await dbCreateTask({ title, user_id: userId, completed: false })
+        const { data, error: dbError } = await dbAddTask(user.id, title)
         if (dbError) {
           throw new Error(dbError.message)
         }
         // Replace temporary task with actual task from DB
-        setTasks((prevTasks) => prevTasks.map((task) => (task.id === tempId ? data : task)))
+        setTasks((prevTasks) => prevTasks.map((task) => (task.id === tempId ? data[0] : task)))
       } catch (err: any) {
         console.error("Failed to add task:", err)
         setError(err.message || "Failed to add task.")
         // Revert optimistic update
-        setTasks((prevTasks) => prevTasks.filter((task) => task.id !== `temp-${Date.now()}`))
+        setTasks((prevTasks) => prevTasks.filter((task) => task.id !== tempId))
       }
     },
-    [userId, sort],
-  ) // Dependency on sort for optimistic re-sorting
+    [user?.id],
+  )
 
   const toggleTask = useCallback(
     async (id: string) => {
-      if (!userId) {
+      if (!user?.id) {
         setError("User not authenticated. Cannot toggle task.")
         return
       }
@@ -128,7 +118,7 @@ export function useTasks({ initialFilter = "all", initialSort = "newest" }: UseT
         const taskToUpdate = tasks.find((task) => task.id === id)
         if (!taskToUpdate) return
 
-        const { error: dbError } = await dbUpdateTask(id, { completed: !taskToUpdate.completed })
+        const { error: dbError } = await dbToggleTask(user.id, id, !taskToUpdate.completed)
         if (dbError) {
           throw new Error(dbError.message)
         }
@@ -141,40 +131,39 @@ export function useTasks({ initialFilter = "all", initialSort = "newest" }: UseT
         )
       }
     },
-    [tasks, userId],
+    [tasks, user?.id],
   ) // Dependency on tasks for finding taskToUpdate
 
   const deleteTask = useCallback(
     async (id: string) => {
-      if (!userId) {
+      if (!user?.id) {
         setError("User not authenticated. Cannot delete task.")
         return
       }
       try {
         // Optimistic update
-        const originalTask = tasks.find((task) => task.id === id) // Store for potential revert
         setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id))
 
-        const { success, error: dbError } = await dbDeleteTask(id)
-        if (dbError || !success) {
-          throw new Error(dbError?.message || "Deletion failed.")
+        const { error: dbError } = await dbDeleteTask(user.id, id)
+        if (dbError) {
+          throw new Error(dbError.message)
         }
       } catch (err: any) {
         console.error("Failed to delete task:", err)
         setError(err.message || "Failed to delete task.")
         // Revert optimistic update (re-add the task if deletion failed)
-        const originalTask = tasks.find((task) => task.id === id) // Re-find in case tasks array changed
+        const originalTask = tasks.find((task) => task.id === id)
         if (originalTask) {
           setTasks((prevTasks) => [...prevTasks, originalTask])
         }
       }
     },
-    [tasks, userId],
+    [tasks, user?.id],
   ) // Dependency on tasks for finding originalTask
 
   return {
     tasks,
-    isLoading,
+    isLoading: isLoading || isAuthLoading,
     error,
     filter,
     sort,

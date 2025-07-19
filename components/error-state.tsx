@@ -1,9 +1,9 @@
 "use client"
 
+// This file was previously abbreviated. Here is its full content.
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { AlertTriangle } from "lucide-react"
-import type { LucideIcon } from "lucide-react"
+import { type LucideIcon, AlertTriangle } from "lucide-react" // Default icon
 
 interface ErrorStateProps {
   icon?: LucideIcon
@@ -14,25 +14,18 @@ interface ErrorStateProps {
 }
 
 export function ErrorState({
-  icon: Icon = AlertTriangle, // Default to AlertTriangle icon
+  icon: Icon = AlertTriangle, // Default to AlertTriangle
   title,
   message,
   onRetry,
   className,
 }: ErrorStateProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center p-8 text-center", className)}>
-      <Icon className="mb-4 h-12 w-12 text-red-500 dark:text-red-400" />
-      <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-50">{title}</h3>
-      <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">{message}</p>
-      {onRetry && (
-        <Button
-          onClick={onRetry}
-          className="bg-slate-900 text-slate-50 hover:bg-slate-800 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
-        >
-          Retry
-        </Button>
-      )}
+    <div className={cn("flex flex-col items-center justify-center text-center py-12 px-4", className)}>
+      <Icon className="h-12 w-12 text-destructive mb-4" />
+      <h2 className="text-xl font-semibold text-foreground mb-2">{title}</h2>
+      <p className="text-muted-foreground mb-6 max-w-sm">{message}</p>
+      {onRetry && <Button onClick={onRetry}>Retry</Button>}
     </div>
   )
 }

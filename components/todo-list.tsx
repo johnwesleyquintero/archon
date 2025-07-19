@@ -11,25 +11,17 @@ import type { TaskFilterType, TaskSortType } from "@/lib/supabase/types"
  * TodoList – the “Command Center” that wires the task engine (`useTasks`)
  * to the presentation layer (filter bar, list, and input).
  */
-export function TodoList() {
+function TodoList() {
   /* ------------------------------------------------------------------ */
   /*  Consume the dynamic, server-powered tasks hook                     */
   /* ------------------------------------------------------------------ */
   const { tasks, isLoading, error, filter, sort, setFilter, setSort, addTask, toggleTask, deleteTask, refetchTasks } =
     useTasks({})
 
-  /* ------------------------------------------------------------------ */
-  /*  Handler passed to EmptyState CTA inside <TaskList>                 */
-  /* ------------------------------------------------------------------ */
-  const handleEmptyStateAddTask = () => {
-    // You could focus the TaskInput via ref; for now we just log.
-    console.info("EmptyState ➜ Add New Task clicked")
-  }
-
   return (
     <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">Today's Tasks</CardTitle>
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-50">Today's Tasks</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -50,7 +42,9 @@ export function TodoList() {
           onToggle={toggleTask}
           onDelete={deleteTask}
           onRetry={refetchTasks}
-          onAddTaskClick={handleEmptyStateAddTask}
+          onAddTaskClick={() => {
+            /* Logic to open add task modal or focus input */
+          }}
         />
 
         {/* ----------------------------- Add Task Input ----------------------------- */}
@@ -58,8 +52,8 @@ export function TodoList() {
 
         {/* ----------------------------- Summary ----------------------------- */}
         {!isLoading && !error && tasks.length > 0 && (
-          <div className="pt-2 text-center text-xs text-muted-foreground">
-            {tasks.filter((t) => t.completed).length} of {tasks.length} tasks completed
+          <div className="text-xs text-slate-500 dark:text-slate-400 text-center pt-2">
+            {tasks.filter((task) => task.completed).length} of {tasks.length} tasks completed
           </div>
         )}
       </CardContent>
@@ -67,7 +61,5 @@ export function TodoList() {
   )
 }
 
-/* -----------------------------------------------------------------------------
- * Provide both named and default exports so importing is flexible.
- * --------------------------------------------------------------------------- */
+export { TodoList }
 export default TodoList

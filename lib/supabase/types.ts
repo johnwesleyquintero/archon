@@ -1,6 +1,7 @@
+// This file was previously abbreviated. Here is its full content.
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       goals: {
@@ -11,10 +12,7 @@ export interface Database {
           id: string
           progress: number
           status: string
-          target_value: number | null
           title: string
-          unit: string | null
-          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -24,10 +22,7 @@ export interface Database {
           id?: string
           progress?: number
           status?: string
-          target_value?: number | null
           title: string
-          unit?: string | null
-          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -37,16 +32,14 @@ export interface Database {
           id?: string
           progress?: number
           status?: string
-          target_value?: number | null
           title?: string
-          unit?: string | null
-          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "goals_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -54,42 +47,76 @@ export interface Database {
       }
       journal_entries: {
         Row: {
-          content: string | null
+          content: Json | null
           created_at: string
           id: string
-          mood: string | null
-          tags: string[] | null
-          template_name: string | null
+          template_id: string | null
           title: string
-          updated_at: string | null
           user_id: string
         }
         Insert: {
-          content?: string | null
+          content?: Json | null
           created_at?: string
           id?: string
-          mood?: string | null
-          tags?: string[] | null
-          template_name?: string | null
+          template_id?: string | null
           title: string
-          updated_at?: string | null
           user_id: string
         }
         Update: {
-          content?: string | null
+          content?: Json | null
           created_at?: string
           id?: string
-          mood?: string | null
-          tags?: string[] | null
-          template_name?: string | null
+          template_id?: string | null
           title?: string
-          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
           {
+            foreignKeyName: "journal_entries_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "journal_templates"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "journal_entries_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_templates: {
+        Row: {
+          category: string
+          content_schema: Json
+          created_at: string
+          id: string
+          name: string
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          content_schema: Json
+          created_at?: string
+          id?: string
+          name: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          content_schema?: Json
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_templates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -102,7 +129,6 @@ export interface Database {
           id: string
           updated_at: string | null
           username: string | null
-          website: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -110,7 +136,6 @@ export interface Database {
           id: string
           updated_at?: string | null
           username?: string | null
-          website?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -118,12 +143,12 @@ export interface Database {
           id?: string
           updated_at?: string | null
           username?: string | null
-          website?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "profiles_id_fkey"
             columns: ["id"]
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -136,7 +161,6 @@ export interface Database {
           due_date: string | null
           id: string
           title: string
-          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -145,7 +169,6 @@ export interface Database {
           due_date?: string | null
           id?: string
           title: string
-          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -154,13 +177,13 @@ export interface Database {
           due_date?: string | null
           id?: string
           title?: string
-          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "tasks_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -182,10 +205,10 @@ export interface Database {
   }
 }
 
+type PublicSchema = Database[Extract<keyof Database, "public">]
+
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (Database["public"]["Tables"] & Database["public"]["Views"])
-    | { schema: keyof Database },
+  PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] & PublicSchema["Views"]) | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
@@ -197,8 +220,8 @@ export type Tables<
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (Database["public"]["Tables"] & Database["public"]["Views"])
-    ? (Database["public"]["Tables"] & Database["public"]["Views"])[PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+    ? (PublicSchema["Tables"] & PublicSchema["Views"])[PublicTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -206,7 +229,7 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends keyof Database["public"]["Tables"] | { schema: keyof Database },
+  PublicTableNameOrOptions extends keyof PublicSchema["Tables"] | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
@@ -216,8 +239,8 @@ export type TablesInsert<
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
-    ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -225,7 +248,7 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends keyof Database["public"]["Tables"] | { schema: keyof Database },
+  PublicTableNameOrOptions extends keyof PublicSchema["Tables"] | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
@@ -235,8 +258,8 @@ export type TablesUpdate<
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
-    ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -244,20 +267,21 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends keyof Database["public"]["Enums"] | { schema: keyof Database },
+  PublicEnumNameOrOptions extends keyof PublicSchema["Enums"] | { schema: keyof Database },
   EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
     ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = PublicEnumNameOrOptions extends { schema: keyof Database }
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof Database["public"]["Enums"]
-    ? Database["public"]["Enums"][PublicEnumNameOrOptions]
+  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
+    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never
 
-// Custom types for tasks
 export type Task = Tables<"tasks">
-export type TaskInsert = TablesInsert<"tasks">
-export type TaskUpdate = TablesUpdate<"tasks">
+export type Profile = Tables<"profiles">
+export type Goal = Tables<"goals">
+export type JournalEntry = Tables<"journal_entries">
+export type JournalTemplate = Tables<"journal_templates">
 
 export type TaskFilterType = "all" | "active" | "completed"
-export type TaskSortType = "newest" | "oldest" | "dueDate"
+export type TaskSortType = "newest" | "oldest" | "due_date"

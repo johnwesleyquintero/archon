@@ -1,269 +1,216 @@
+// This file was previously abbreviated. Here is its full content.
 "use client"
 
 import type React from "react"
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 interface AuthFormProps {
-  mode: "signin" | "signup"
+  type: "signin" | "signup"
 }
 
-export function AuthForm({ mode }: AuthFormProps) {
+export function AuthForm({ type }: AuthFormProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [fullName, setFullName] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
-
-  const router = useRouter()
+  const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
   const supabase = createClient()
+  const router = useRouter()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError(null)
-    setMessage(null)
+    setMessage("")
+    setError("")
 
     try {
-      if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({
+      if (type === "signup") {
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: {
-              full_name: fullName,
-            },
+            emailRedirectTo: `${window.location.origin}/auth/confirm`,
           },
         })
 
-        if (error) {
-          setError(error.message)
-        } else if (data.user && !data.user.email_confirmed_at) {
-          setMessage("Please check your email for a confirmation link.")
+        if (signUpError) {
+          setError(signUpError.message)
+          return
+        }
+
+        if (data.user && data.user.identities?.length === 0) {
+          setMessage("Account already exists. Please sign in.")
         } else {
-          router.push("/dashboard")
+          setMessage("Check your email for a confirmation link to activate your account.")
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
 
-        if (error) {
-          setError(error.message)
-        } else {
-          router.push("/dashboard")
+        if (signInError) {
+          setError(signInError.message)
+          return
         }
+
+        router.push("/dashboard") // Redirect to dashboard on successful sign-in
       }
-    } catch (err) {
-      setError("An unexpected error occurred. Please try again.")
-      console.error("Auth error:", err)
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.")
     } finally {
       setLoading(false)
     }
   }
 
-  const handleGoogleSignIn = async () => {
+  const handleOAuthSignIn = async (provider: "google" | "github") => {
     setLoading(true)
-    setError(null)
-
+    setError("")
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
+      const { error: signInError } = await supabase.auth.signInWithOAuth({
+        provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       })
 
-      if (error) {
-        setError(error.message)
-        setLoading(false)
+      if (signInError) {
+        setError(signInError.message)
       }
-    } catch (err) {
-      setError("An unexpected error occurred. Please try again.")
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.")
+    } finally {
       setLoading(false)
-      console.error("Google auth error:", err)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fillRule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fillOpacity=\"0.02\"%3E%3Ccircle cx=\"7\" cy=\"7\" r=\"1\"/%3E%3Ccircle cx=\"27\" cy=\"7\" r=\"1\"/%3E%3Ccircle cx=\"47\" cy=\"7\" r=\"1\"/%3E%3Ccircle cx=\"7\" cy=\"27\" r=\"1\"/%3E%3Ccircle cx=\"27\" cy=\"27\" r=\"1\"/%3E%3Ccircle cx=\"47\" cy=\"27\" r=\"1\"/%3E%3Ccircle cx=\"7\" cy=\"47\" r=\"1\"/%3E%3Ccircle cx=\"27\" cy=\"47\" r=\"1\"/%3E%3Ccircle cx=\"47\" cy=\"47\" r=\"1\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50" />
-      
-      <Card className="w-full max-w-md mx-auto bg-white/95 backdrop-blur-sm shadow-2xl border-0">
-        <CardHeader className="space-y-2 text-center pb-6">
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-slate-900 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">A</span>
-            </div>
-          </div>
-          <CardTitle className="text-2xl font-bold text-slate-900">
-            {mode === 'signin' ? 'Welcome back' : 'Create your account'}
-          </CardTitle>
-          <CardDescription className="text-slate-600">
-            {mode === 'signin' 
-              ? 'Sign in to your Archon dashboard' 
-              : 'Get started with your personal command center'
-            }
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'signup' && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName" className="text-sm font-medium text-slate-700">
-                  Full Name
-                </Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="h-11 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
-                  required
-                />
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-slate-700">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-11 border-slate-200 focus:border-slate-400 focus:ring-slate-400"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-slate-700">
-                Password
-              </Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-11 border-slate-200 focus:border-slate-400 focus:ring-slate-400 pr-10"
-                  required
-                  minLength={6}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-slate-400" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-slate-400" />
-                  )}
-                </Button>
-              </div>
-            </div>
+    <Card className="w-full max-w-md mx-auto bg-background/80 backdrop-blur-sm shadow-lg">
+      <CardHeader className="space-y-1 text-center">
+        <CardTitle className="text-2xl font-bold">
+          {type === "signin" ? "Sign In to Archon" : "Create an Archon Account"}
+        </CardTitle>
+        <CardDescription>
+          {type === "signin"
+            ? "Enter your email and password to access your dashboard."
+            : "Enter your email and password to create your account."}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        {error && <p className="text-destructive text-sm text-center">{error}</p>}
+        {message && <p className="text-green-500 text-sm text-center">{message}</p>}
 
-            {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded border border-red-100">
-                {error}
-              </div>
-            )}
-
-            {message && (
-              <div className="text-sm text-green-600 bg-green-50 p-3 rounded border border-green-100">
-                {message}
-              </div>
-            )}
-            
-            <Button 
-              type="submit" 
-              className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium"
+        <form onSubmit={handleEmailAuth} className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
               disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {mode === 'signin' ? 'Signing in...' : 'Creating account...'}
-                </>
-              ) : (
-                mode === 'signin' ? 'Sign In' : 'Create Account'
-              )}
-            </Button>
-          </form>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-slate-500">Or continue with</span>
-            </div>
+            />
           </div>
-
-          <Button
-            variant="outline"
-            className="w-full h-11 border-slate-200 hover:bg-slate-50 font-medium bg-transparent"
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-          >
+          <div className="grid gap-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
             {loading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {type === "signin" ? "Signing In..." : "Signing Up..."}
+              </>
+            ) : type === "signin" ? (
+              "Sign In"
             ) : (
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
-              </svg>
+              "Sign Up"
             )}
-            Continue with Google
           </Button>
+        </form>
 
-          <div className="text-center">
-            <p className="text-sm text-slate-600">
-              {mode === 'signin' ? "Don't have an account? " : "Already have an account? "}
-              <a 
-                href={mode === 'signin' ? '/auth/signup' : '/auth/signin'} 
-                className="font-medium text-slate-900 hover:text-slate-700 underline underline-offset-4"
-              >
-                {mode === 'signin' ? 'Sign Up' : 'Sign In'}
-              </a>
-            </p>
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+          </div>
+        </div>
+
+        <Button
+          variant="outline"
+          className="w-full flex items-center gap-2 bg-transparent"
+          onClick={() => handleOAuthSignIn("google")}
+          disabled={loading}
+        >
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <svg role="img" viewBox="0 0 24 24" className="h-4 w-4">
+              <path
+                fill="currentColor"
+                d="M12.48 10.92v2.73h3.49c-.07 1.8-1.85 4.73-4.91 4.73-4.18 0-7.6-3.35-7.6-7.48s3.42-7.48 7.6-7.48c2.04 0 3.22.83 4.12 1.68l2.16-2.08c-1.35-1.24-3.88-2.52-6.28-2.52-5.65 0-10.29 4.6-10.29 10.29s4.64 10.29 10.29 10.29c5.24 0 8.91-3.84 8.91-9.88 0-.71-.09-1.25-.19-1.87v-.01H12.48z"
+              />
+            </svg>
+          )}
+          Google
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full flex items-center gap-2 bg-transparent"
+          onClick={() => handleOAuthSignIn("github")}
+          disabled={loading}
+        >
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <svg role="img" viewBox="0 0 24 24" className="h-4 w-4">
+              <path
+                fill="currentColor"
+                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.73.084-.73 1.205.084 1.838 1.238 1.838 1.238 1.07 1.835 2.809 1.305 3.49.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12z"
+              />
+            </svg>
+          )}
+          GitHub
+        </Button>
+
+        <div className="text-center text-sm text-muted-foreground">
+          {type === "signin" ? (
+            <>
+              Don&apos;t have an account?{" "}
+              <Link href="/auth/signup" className="underline underline-offset-4 hover:text-primary">
+                Sign Up
+              </Link>
+            </>
+          ) : (
+            <>
+              Already have an account?{" "}
+              <Link href="/auth/signin" className="underline underline-offset-4 hover:text-primary">
+                Sign In
+              </Link>
+            </>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
