@@ -11,70 +11,50 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'avatars.githubusercontent.com',
+        port: '',
+        pathname: '**',
       },
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '**',
       },
       {
         protocol: 'https',
         hostname: 'cdn.sanity.io',
+        port: '',
+        pathname: '**',
       },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'plus.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'blob.vercel-storage.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'img.clerk.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'utfs.io',
-      },
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-      },
-      {
-        protocol: 'https',
-        hostname: 'place-hold.it',
-      },
-      {
-        protocol: 'https',
-        hostname: 'placeimg.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
+        port: '',
+        pathname: '**',
       },
       {
         protocol: 'https',
         hostname: 'source.unsplash.com',
+        port: '',
+        pathname: '**',
       },
       {
         protocol: 'https',
-        hostname: 'images.pexels.com',
+        hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '**',
       },
       {
         protocol: 'https',
-        hostname: 'unsplash.com',
+        hostname: 'blob.v0.dev', // For v0 generated placeholder images
+        port: '',
+        pathname: '**',
       },
       {
         protocol: 'https',
-        hostname: 'v0.dev',
+        hostname: '*.supabase.co', // For Supabase storage
+        port: '',
+        pathname: '**',
       },
     ],
     unoptimized: true,
