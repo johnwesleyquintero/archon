@@ -3,29 +3,24 @@
 import { useEffect, useState } from "react"
 
 /**
- * useIsMobile – returns true when `window.innerWidth` is below the breakpoint.
- * Default breakpoint = 768 px (Tailwind’s md).
+ * Responsive helper – returns `true` when `window.innerWidth` is below
+ * the provided Tailwind breakpoint (default = 768 px = `md`).
  */
 export function useIsMobile(breakpoint = 768) {
-  const [isMobile, setIsMobile] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false
-    return window.innerWidth < breakpoint
-  })
+  const [isMobile, setIsMobile] = useState<boolean>(false)
 
   useEffect(() => {
-    if (typeof window === "undefined") return
+    function update() {
+      setIsMobile(window.innerWidth < breakpoint)
+    }
 
-    const listener = () => setIsMobile(window.innerWidth < breakpoint)
-    listener() // run once on mount
-    window.addEventListener("resize", listener)
-    return () => window.removeEventListener("resize", listener)
+    update()
+    window.addEventListener("resize", update)
+    return () => window.removeEventListener("resize", update)
   }, [breakpoint])
 
   return isMobile
 }
 
-/**
- * Alias kept for older code that already migrated to useMobile().
- * New code should directly use useIsMobile for clarity.
- */
+/* alias kept for older imports */
 export const useMobile = useIsMobile

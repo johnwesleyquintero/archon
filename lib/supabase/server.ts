@@ -1,21 +1,18 @@
-"use server"
-
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { createClient } from "@supabase/supabase-js"
+import type { Database } from "@/lib/supabase/types"
 
 /**
- * A single Server-Side Supabase client that automatically
- * reads/writes the user session from `next/headers` cookies.
+ * Server-side singleton Supabase client.
+ * Uses the service-role key so we can perform RLS-bypassing operations
+ * (e.g. cron jobs, admin panels). Never expose this key to the browser!
  */
-export const supabase = createServerClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+export const supabase = createClient<Database>(
+  process.env.SUPABASE_URL ?? "",
+  process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   {
-    cookies: {
-      get(name: string) {
-        // Grab the latest request cookies on every invocation
-        return cookies().get(name)?.value
-      },
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
     },
   },
 )

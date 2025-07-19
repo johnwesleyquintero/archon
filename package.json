@@ -34,7 +34,6 @@
     "@radix-ui/react-slot": "latest",
     "@radix-ui/react-switch": "latest",
     "@radix-ui/react-tabs": "latest",
-    "@radix-ui/react-textarea": "^1.0.0",
     "@radix-ui/react-toast": "latest",
     "@radix-ui/react-toggle": "latest",
     "@radix-ui/react-toggle-group": "latest",
@@ -61,6 +60,7 @@
     "recharts": "latest",
     "sonner": "latest",
     "tailwind-merge": "^2.5.5",
+    "tailwindcss": "^3.4.4",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "latest",
     "zod": "^3.23.8"
@@ -72,7 +72,6 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
     "postcss": "^8.5",
-    "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }
 }

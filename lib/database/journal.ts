@@ -1,106 +1,50 @@
-"use server"
+import { supabase } from "@/lib/supabase/server"
+import type { Tables } from "@/lib/supabase/types"
 
-import { supabase } from "../supabase/server"
-import { getUser } from "../supabase/auth"
-import type { Database } from "../supabase/types"
+/* ---------- Templates ---------- */
 
-/* -------------------------------------------------------------------------- */
-/*                                   Types                                    */
-/* -------------------------------------------------------------------------- */
+export async function getJournalTemplates() {
+  const { data, error } = await supabase.from("journal_templates").select("*")
+  if (error) throw error
+  return data as Tables<"journal_templates">[]
+}
 
-type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"]
-type JournalEntryInsert = Database["public"]["Tables"]["journal_entries"]["Insert"]
-type JournalEntryUpdate = Database["public"]["Tables"]["journal_entries"]["Update"]
+/* ---------- Entries CRUD ---------- */
 
-type JournalTemplate = Database["public"]["Tables"]["journal_templates"]["Row"]
-
-/* -------------------------------------------------------------------------- */
-/*                                  Queries                                   */
-/* -------------------------------------------------------------------------- */
-
-export async function getJournalEntries(): Promise<JournalEntry[]> {
-  const user = await getUser()
-  if (!user) return []
-
+export async function getJournalEntries(userId: string) {
   const { data, error } = await supabase
     .from("journal_entries")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .order("created_at", { ascending: false })
-
-  if (error) {
-    console.error("[getJournalEntries]", error.message)
-    return []
-  }
-  return data
+  if (error) throw error
+  return data as Tables<"journal_entries">[]
 }
 
-export async function getJournalTemplates(): Promise<JournalTemplate[]> {
-  const user = await getUser() // may be null for signed-out visitors
-
-  const { data, error } = await supabase
-    .from("journal_templates")
-    .select("*")
-    .or(
-      `user_id.is.null${user ? `,user_id.eq.${user.id}` : ""}`, // public templates + user’s own
-    )
-    .order("created_at", { ascending: true })
-
-  if (error) {
-    console.error("[getJournalTemplates]", error.message)
-    return []
-  }
-  return data
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                 Mutations                                  */
-/* -------------------------------------------------------------------------- */
-
-export async function addJournalEntry(entryData: Omit<JournalEntryInsert, "user_id">): Promise<JournalEntry | null> {
-  const user = await getUser()
-  if (!user) throw new Error("User not authenticated.")
-
+export async function addJournalEntry(
+  userId: string,
+  values: Omit<Tables<"journal_entries">, "id" | "user_id" | "created_at">,
+) {
   const { data, error } = await supabase
     .from("journal_entries")
-    .insert({ ...entryData, user_id: user.id })
+    .insert({ ...values, user_id: userId })
     .select()
     .single()
-
-  if (error) {
-    console.error("[addJournalEntry]", error.message)
-    throw new Error(`Failed to add journal entry: ${error.message}`)
-  }
-  return data
+  if (error) throw error
+  return data as Tables<"journal_entries">
 }
 
-export async function updateJournalEntry(id: string, entryData: JournalEntryUpdate): Promise<JournalEntry | null> {
-  const user = await getUser()
-  if (!user) throw new Error("User not authenticated.")
-
-  const { data, error } = await supabase
-    .from("journal_entries")
-    .update(entryData)
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .select()
-    .single()
-
-  if (error) {
-    console.error("[updateJournalEntry]", error.message)
-    throw new Error(`Failed to update journal entry: ${error.message}`)
-  }
-  return data
+export async function updateJournalEntry(
+  entryId: string,
+  values: Partial<Omit<Tables<"journal_entries">, "id" | "user_id">>,
+) {
+  const { data, error } = await supabase.from("journal_entries").update(values).eq("id", entryId).select().single()
+  if (error) throw error
+  return data as Tables<"journal_entries">
 }
 
-export async function deleteJournalEntry(id: string): Promise<void> {
-  const user = await getUser()
-  if (!user) throw new Error("User not authenticated.")
-
-  const { error } = await supabase.from("journal_entries").delete().eq("id", id).eq("user_id", user.id)
-
-  if (error) {
-    console.error("[deleteJournalEntry]", error.message)
-    throw new Error(`Failed to delete journal entry: ${error.message}`)
-  }
+export async function deleteJournalEntry(entryId: string) {
+  const { error } = await supabase.from("journal_entries").delete().eq("id", entryId)
+  if (error) throw error
+  return true
 }
