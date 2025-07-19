@@ -1,72 +1,60 @@
 "use server"
 
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
-import { revalidatePath } from "next/cache"
-import { getUser } from "@/lib/supabase/auth"
-import type { Database } from "@/lib/supabase/types"
+import { supabase } from "../supabase/server"
+import { getUser } from "../supabase/auth"
+import type { Database } from "../supabase/types"
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"]
 type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"]
 type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"]
 
-const createSupabaseServerClient = () => {
-  const cookieStore = cookies()
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
-      },
-    },
-  })
-}
+/* -------------------------------------------------------------------------- */
+/*                                  Queries                                   */
+/* -------------------------------------------------------------------------- */
 
 export async function getProfile(): Promise<Profile | null> {
-  const supabase = createSupabaseServerClient()
   const user = await getUser()
-
-  if (!user) {
-    return null
-  }
+  if (!user) return null
 
   const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
   if (error) {
-    console.error("Error fetching profile:", error)
+    console.error("[getProfile]", error.message)
     return null
   }
-
   return data
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                 Mutations                                  */
+/* -------------------------------------------------------------------------- */
+
 export async function createProfile(profileData: ProfileInsert): Promise<Profile | null> {
-  const supabase = createSupabaseServerClient()
   const { data, error } = await supabase.from("profiles").insert(profileData).select().single()
 
   if (error) {
-    console.error("Error creating profile:", error)
+    console.error("[createProfile]", error.message)
     return null
   }
-
-  revalidatePath("/settings")
   return data
 }
 
+/**
+ * updateProfile – kept for backward-compatibility with the UI.
+ * Uses a simple upsert so callers don’t have to worry if the row exists.
+ */
 export async function updateProfile(profileData: ProfileUpdate): Promise<Profile | null> {
-  const supabase = createSupabaseServerClient()
   const user = await getUser()
-
-  if (!user) {
-    throw new Error("User not authenticated.")
-  }
+  if (!user) throw new Error("User not authenticated.")
 
   const { data, error } = await supabase.from("profiles").update(profileData).eq("id", user.id).select().single()
 
   if (error) {
-    console.error("Error updating profile:", error)
+    console.error("[updateProfile]", error.message)
     throw new Error(`Failed to update profile: ${error.message}`)
   }
-
-  revalidatePath("/settings")
   return data
 }
+
+/* Alias kept for any newer code that already migrated */
+export const upsertProfile = updateProfile

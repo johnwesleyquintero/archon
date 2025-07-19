@@ -1,28 +1,21 @@
-// This file is now deprecated as getSupabaseServerClient is moved to lib/supabase/config.ts
-// and Server Actions directly use createServerClient from @supabase/ssr.
-// Keeping it here for completeness but it can be removed if not needed.
+"use server"
+
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
-import type { Database } from "./types"
 
-export async function createClient() {
-  const cookieStore = cookies()
-
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use service role key for server-side operations
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-        set(name: string, value: string, options: any) {
-          cookieStore.set(name, value, options)
-        },
-        remove(name: string, options: any) {
-          cookieStore.set(name, "", options)
-        },
+/**
+ * A single Server-Side Supabase client that automatically
+ * reads/writes the user session from `next/headers` cookies.
+ */
+export const supabase = createServerClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    cookies: {
+      get(name: string) {
+        // Grab the latest request cookies on every invocation
+        return cookies().get(name)?.value
       },
     },
-  )
-}
+  },
+)

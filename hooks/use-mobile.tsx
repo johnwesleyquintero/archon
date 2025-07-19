@@ -1,33 +1,31 @@
 "use client"
 
-import * as React from "react"
-
-const MOBILE_BREAKPOINT = 768
+import { useEffect, useState } from "react"
 
 /**
- * Detects if the current viewport width is below `MOBILE_BREAKPOINT`
- * and updates reactively on resize.
+ * useIsMobile – returns true when `window.innerWidth` is below the breakpoint.
+ * Default breakpoint = 768 px (Tailwind’s md).
  */
-export function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = React.useState(false)
+export function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false
+    return window.innerWidth < breakpoint
+  })
 
-  React.useEffect(() => {
-    const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+  useEffect(() => {
+    if (typeof window === "undefined") return
 
-    const handleChange = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-
-    // Initial check
-    handleChange()
-    mediaQuery.addEventListener("change", handleChange)
-
-    return () => mediaQuery.removeEventListener("change", handleChange)
-  }, [])
+    const listener = () => setIsMobile(window.innerWidth < breakpoint)
+    listener() // run once on mount
+    window.addEventListener("resize", listener)
+    return () => window.removeEventListener("resize", listener)
+  }, [breakpoint])
 
   return isMobile
 }
 
 /**
- * Alias kept for backward-compatibility with older imports.
- * You can safely remove this export after updating all callers.
+ * Alias kept for older code that already migrated to useMobile().
+ * New code should directly use useIsMobile for clarity.
  */
-export { useIsMobile as useMobile }
+export const useMobile = useIsMobile
