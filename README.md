@@ -16,6 +16,7 @@ Archon is a powerful, responsive dashboard application designed to help you mana
 -   **Journaling System**: Create and manage journal entries using various templates and a rich text editor.
 -   **User Settings**: Manage profile information, account settings, and appearance preferences.
 -   **File Uploads**: Integrate with Vercel Blob for attaching files to journal entries, goals, and user avatars.
+-   **AI-Powered Features**: Leverage **GroqFast AI Inference** for rapid, low-latency AI responses, enabling potential features like smart suggestions, content generation, or conversational AI.
 -   **Reusable UI States**: Generic components for `LoadingSkeleton`, `EmptyState`, and `ErrorState` to handle common UI scenarios gracefully.
 -   **Modular & Maintainable Code**: Components are broken down into smaller, reusable pieces for better maintainability.
 
@@ -25,6 +26,8 @@ Archon is a powerful, responsive dashboard application designed to help you mana
 -   **React**: Building interactive user interfaces.
 -   **TypeScript**: For type safety and improved developer experience.
 -   **Supabase**: Backend-as-a-Service for authentication and database (PostgreSQL).
+-   **Groq**: For ultra-fast AI inference with Language Processing Units (LPUs) [^1].
+-   **AI SDK**: A TypeScript toolkit for building AI-powered applications [^2].
 -   **Tailwind CSS**: For rapid and responsive UI development.
 -   **shadcn/ui**: Reusable UI components built with Radix UI and Tailwind CSS.
 -   **Lucide React**: For a comprehensive set of icons.
@@ -37,7 +40,7 @@ Follow these steps to set up and run the Archon Dashboard locally.
 ### 1. Clone the Repository
 
 \`\`\`bash
-git clone https://github.com/your-username/archon-dashboard.git # Replace with your repo URL
+git clone https://github.com/your-username/archon.git # Replace with your repo URL
 cd archon-dashboard
 \`\`\`
 
@@ -62,8 +65,10 @@ yarn install
     SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
     # Vercel Blob Storage (if using file uploads)
     BLOB_READ_WRITE_TOKEN=YOUR_BLOB_READ_WRITE_TOKEN
+    # Groq AI Inference
+    GROQ_API_KEY=YOUR_GROQ_API_KEY
     \`\`\`
-    Replace `YOUR_SUPABASE_URL`, `YOUR_SUPABASE_ANON_KEY`, `YOUR_SUPABASE_SERVICE_ROLE_KEY`, and `YOUR_BLOB_READ_WRITE_TOKEN` with your actual credentials.
+    Replace `YOUR_SUPABASE_URL`, `YOUR_SUPABASE_ANON_KEY`, `YOUR_SUPABASE_SERVICE_ROLE_KEY`, `YOUR_BLOB_READ_WRITE_TOKEN`, and `YOUR_GROQ_API_KEY` with your actual credentials.
 
 ### 4. Run Database Migrations
 
@@ -90,7 +95,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the a
 This project is designed to be easily deployed to [Vercel](https://vercel.com/).
 
 1.  **Connect to Vercel**: If you haven't already, connect your Git repository (GitHub, GitLab, or Bitbucket) to Vercel.
-2.  **Configure Environment Variables**: Ensure you add the `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `BLOB_READ_WRITE_TOKEN` environment variables to your Vercel project settings.
+2.  **Configure Environment Variables**: Ensure you add the `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `BLOB_READ_WRITE_TOKEN`, and `GROQ_API_KEY` environment variables to your Vercel project settings.
 3.  **Deploy**: Vercel will automatically detect the Next.js project and deploy it.
 
 ## Contributing
