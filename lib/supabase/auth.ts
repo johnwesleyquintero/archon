@@ -1,70 +1,46 @@
 import { createClient } from "./server"
-import { redirect } from "next/navigation"
-import type { User } from "@supabase/supabase-js"
+import type { User } from "./types"
 
 export async function getUser(): Promise<User | null> {
   try {
     const supabase = await createClient()
 
-    // Get the current session first.  This call is silent when no cookies are present
+    // Use getSession instead of getUser to avoid throwing on missing auth
     const {
       data: { session },
-      error: sessionError,
+      error,
     } = await supabase.auth.getSession()
 
-    if (sessionError) {
-      // Only log real errors (network / server errors).
-      // The “Auth session missing!” case isn’t an error for a logged-out user.
-      if (sessionError.message !== "Auth session missing!") {
-        console.error("Error getting session:", sessionError)
-      }
-      return null
-    }
-
-    return session?.user ?? null
-  } catch (err) {
-    console.error("Unexpected error in getUser:", err)
-    return null
-  }
-}
-
-export async function requireAuth(): Promise<User> {
-  const user = await getUser()
-
-  if (!user) {
-    redirect("/auth/signin")
-  }
-
-  return user
-}
-
-export async function getProfile(userId: string) {
-  try {
-    const supabase = await createClient()
-
-    const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
-
     if (error) {
-      console.error("Error fetching profile:", error)
+      console.error("Error getting session:", error)
       return null
     }
 
-    return profile
+    return session?.user || null
   } catch (error) {
-    console.error("Error in getProfile:", error)
+    // Only log unexpected errors, not auth session missing
+    if (error instanceof Error && !error.message.includes("Auth session missing")) {
+      console.error("Error getting user:", error)
+    }
     return null
   }
 }
 
-export async function getUserWithProfile() {
+export async function getUserWithProfile(userId?: string): Promise<{ user: User | null; profile: any | null }> {
   try {
-    const user = await getUser()
+    const user = userId ? ({ id: userId } as User) : await getUser()
 
     if (!user) {
       return { user: null, profile: null }
     }
 
-    const profile = await getProfile(user.id)
+    const supabase = await createClient()
+    const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+
+    if (error && error.code !== "PGRST116") {
+      // PGRST116 = no rows returned
+      console.error("Error fetching profile:", error)
+    }
 
     return { user, profile }
   } catch (error) {
