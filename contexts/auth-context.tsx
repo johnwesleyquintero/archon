@@ -89,7 +89,16 @@ export function AuthProvider({
           }
         }
       } catch (err: any) {
-        console.error("Auth context initialization error:", err);
+        // AuthSessionMissingError is often expected for unauthenticated users,
+        // so we log it at a lower level. Other errors are logged as errors.
+        if (err.name === "AuthSessionMissingError") {
+          console.log(
+            "Auth context initialization (AuthSessionMissingError):",
+            err.message,
+          );
+        } else {
+          console.error("Auth context initialization error:", err);
+        }
         if (isMounted) {
           setError(err);
           setUser(null);

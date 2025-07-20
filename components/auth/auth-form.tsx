@@ -11,6 +11,7 @@ import { authSchema } from "@/lib/validators";
 import type { z } from "zod";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner"; // Assuming you have a Spinner component
+import { useFormStatus } from "react-dom";
 
 type AuthFormValues = z.infer<typeof authSchema>;
 
@@ -86,19 +87,39 @@ export function AuthForm({ type }: AuthFormProps) {
         )}
       </div>
       {error && <p className="text-sm text-red-500">{error}</p>}
-      <Button
+      <SubmitButton
         type="submit"
         className="w-full bg-slate-900 hover:bg-slate-800"
         disabled={isLoading}
+        pendingText={type === "signin" ? "Signing In..." : "Signing Up..."}
       >
-        {isLoading ? (
-          <Spinner size="sm" />
-        ) : type === "signin" ? (
-          "Sign In"
-        ) : (
-          "Sign Up"
-        )}
-      </Button>
+        {type === "signin" ? "Sign In" : "Sign Up"}
+      </SubmitButton>
     </form>
+  );
+}
+
+interface SubmitButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  pendingText: string;
+}
+
+export function SubmitButton({
+  children,
+  pendingText,
+  ...props
+}: SubmitButtonProps) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button {...props} type="submit" disabled={pending || props.disabled}>
+      {pending ? (
+        <span className="flex items-center gap-2">
+          <Spinner size="sm" /> {pendingText}
+        </span>
+      ) : (
+        children
+      )}
+    </Button>
   );
 }
