@@ -1,31 +1,40 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Modal } from "@/components/ui/modal"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { goalSchema } from "@/lib/validators"
-import type { z } from "zod"
-import { CalendarIcon } from "lucide-react"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { format } from "date-fns"
-import { Calendar } from "@/components/ui/calendar"
-import { cn } from "@/lib/utils"
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Modal } from "@/components/ui/modal";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { goalSchema } from "@/lib/validators";
+import type { z } from "zod";
+import { CalendarIcon } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 interface CreateGoalModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSave: (goalData: z.infer<typeof goalSchema>) => void
-  isSaving: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (goalData: z.infer<typeof goalSchema>) => void;
+  isSaving: boolean;
 }
 
-type GoalFormValues = z.infer<typeof goalSchema>
+type GoalFormValues = z.infer<typeof goalSchema>;
 
-export function CreateGoalModal({ isOpen, onClose, onSave, isSaving }: CreateGoalModalProps) {
+export function CreateGoalModal({
+  isOpen,
+  onClose,
+  onSave,
+  isSaving,
+}: CreateGoalModalProps) {
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalSchema),
     defaultValues: {
@@ -35,22 +44,22 @@ export function CreateGoalModal({ isOpen, onClose, onSave, isSaving }: CreateGoa
       status: "pending",
       attachments: [],
     },
-  })
+  });
 
   useEffect(() => {
     if (isOpen) {
-      form.reset() // Reset form when modal opens
+      form.reset(); // Reset form when modal opens
     }
-  }, [isOpen, form])
+  }, [isOpen, form]);
 
   const handleSave = form.handleSubmit((data) => {
-    onSave(data)
-  })
+    onSave(data);
+  });
 
   const handleCancel = () => {
-    form.reset()
-    onClose()
-  }
+    form.reset();
+    onClose();
+  };
 
   return (
     <Modal
@@ -74,7 +83,10 @@ export function CreateGoalModal({ isOpen, onClose, onSave, isSaving }: CreateGoa
     >
       <form onSubmit={handleSave} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="goal-title" className="text-sm font-medium text-slate-700">
+          <Label
+            htmlFor="goal-title"
+            className="text-sm font-medium text-slate-700"
+          >
             Goal Title <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -85,11 +97,18 @@ export function CreateGoalModal({ isOpen, onClose, onSave, isSaving }: CreateGoa
             disabled={isSaving}
             autoFocus
           />
-          {form.formState.errors.title && <p className="text-sm text-red-500">{form.formState.errors.title.message}</p>}
+          {form.formState.errors.title && (
+            <p className="text-sm text-red-500">
+              {form.formState.errors.title.message}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="goal-description" className="text-sm font-medium text-slate-700">
+          <Label
+            htmlFor="goal-description"
+            className="text-sm font-medium text-slate-700"
+          >
             Description
           </Label>
           <Textarea
@@ -100,12 +119,16 @@ export function CreateGoalModal({ isOpen, onClose, onSave, isSaving }: CreateGoa
             disabled={isSaving}
           />
           <p className="text-xs text-slate-500">
-            Optional: Add more details about your goal and how you plan to achieve it.
+            Optional: Add more details about your goal and how you plan to
+            achieve it.
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="goal-target-date" className="text-sm font-medium text-slate-700">
+          <Label
+            htmlFor="goal-target-date"
+            className="text-sm font-medium text-slate-700"
+          >
             Target Date
           </Label>
           <Popover>
@@ -129,8 +152,16 @@ export function CreateGoalModal({ isOpen, onClose, onSave, isSaving }: CreateGoa
             <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
-                selected={form.watch("target_date") ? new Date(form.watch("target_date")!) : undefined}
-                onSelect={(date) => form.setValue("target_date", date?.toISOString(), { shouldValidate: true })}
+                selected={
+                  form.watch("target_date")
+                    ? new Date(form.watch("target_date")!)
+                    : undefined
+                }
+                onSelect={(date) =>
+                  form.setValue("target_date", date?.toISOString(), {
+                    shouldValidate: true,
+                  })
+                }
                 initialFocus
               />
             </PopoverContent>
@@ -138,5 +169,5 @@ export function CreateGoalModal({ isOpen, onClose, onSave, isSaving }: CreateGoa
         </div>
       </form>
     </Modal>
-  )
+  );
 }

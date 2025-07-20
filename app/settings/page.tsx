@@ -1,13 +1,19 @@
-import { AccountSettings } from "@/components/account-settings"
-import { SettingsNav } from "@/components/settings-nav"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { AccountSettings } from "@/components/account-settings";
+import { SettingsNav } from "@/components/settings-nav";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 
 export default function SettingsPage() {
   const settingsNavItems = [
     { href: "/settings", label: "Profile" },
     { href: "/settings?tab=appearance", label: "Appearance" },
     { href: "/settings?tab=security", label: "Security" },
-  ]
+  ];
 
   return (
     <div className="flex flex-col gap-6">
@@ -25,5 +31,5 @@ export default function SettingsPage() {
         <AccountSettings />
       </div>
     </div>
-  )
+  );
 }

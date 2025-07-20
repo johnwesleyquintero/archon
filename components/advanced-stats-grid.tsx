@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { CheckCircle, Target, Zap, TrendingUp, Clock } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Card, CardContent } from "@/components/ui/card";
+import { CheckCircle, Target, Zap, TrendingUp, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AdvancedStatCardProps {
-  title: string
-  value: string | number
-  label: string
-  icon: React.ElementType
+  title: string;
+  value: string | number;
+  label: string;
+  icon: React.ElementType;
   trend?: {
-    value: number
-    isPositive: boolean
-  }
-  color?: "blue" | "green" | "purple" | "orange" | "red"
-  className?: string
+    value: number;
+    isPositive: boolean;
+  };
+  color?: "blue" | "green" | "purple" | "orange" | "red";
+  className?: string;
 }
 
 const colorVariants = {
@@ -45,7 +45,7 @@ const colorVariants = {
     icon: "text-red-600",
     trend: "text-red-600",
   },
-}
+};
 
 function AdvancedStatCard({
   title,
@@ -56,7 +56,7 @@ function AdvancedStatCard({
   color = "blue",
   className,
 }: AdvancedStatCardProps) {
-  const colorClasses = colorVariants[color]
+  const colorClasses = colorVariants[color];
 
   return (
     <Card
@@ -86,10 +86,17 @@ function AdvancedStatCard({
               <div
                 className={cn(
                   "flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-full",
-                  trend.isPositive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700",
+                  trend.isPositive
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700",
                 )}
               >
-                <TrendingUp className={cn("h-3 w-3", trend.isPositive ? "rotate-0" : "rotate-180 transform")} />
+                <TrendingUp
+                  className={cn(
+                    "h-3 w-3",
+                    trend.isPositive ? "rotate-0" : "rotate-180 transform",
+                  )}
+                />
                 <span>
                   {trend.isPositive ? "+" : ""}
                   {trend.value}%
@@ -100,7 +107,7 @@ function AdvancedStatCard({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function AdvancedStatsGrid() {
@@ -149,7 +156,7 @@ export function AdvancedStatsGrid() {
         isPositive: true,
       },
     },
-  ]
+  ];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -165,5 +172,5 @@ export function AdvancedStatsGrid() {
         />
       ))}
     </div>
-  )
+  );
 }

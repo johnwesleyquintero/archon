@@ -1,17 +1,23 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { PlusCircle } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
 
 interface EmptyStateProps {
-  message: string
-  description?: string
-  buttonText?: string
-  onButtonClick?: () => void
-  buttonDisabled?: boolean
+  message: string;
+  description?: string;
+  buttonText?: string;
+  onButtonClick?: () => void;
+  buttonDisabled?: boolean;
 }
 
-export function EmptyState({ message, description, buttonText, onButtonClick, buttonDisabled }: EmptyStateProps) {
+export function EmptyState({
+  message,
+  description,
+  buttonText,
+  onButtonClick,
+  buttonDisabled,
+}: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center text-slate-500 dark:text-slate-400">
       <PlusCircle className="h-12 w-12 mb-4" />
@@ -27,5 +33,5 @@ export function EmptyState({ message, description, buttonText, onButtonClick, bu
         </Button>
       )}
     </div>
-  )
+  );
 }

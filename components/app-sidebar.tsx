@@ -1,25 +1,38 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Home, Target, ListTodo, BookOpen, Settings, LogOut, User } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ArchonLogoSVG } from "@/components/archon-logo-svg"
-import { useAuth } from "@/contexts/auth-context"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { cn } from "@/lib/utils"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Home,
+  Target,
+  ListTodo,
+  BookOpen,
+  Settings,
+  LogOut,
+  User,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ArchonLogoSVG } from "@/components/archon-logo-svg";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface AppSidebarProps {
-  isCollapsed: boolean
+  isCollapsed: boolean;
 }
 
 export function AppSidebar({ isCollapsed }: AppSidebarProps) {
-  const pathname = usePathname()
-  const { user, signOut } = useAuth()
-  const router = useRouter()
-  const [isSigningOut, setIsSigningOut] = useState(false)
+  const pathname = usePathname();
+  const { signOut } = useAuth();
+  const router = useRouter();
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const navItems = [
     { href: "/dashboard", icon: Home, label: "Dashboard" },
@@ -27,22 +40,33 @@ export function AppSidebar({ isCollapsed }: AppSidebarProps) {
     { href: "/tasks", icon: ListTodo, label: "Tasks" },
     { href: "/journal", icon: BookOpen, label: "Journal" },
     { href: "/settings", icon: Settings, label: "Settings" },
-  ]
+  ];
 
   const handleSignOut = async () => {
-    setIsSigningOut(true)
-    await signOut()
-    router.push("/login")
-    setIsSigningOut(false)
-  }
+    setIsSigningOut(true);
+    await signOut();
+    router.push("/login");
+    setIsSigningOut(false);
+  };
 
   return (
     <aside
-      className={cn("flex flex-col border-r bg-slate-50 transition-all duration-200", isCollapsed ? "w-16" : "w-64")}
+      className={cn(
+        "flex flex-col border-r bg-slate-50 transition-all duration-200",
+        isCollapsed ? "w-16" : "w-64",
+      )}
     >
       <div className="flex h-16 items-center justify-center border-b px-4">
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-          <ArchonLogoSVG className={cn("h-6 w-6 transition-all duration-200", isCollapsed ? "mr-0" : "mr-2")} />
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 font-semibold"
+        >
+          <ArchonLogoSVG
+            className={cn(
+              "h-6 w-6 transition-all duration-200",
+              isCollapsed ? "mr-0" : "mr-2",
+            )}
+          />
           {!isCollapsed && <span className="text-lg">Archon</span>}
         </Link>
       </div>
@@ -55,7 +79,9 @@ export function AppSidebar({ isCollapsed }: AppSidebarProps) {
                   href={item.href}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-slate-900 transition-all hover:bg-slate-100",
-                    pathname.startsWith(item.href) ? "bg-slate-100 text-slate-900" : "text-slate-600",
+                    pathname.startsWith(item.href)
+                      ? "bg-slate-100 text-slate-900"
+                      : "text-slate-600",
                     isCollapsed ? "justify-center" : "",
                   )}
                 >
@@ -63,7 +89,9 @@ export function AppSidebar({ isCollapsed }: AppSidebarProps) {
                   {!isCollapsed && item.label}
                 </Link>
               </TooltipTrigger>
-              {isCollapsed && <TooltipContent side="right">{item.label}</TooltipContent>}
+              {isCollapsed && (
+                <TooltipContent side="right">{item.label}</TooltipContent>
+              )}
             </Tooltip>
           ))}
         </TooltipProvider>
@@ -76,7 +104,9 @@ export function AppSidebar({ isCollapsed }: AppSidebarProps) {
                 href="/settings"
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-slate-900 transition-all hover:bg-slate-100",
-                  pathname === "/settings" ? "bg-slate-100 text-slate-900" : "text-slate-600",
+                  pathname === "/settings"
+                    ? "bg-slate-100 text-slate-900"
+                    : "text-slate-600",
                   isCollapsed ? "justify-center" : "",
                 )}
               >
@@ -84,7 +114,9 @@ export function AppSidebar({ isCollapsed }: AppSidebarProps) {
                 {!isCollapsed && "Profile"}
               </Link>
             </TooltipTrigger>
-            {isCollapsed && <TooltipContent side="right">Profile</TooltipContent>}
+            {isCollapsed && (
+              <TooltipContent side="right">Profile</TooltipContent>
+            )}
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -101,10 +133,12 @@ export function AppSidebar({ isCollapsed }: AppSidebarProps) {
                 {!isCollapsed && (isSigningOut ? "Signing out..." : "Sign Out")}
               </Button>
             </TooltipTrigger>
-            {isCollapsed && <TooltipContent side="right">Sign Out</TooltipContent>}
+            {isCollapsed && (
+              <TooltipContent side="right">Sign Out</TooltipContent>
+            )}
           </Tooltip>
         </TooltipProvider>
       </div>
     </aside>
-  )
+  );
 }

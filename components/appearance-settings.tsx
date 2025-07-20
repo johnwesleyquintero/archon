@@ -1,29 +1,37 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { useTheme } from "next-themes"
-import { useEffect, useState } from "react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export function AppearanceSettings() {
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   // useEffect to ensure theme is only read on client-side after mount
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
-    return null // Render nothing on the server or until mounted on client
+    return null; // Render nothing on the server or until mounted on client
   }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Appearance</CardTitle>
-        <CardDescription>Customize the look and feel of the dashboard.</CardDescription>
+        <CardDescription>
+          Customize the look and feel of the dashboard.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
@@ -51,5 +59,5 @@ export function AppearanceSettings() {
         {/* Add more appearance settings here, e.g., primary color picker */}
       </CardContent>
     </Card>
-  )
+  );
 }

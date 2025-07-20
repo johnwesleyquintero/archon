@@ -1,56 +1,79 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { UploadCloud, CheckCircle, XCircle, Loader2 } from "lucide-react"
+import { useState, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { UploadCloud, CheckCircle, XCircle, Loader2 } from "lucide-react";
 
 interface FileUploadProps {
-  onUpload: (file: File) => Promise<{ success: boolean; url?: string; error?: any }>
-  accept?: string // e.g., "image/*", "application/pdf", "image/png,image/jpeg"
-  buttonText?: string
-  disabled?: boolean
+  onUpload: (
+    file: File,
+  ) => Promise<{ success: boolean; url?: string; error?: Error }>;
+  accept?: string; // e.g., "image/*", "application/pdf", "image/png,image/jpeg"
+  buttonText?: string;
+  disabled?: boolean;
 }
 
-export function FileUpload({ onUpload, accept, buttonText = "Upload File", disabled }: FileUploadProps) {
-  const [file, setFile] = useState<File | null>(null)
-  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle")
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+export function FileUpload({
+  onUpload,
+  accept,
+  buttonText = "Upload File",
+  disabled,
+}: FileUploadProps) {
+  const [file, setFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<
+    "idle" | "uploading" | "success" | "error"
+  >("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      setFile(event.target.files[0])
-      setUploadStatus("idle")
-      setErrorMessage(null)
-    }
-  }, [])
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (event.target.files && event.target.files.length > 0) {
+        setFile(event.target.files[0]);
+        setUploadStatus("idle");
+        setErrorMessage(null);
+      }
+    },
+    [],
+  );
 
   const handleUpload = useCallback(async () => {
     if (!file) {
-      setErrorMessage("Please select a file first.")
-      return
+      setErrorMessage("Please select a file first.");
+      return;
     }
 
-    setUploadStatus("uploading")
-    setErrorMessage(null)
+    setUploadStatus("uploading");
+    setErrorMessage(null);
 
     try {
-      const result = await onUpload(file)
+      const result = await onUpload(file);
       if (result.success) {
-        setUploadStatus("success")
-        setFile(null) // Clear file input after successful upload
+        setUploadStatus("success");
+        setFile(null); // Clear file input after successful upload
       } else {
-        setUploadStatus("error")
-        setErrorMessage(result.error?.message || "File upload failed.")
+        setUploadStatus("error");
+        setErrorMessage(result.error?.message || "File upload failed.");
       }
-    } catch (err: any) {
-      setUploadStatus("error")
-      setErrorMessage(err.message || "An unexpected error occurred during upload.")
+    } catch (err: unknown) {
+      setUploadStatus("error");
+      let errorMessageText = "An unexpected error occurred during upload.";
+      if (err instanceof Error) {
+        errorMessageText = err.message;
+      } else if (
+        typeof err === "object" &&
+        err !== null &&
+        "message" in err &&
+        typeof (err as any).message === "string"
+      ) {
+        errorMessageText = (err as any).message;
+      }
+      setErrorMessage(errorMessageText);
     }
-  }, [file, onUpload])
+  }, [file, onUpload]);
 
   return (
     <div className="space-y-3 p-4 border border-slate-200 rounded-md bg-slate-50">
@@ -83,7 +106,9 @@ export function FileUpload({ onUpload, accept, buttonText = "Upload File", disab
         </Button>
       </div>
 
-      {file && uploadStatus === "idle" && <p className="text-sm text-slate-600">Selected: {file.name}</p>}
+      {file && uploadStatus === "idle" && (
+        <p className="text-sm text-slate-600">Selected: {file.name}</p>
+      )}
 
       {uploadStatus === "success" && (
         <div className="flex items-center text-green-600 text-sm">
@@ -97,5 +122,5 @@ export function FileUpload({ onUpload, accept, buttonText = "Upload File", disab
         </div>
       )}
     </div>
-  )
+  );
 }

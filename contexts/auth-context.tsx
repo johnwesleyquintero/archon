@@ -1,146 +1,199 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react"
-import { getSupabaseBrowserClient } from "@/lib/supabase/config"
-import type { User } from "@supabase/supabase-js"
-import type { Database } from "@/lib/supabase/types"
-import { getProfile, updateProfile as updateProfileDb } from "@/lib/database/profiles" // Server Action for profile updates
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/config";
+import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/types";
+import {
+  getProfile,
+  updateProfile as updateProfileDb,
+} from "@/lib/database/profiles"; // Server Action for profile updates
 
-type Profile = Database["public"]["Tables"]["profiles"]["Row"]
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 interface AuthContextType {
-  user: User | null
-  profile: Profile | null
-  isLoading: boolean
-  error: Error | null
-  signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<void>
-  signOut: () => Promise<void>
-  updateProfile: (updates: Partial<Profile>) => Promise<void>
-  refetchProfile: () => Promise<void>
+  user: User | null;
+  profile: Profile | null;
+  isLoading: boolean;
+  error: Error | null;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  updateProfile: (updates: Partial<Profile>) => Promise<void>;
+  refetchProfile: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
-  const supabase = getSupabaseBrowserClient()
+export function AuthProvider({
+  children,
+  initialUser, // Accept initialUser prop
+}: {
+  children: React.ReactNode;
+  initialUser: User | null; // Define type for initialUser
+}) {
+  const [user, setUser] = useState<User | null>(initialUser); // Initialize user with initialUser
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const supabase = getSupabaseBrowserClient();
 
-  const fetchUserAndProfile = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
+  const fetchProfile = useCallback(async (userId: string) => {
+    setError(null);
     try {
-      const {
-        data: { user: sessionUser },
-        error: sessionError,
-      } = await supabase.auth.getUser()
-
-      if (sessionError) {
-        throw sessionError
-      }
-
-      setUser(sessionUser)
-
-      if (sessionUser) {
-        const fetchedProfile = await getProfile(sessionUser.id) // Call server action
-        setProfile(fetchedProfile)
-      } else {
-        setProfile(null)
-      }
+      const fetchedProfile = await getProfile(userId);
+      setProfile(fetchedProfile);
     } catch (err: any) {
-      console.error("Auth context initialization error:", err)
-      setError(err)
-      setUser(null)
-      setProfile(null)
-    } finally {
-      setIsLoading(false)
+      console.error("Error fetching profile:", err);
+      setError(err);
+      setProfile(null);
     }
-  }, [supabase])
+  }, []);
 
   useEffect(() => {
-    fetchUserAndProfile()
+    let isMounted = true;
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session)
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
-        fetchUserAndProfile()
+    const initializeAuth = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        let currentUser = initialUser;
+
+        // If no initial user, try to get it from Supabase client
+        if (!currentUser) {
+          const {
+            data: { user: sessionUser },
+            error: sessionError,
+          } = await supabase!.auth.getUser();
+
+          if (sessionError) {
+            throw sessionError;
+          }
+          currentUser = sessionUser;
+        }
+
+        if (isMounted) {
+          setUser(currentUser);
+          if (currentUser) {
+            await fetchProfile(currentUser.id);
+          } else {
+            setProfile(null);
+          }
+        }
+      } catch (err: any) {
+        console.error("Auth context initialization error:", err);
+        if (isMounted) {
+          setError(err);
+          setUser(null);
+          setProfile(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-    })
+    };
+
+    initializeAuth();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event: AuthChangeEvent, session: Session | null) => {
+        console.log("Auth state changed:", event, session);
+        if (isMounted) {
+          if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+            setUser(session?.user || null);
+            if (session?.user) {
+              fetchProfile(session.user.id);
+            }
+          } else if (event === "SIGNED_OUT") {
+            setUser(null);
+            setProfile(null);
+          }
+        }
+      },
+    );
 
     return () => {
-      authListener.subscription.unsubscribe()
-    }
-  }, [supabase, fetchUserAndProfile])
+      isMounted = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, [supabase, initialUser, fetchProfile]); // Add initialUser and fetchProfile to dependencies
 
   const signIn = useCallback(
     async (email: string, password: string) => {
-      setError(null)
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      setError(null);
+      const { error: signInError } = await supabase!.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (signInError) {
-        throw signInError
+        throw signInError;
       }
     },
     [supabase],
-  )
+  );
 
   const signUp = useCallback(
     async (email: string, password: string) => {
-      setError(null)
-      const { error: signUpError } = await supabase.auth.signUp({
+      setError(null);
+      const { error: signUpError } = await supabase!.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${location.origin}/auth/callback`,
         },
-      })
+      });
       if (signUpError) {
-        throw signUpError
+        throw signUpError;
       }
     },
     [supabase],
-  )
+  );
 
   const signOut = useCallback(async () => {
-    setError(null)
-    const { error: signOutError } = await supabase.auth.signOut()
+    setError(null);
+    const { error: signOutError } = await supabase!.auth.signOut();
     if (signOutError) {
-      throw signOutError
+      throw signOutError;
     }
-  }, [supabase])
+  }, [supabase]);
 
   const updateProfile = useCallback(
     async (updates: Partial<Profile>) => {
       if (!user) {
-        throw new Error("User not authenticated.")
+        throw new Error("User not authenticated.");
       }
-      setError(null)
+      setError(null);
       try {
-        const updated = await updateProfileDb(user.id, updates) // Call server action
+        const updated = await updateProfileDb(user.id, updates); // Call server action
         if (updated) {
-          setProfile(updated)
+          setProfile(updated);
         } else {
-          throw new Error("Failed to update profile in database.")
+          throw new Error("Failed to update profile in database.");
         }
       } catch (err: any) {
-        console.error("Error updating profile:", err)
-        setError(err)
-        throw err
+        console.error("Error updating profile:", err);
+        setError(err);
+        throw err;
       }
     },
     [user],
-  )
+  );
 
   const refetchProfile = useCallback(async () => {
     if (user) {
-      const fetchedProfile = await getProfile(user.id)
-      setProfile(fetchedProfile)
+      const fetchedProfile = await getProfile(user.id);
+      setProfile(fetchedProfile);
     }
-  }, [user])
+  }, [user]);
 
   const value = {
     user,
@@ -152,15 +205,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     updateProfile,
     refetchProfile,
-  }
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context
+  return context;
 }

@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DollarSign, Users, CreditCard, Activity } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DollarSign, Users, CreditCard, Activity } from "lucide-react";
 
 export function StatsGrid() {
   return (
@@ -47,5 +47,5 @@ export function StatsGrid() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

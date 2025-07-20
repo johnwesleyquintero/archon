@@ -1,34 +1,51 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import {
+  Bold,
+  Italic,
+  List,
+  Save,
+  Paperclip,
+  ImageIcon,
+  X,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { FileUpload } from "@/components/file-upload";
+import { uploadFile } from "@/lib/blob";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { journalEntrySchema } from "@/lib/validators";
+import type { z } from "zod";
+import type { Database } from "@/lib/supabase/types";
+import Image from "next/image";
 
-import { useRef, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
-import { Bold, Italic, List, Save, Paperclip, ImageIcon, X } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { FileUpload } from "@/components/file-upload"
-import { uploadFile } from "@/lib/blob"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { journalEntrySchema } from "@/lib/validators"
-import type { z } from "zod"
-import type { Database } from "@/lib/supabase/types"
+type Attachment = {
+  url: string;
+  filename: string;
+  type: "image" | "document";
+};
 
-type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"]
-type JournalEntryUpdate = Database["public"]["Tables"]["journal_entries"]["Update"]
+type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
+type JournalEntryUpdate =
+  Database["public"]["Tables"]["journal_entries"]["Update"];
 
 interface JournalEditorProps {
-  entry: JournalEntry | null
-  onUpdateEntry: (entryId: string, updates: Partial<JournalEntryUpdate>) => void
-  onSaveEntry: () => void
-  hasUnsavedChanges: boolean
-  isMutating: boolean
+  entry: JournalEntry | null;
+  onUpdateEntry: (
+    entryId: string,
+    updates: Partial<JournalEntryUpdate>,
+  ) => void;
+  onSaveEntry: () => void;
+  hasUnsavedChanges: boolean;
+  isMutating: boolean;
 }
 
-type JournalFormValues = z.infer<typeof journalEntrySchema>
+type JournalFormValues = z.infer<typeof journalEntrySchema>;
 
 export function JournalEditorWithAttachments({
   entry,
@@ -37,8 +54,8 @@ export function JournalEditorWithAttachments({
   hasUnsavedChanges,
   isMutating,
 }: JournalEditorProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const [showAttachmentUpload, setShowAttachmentUpload] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [showAttachmentUpload, setShowAttachmentUpload] = useState(false);
 
   const form = useForm<JournalFormValues>({
     resolver: zodResolver(journalEntrySchema),
@@ -47,131 +64,176 @@ export function JournalEditorWithAttachments({
       content: "",
       attachments: [],
     },
-  })
+  });
+
+  // Helper function to convert a URL string to an Attachment object
+  const createAttachmentFromUrl = (url: string): Attachment => {
+    const fileExtension = url.substring(url.lastIndexOf(".") + 1).toLowerCase();
+    const type: "image" | "document" = ["jpeg", "jpg", "gif", "png"].includes(
+      fileExtension,
+    )
+      ? "image"
+      : "document";
+    return {
+      url,
+      filename: url.substring(url.lastIndexOf("/") + 1),
+      type,
+    };
+  };
 
   useEffect(() => {
     if (entry) {
       form.reset({
         title: entry.title,
         content: entry.content || "",
-        attachments: entry.attachments || [],
-      })
+        attachments: (entry.attachments || []).map(createAttachmentFromUrl),
+      });
     } else {
       form.reset({
         title: "",
         content: "",
         attachments: [],
-      })
+      });
     }
-  }, [entry, form])
+  }, [entry, form]);
 
   const handleContentChange = (newContent: string) => {
-    form.setValue("content", newContent, { shouldDirty: true, shouldValidate: true })
+    form.setValue("content", newContent, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
     if (entry) {
-      onUpdateEntry(entry.id, { content: newContent })
+      onUpdateEntry(entry.id, { content: newContent });
     }
-  }
+  };
 
   const insertMarkdown = (before: string, after = "") => {
-    const textarea = textareaRef.current
-    if (!textarea) return
+    const textarea = textareaRef.current;
+    if (!textarea) return;
 
-    const currentContent = form.getValues("content")
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = currentContent.substring(start, end)
+    const currentContent = form.getValues("content") ?? "";
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = currentContent.substring(start, end);
     const newContent =
-      currentContent.substring(0, start) + before + selectedText + after + currentContent.substring(end)
+      currentContent.substring(0, start) +
+      before +
+      selectedText +
+      after +
+      currentContent.substring(end);
 
-    handleContentChange(newContent)
+    handleContentChange(newContent);
 
     // Restore cursor position
     setTimeout(() => {
-      textarea.focus()
-      textarea.setSelectionRange(start + before.length, end + before.length)
-    }, 0)
-  }
+      textarea.focus();
+      textarea.setSelectionRange(start + before.length, end + before.length);
+    }, 0);
+  };
 
-  const handleBold = () => insertMarkdown("**", "**")
-  const handleItalic = () => insertMarkdown("*", "*")
+  const handleBold = () => insertMarkdown("**", "**");
+  const handleItalic = () => insertMarkdown("*", "*");
   const handleBulletList = () => {
-    const textarea = textareaRef.current
-    if (!textarea) return
+    const textarea = textareaRef.current;
+    if (!textarea) return;
 
-    const currentContent = form.getValues("content")
-    const start = textarea.selectionStart
-    const lineStart = currentContent.lastIndexOf("\n", start - 1) + 1
-    const newContent = currentContent.substring(0, lineStart) + "- " + currentContent.substring(lineStart)
+    const currentContent = form.getValues("content") ?? "";
+    const start = textarea.selectionStart;
+    const lineStart = currentContent.lastIndexOf("\n", start - 1) + 1;
+    const newContent =
+      currentContent.substring(0, lineStart) +
+      "- " +
+      currentContent.substring(lineStart);
 
-    handleContentChange(newContent)
+    handleContentChange(newContent);
 
     setTimeout(() => {
-      textarea.focus()
-      textarea.setSelectionRange(start + 2, start + 2)
-    }, 0)
-  }
+      textarea.focus();
+      textarea.setSelectionRange(start + 2, start + 2);
+    }, 0);
+  };
 
   const handleFileUpload = async (file: File) => {
-    if (!entry) return { success: false }
+    if (!entry) return { success: false };
 
     try {
       // Upload to Vercel Blob
-      const result = await uploadFile(file, `journal/${entry.id}`)
+      const result = await uploadFile(file, `journal/${entry.id}`);
 
       if (result.success) {
         // Determine file type category
-        const fileType = file.type.startsWith("image/") ? "image" : "document"
+        const fileType: "image" | "document" = file.type.startsWith("image/")
+          ? "image"
+          : "document";
 
         // Add to attachments in form state
-        const currentAttachments = form.getValues("attachments") || []
-        const newAttachment = {
+        const currentAttachments = form.getValues("attachments") || [];
+        const newAttachment: Attachment = {
           url: result.url,
           filename: file.name,
           type: fileType,
-        }
-        const updatedAttachments = [...currentAttachments, newAttachment]
-        form.setValue("attachments", updatedAttachments, { shouldDirty: true, shouldValidate: true })
+        };
+        const updatedAttachments: Attachment[] = [
+          ...currentAttachments,
+          newAttachment,
+        ];
+        form.setValue("attachments", updatedAttachments, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
 
         // Update entry in parent state (which will trigger DB update)
         onUpdateEntry(entry.id, {
-          attachments: updatedAttachments as any, // Cast to any because Supabase types might not match exactly
-        })
+          attachments: updatedAttachments.map((att) => att.url), // Convert back to string[] for Supabase
+        });
 
-        return { url: result.url, success: true }
+        return { url: result.url, success: true };
       }
 
-      return { success: false }
-    } catch (error) {
-      console.error("Error uploading file:", error)
-      return { success: false, error }
+      return { success: false };
+    } catch (error: unknown) {
+      console.error("Error uploading file:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error : new Error(String(error)),
+      };
     }
-  }
+  };
 
   const insertImageInContent = (url: string) => {
-    insertMarkdown(`![Image](${url})`, "")
-  }
+    insertMarkdown(`![Image](${url})`, "");
+  };
 
   const removeAttachment = (url: string) => {
-    if (!entry) return
+    if (!entry) return;
 
-    const currentAttachments = form.getValues("attachments") || []
-    const updatedAttachments = currentAttachments.filter((attachment: any) => attachment.url !== url)
-    form.setValue("attachments", updatedAttachments, { shouldDirty: true, shouldValidate: true })
-    onUpdateEntry(entry.id, { attachments: updatedAttachments as any })
+    const currentAttachments = form.getValues("attachments") || [];
+    const updatedAttachments = currentAttachments.filter(
+      (attachment) => attachment.url !== url,
+    );
+    form.setValue("attachments", updatedAttachments, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    onUpdateEntry(entry.id, {
+      attachments: updatedAttachments.map((att) => att.url),
+    });
 
     // In a real app, you might want to also delete the file from blob storage
     // await deleteFile(url);
-  }
+  };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid Date";
     return date.toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   if (!entry) {
     return (
@@ -180,12 +242,19 @@ export function JournalEditorWithAttachments({
           <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
             <span className="text-2xl">📝</span>
           </div>
-          <p className="text-sm font-medium">Select an entry to start writing</p>
-          <p className="text-xs mt-1">Choose from your journal entries or create a new one</p>
+          <p className="text-sm font-medium">
+            Select an entry to start writing
+          </p>
+          <p className="text-xs mt-1">
+            Choose from your journal entries or create a new one
+          </p>
         </div>
       </div>
-    )
+    );
   }
+
+  // Ensure 'entry' is treated as non-null after this point
+  // const currentEntry = entry; // This line was causing the issue. Accessing entry directly after the check.
 
   return (
     <div className="h-full flex flex-col bg-white">
@@ -200,9 +269,13 @@ export function JournalEditorWithAttachments({
               disabled={isMutating}
             />
             {form.formState.errors.title && (
-              <p className="text-sm text-red-500">{form.formState.errors.title.message}</p>
+              <p className="text-sm text-red-500">
+                {form.formState.errors.title.message}
+              </p>
             )}
-            <p className="text-xs text-slate-500 mt-1">{formatDate(entry.created_at)}</p>
+            <p className="text-xs text-slate-500 mt-1">
+              {formatDate(entry!.created_at)} {/* Use non-null assertion */}
+            </p>
           </div>
           <Button
             onClick={onSaveEntry}
@@ -222,26 +295,49 @@ export function JournalEditorWithAttachments({
 
         {/* Toolbar */}
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={handleBold} className="h-8 w-8 p-0" disabled={isMutating}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBold}
+            className="h-8 w-8 p-0"
+            disabled={isMutating}
+          >
             <Bold className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={handleItalic} className="h-8 w-8 p-0" disabled={isMutating}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleItalic}
+            className="h-8 w-8 p-0"
+            disabled={isMutating}
+          >
             <Italic className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={handleBulletList} className="h-8 w-8 p-0" disabled={isMutating}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBulletList}
+            className="h-8 w-8 p-0"
+            disabled={isMutating}
+          >
             <List className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowAttachmentUpload(!showAttachmentUpload)}
-            className={cn("h-8 w-8 p-0", showAttachmentUpload && "bg-slate-100")}
+            className={cn(
+              "h-8 w-8 p-0",
+              showAttachmentUpload && "bg-slate-100",
+            )}
             disabled={isMutating}
           >
             <Paperclip className="h-4 w-4" />
           </Button>
           <Separator orientation="vertical" className="h-6 mx-2" />
-          <span className="text-xs text-slate-500">Use **bold**, *italic*, and - for lists</span>
+          <span className="text-xs text-slate-500">
+            Use **bold**, *italic*, and - for lists
+          </span>
         </div>
 
         {/* Attachment Upload */}
@@ -257,53 +353,59 @@ export function JournalEditorWithAttachments({
         )}
 
         {/* Attachments Preview */}
-        {form.watch("attachments") && form.watch("attachments").length > 0 && (
+        {(form.watch("attachments") ?? []).length > 0 && (
           <div className="pt-2">
-            <p className="text-xs font-medium text-slate-700 mb-2">Attachments ({form.watch("attachments").length})</p>
+            <p className="text-xs font-medium text-slate-700 mb-2">
+              Attachments ({form.watch("attachments")?.length})
+            </p>
             <div className="flex flex-wrap gap-2">
-              {form.watch("attachments").map((attachment: any) => (
-                <div
-                  key={attachment.url}
-                  className="group relative border border-slate-200 rounded-md p-1 hover:border-slate-300"
-                >
-                  {attachment.type === "image" ? (
-                    <div className="relative w-16 h-16">
-                      <img
-                        src={attachment.url || "/placeholder.png"}
-                        alt={attachment.filename}
-                        className="w-full h-full object-cover rounded"
-                        onClick={() => insertImageInContent(attachment.url)}
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded flex items-center justify-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => insertImageInContent(attachment.url)}
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 bg-white/80 hover:bg-white"
-                          disabled={isMutating}
-                        >
-                          <ImageIcon className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-16 h-16 bg-slate-100 rounded flex items-center justify-center">
-                      <span className="text-xs text-slate-500 truncate max-w-[56px] px-1">
-                        {attachment.filename.split(".").pop()}
-                      </span>
-                    </div>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeAttachment(attachment.url)}
-                    className="absolute -top-2 -right-2 h-5 w-5 p-0 bg-white border border-slate-200 rounded-full opacity-0 group-hover:opacity-100"
-                    disabled={isMutating}
+              {form.watch("attachments")?.map((attachment: Attachment) => {
+                if (!attachment || !attachment.url) return null;
+                return (
+                  <div
+                    key={attachment.url}
+                    className="group relative border border-slate-200 rounded-md p-1 hover:border-slate-300"
                   >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
+                    {attachment.type === "image" ? (
+                      <div className="relative w-16 h-16">
+                        <Image
+                          src={attachment.url || "/placeholder.png"}
+                          alt={attachment.filename || "attachment"}
+                          fill
+                          className="object-cover rounded"
+                          onClick={() => insertImageInContent(attachment.url)}
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded flex items-center justify-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => insertImageInContent(attachment.url)}
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 bg-white/80 hover:bg-white"
+                            disabled={isMutating}
+                          >
+                            <ImageIcon className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 bg-slate-100 rounded flex items-center justify-center">
+                        <span className="text-xs text-slate-500 truncate max-w-[56px] px-1">
+                          {attachment.filename?.split(".").pop()}
+                        </span>
+                      </div>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeAttachment(attachment.url)}
+                      className="absolute -top-2 -right-2 h-5 w-5 p-0 bg-white border border-slate-200 rounded-full opacity-0 group-hover:opacity-100"
+                      disabled={isMutating}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -330,9 +432,14 @@ export function JournalEditorWithAttachments({
       <div className="px-4 py-2 border-t border-slate-100 bg-slate-50">
         <div className="flex items-center justify-between text-xs text-slate-500">
           <span>{form.watch("content")?.length || 0} characters</span>
-          <span>Last updated: {new Date(entry.updated_at).toLocaleTimeString()}</span>
+          <span>
+            Last updated:{" "}
+            {entry!.updated_at
+              ? new Date(entry!.updated_at).toLocaleTimeString()
+              : "N/A"}
+          </span>
         </div>
       </div>
     </div>
-  )
+  );
 }

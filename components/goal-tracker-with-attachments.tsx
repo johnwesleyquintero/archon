@@ -1,45 +1,61 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Plus, Edit3, Calendar, Target, Paperclip, Trash2 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { CreateGoalModal } from "@/components/create-goal-modal"
-import { FileUpload } from "@/components/file-upload"
-import { uploadFile } from "@/lib/blob"
-import { useGoals } from "@/hooks/use-goals"
-import type { Database } from "@/lib/supabase/types"
-import type { z } from "zod"
-import type { goalSchema } from "@/lib/validators"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Edit3, Calendar, Target, Paperclip, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { CreateGoalModal } from "@/components/create-goal-modal";
+import { FileUpload } from "@/components/file-upload";
+import { uploadFile } from "@/lib/blob";
+import { useGoals } from "@/hooks/use-goals";
+import type { z } from "zod";
+import type { goalSchema } from "@/lib/validators";
 
-type Goal = Database["public"]["Tables"]["goals"]["Row"]
+type Attachment = {
+  url: string;
+  filename: string;
+  type: "image" | "document";
+};
 
 const statusConfig = {
-  pending: { color: "bg-gray-100 text-gray-800 border-gray-200", icon: "⚪ Not Started" },
-  in_progress: { color: "bg-green-100 text-green-800 border-green-200", icon: "🟢 On Track" },
-  completed: { color: "bg-blue-100 text-blue-800 border-blue-200", icon: "✅ Completed" },
-  at_risk: { color: "bg-yellow-100 text-yellow-800 border-yellow-200", icon: "🟡 At Risk" },
-}
+  pending: {
+    color: "bg-gray-100 text-gray-800 border-gray-200",
+    icon: "⚪ Not Started",
+  },
+  in_progress: {
+    color: "bg-green-100 text-green-800 border-green-200",
+    icon: "🟢 On Track",
+  },
+  completed: {
+    color: "bg-blue-100 text-blue-800 border-blue-200",
+    icon: "✅ Completed",
+  },
+};
 
 export function GoalTrackerWithAttachments() {
-  const { goals, isLoading, error, isMutating, addGoal, updateGoal, deleteGoal } = useGoals()
+  const {
+    goals,
+    isLoading,
+    error,
+    isMutating,
+    addGoal,
+    updateGoal,
+    deleteGoal,
+  } = useGoals();
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null) // For editing, not implemented yet
-  const [showUploadFor, setShowUploadFor] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showUploadFor, setShowUploadFor] = useState<string | null>(null);
 
   const handleEditGoal = (goalId: string) => {
-    setSelectedGoalId(goalId)
     // TODO: In a real app, you would open an edit modal here
-    console.log(`Editing goal: ${goalId}`)
-  }
+    console.log(`Editing goal: ${goalId}`);
+  };
 
   const handleAddGoal = () => {
-    setIsModalOpen(true)
-  }
+    setIsModalOpen(true);
+  };
 
   const handleSaveGoal = async (goalData: z.infer<typeof goalSchema>) => {
     await addGoal({
@@ -47,59 +63,94 @@ export function GoalTrackerWithAttachments() {
       description: goalData.description || null,
       target_date: goalData.target_date || null,
       status: goalData.status || "pending",
-      progress: 0, // New goals start at 0 progress
       attachments: [],
-    })
-    setIsModalOpen(false)
-  }
+    });
+    setIsModalOpen(false);
+  };
+
+  // Helper function to convert a URL string to an Attachment object
+  const createAttachmentFromUrl = (url: string): Attachment => {
+    const fileExtension = url.substring(url.lastIndexOf(".") + 1).toLowerCase();
+    const type: "image" | "document" = ["jpeg", "jpg", "gif", "png"].includes(
+      fileExtension,
+    )
+      ? "image"
+      : "document";
+    return {
+      url,
+      filename: url.substring(url.lastIndexOf("/") + 1),
+      type,
+    };
+  };
 
   const handleAttachmentUpload = async (file: File) => {
-    if (!showUploadFor) return { success: false }
+    if (!showUploadFor) return { success: false };
 
     try {
       // Upload to Vercel Blob
-      const result = await uploadFile(file, `goals/${showUploadFor}`)
+      const result = await uploadFile(file, `goals/${showUploadFor}`);
 
       if (result.success) {
-        const currentGoal = goals.find((g) => g.id === showUploadFor)
+        const currentGoal = goals.find((g) => g.id === showUploadFor);
         if (currentGoal) {
-          const newAttachment = {
+          const newAttachment: Attachment = {
             url: result.url,
             filename: file.name,
             type: file.type.startsWith("image/") ? "image" : "document",
-          }
-          const updatedAttachments = [...(currentGoal.attachments || []), newAttachment]
+          };
+          // Convert existing string attachments to Attachment objects before adding new one
+          const currentAttachmentsAsObjects: Attachment[] = (
+            currentGoal.attachments || []
+          ).map(createAttachmentFromUrl);
+
+          const updatedAttachments: Attachment[] = [
+            ...currentAttachmentsAsObjects,
+            newAttachment,
+          ];
 
           await updateGoal(showUploadFor, {
-            attachments: updatedAttachments as any, // Cast to any because Supabase types might not match exactly
-          })
+            attachments: updatedAttachments.map((att) => att.url), // Convert back to string[] for Supabase
+          });
         }
-        return { url: result.url, success: true }
+        return { url: result.url, success: true };
       }
 
-      return { success: false }
-    } catch (error) {
-      console.error("Error uploading file:", error)
-      return { success: false, error }
+      return { success: false };
+    } catch (err: unknown) {
+      console.error("Error uploading file:", err);
+      let errorToReturn: Error | undefined = undefined;
+      if (err instanceof Error) {
+        errorToReturn = err;
+      } else if (
+        typeof err === "object" &&
+        err !== null &&
+        "message" in err &&
+        typeof (err as any).message === "string"
+      ) {
+        errorToReturn = new Error((err as any).message);
+      } else {
+        errorToReturn = new Error("An unknown error occurred.");
+      }
+      return { success: false, error: errorToReturn };
     }
-  }
+  };
 
   const toggleUploadFor = (goalId: string) => {
-    setShowUploadFor(showUploadFor === goalId ? null : goalId)
-  }
+    setShowUploadFor(showUploadFor === goalId ? null : goalId);
+  };
 
   const handleDeleteGoal = async (goalId: string) => {
     if (window.confirm("Are you sure you want to delete this goal?")) {
-      await deleteGoal(goalId)
+      await deleteGoal(goalId);
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <Card className="w-full p-6 flex items-center justify-center">
         <p className="text-slate-500">Loading goals...</p>
       </Card>
-    )
+    );
   }
 
   if (error) {
@@ -107,13 +158,12 @@ export function GoalTrackerWithAttachments() {
       <Card className="w-full p-6 flex items-center justify-center bg-red-50 border-red-200 text-red-700">
         <p>Error: {error.message}</p>
       </Card>
-    )
+    );
   }
 
-  const totalGoals = goals.length
-  const completedGoals = goals.filter((g) => g.status === "completed").length
-  const onTrackGoals = goals.filter((g) => g.status === "in_progress").length
-  const atRiskGoals = goals.filter((g) => g.status === "at_risk").length
+  const totalGoals = goals.length;
+  const completedGoals = goals.filter((g) => g.status === "completed").length;
+  const onTrackGoals = goals.filter((g) => g.status === "in_progress").length;
 
   return (
     <>
@@ -138,20 +188,30 @@ export function GoalTrackerWithAttachments() {
             <div className="text-center py-12 text-slate-500">
               <Target className="h-12 w-12 mx-auto mb-4 text-slate-300" />
               <p className="text-sm font-medium">No goals set yet</p>
-              <p className="text-xs mt-1">Create your first strategic goal to get started</p>
+              <p className="text-xs mt-1">
+                Create your first strategic goal to get started
+              </p>
             </div>
           ) : (
             goals.map((goal) => (
-              <Card key={goal.id} className="border border-slate-200 hover:border-slate-300 transition-colors">
+              <Card
+                key={goal.id}
+                className="border border-slate-200 hover:border-slate-300 transition-colors"
+              >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-3">
                       {/* Goal Title and Status */}
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-medium text-slate-900 text-sm leading-tight">{goal.title}</h3>
+                        <h3 className="font-medium text-slate-900 text-sm leading-tight">
+                          {goal.title}
+                        </h3>
                         <Badge
                           variant="outline"
-                          className={cn("text-xs font-medium shrink-0", statusConfig[goal.status].color)}
+                          className={cn(
+                            "text-xs font-medium shrink-0",
+                            statusConfig[goal.status].color,
+                          )}
                         >
                           {statusConfig[goal.status].icon}
                         </Badge>
@@ -161,21 +221,19 @@ export function GoalTrackerWithAttachments() {
                       {goal.target_date && (
                         <div className="flex items-center gap-1 text-xs text-slate-600">
                           <Calendar className="h-3 w-3" />
-                          <span>Due: {new Date(goal.target_date).toLocaleDateString()}</span>
+                          <span>
+                            Due:{" "}
+                            {new Date(goal.target_date).toLocaleDateString()}
+                          </span>
                         </div>
                       )}
 
-                      {/* Progress Bar */}
-                      <div className="space-y-1">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-slate-600">Progress</span>
-                          <span className="text-xs font-medium text-slate-900">{goal.progress}%</span>
-                        </div>
-                        <Progress value={goal.progress} className="h-2" />
-                      </div>
-
                       {/* Description */}
-                      {goal.description && <p className="text-xs text-slate-500 leading-relaxed">{goal.description}</p>}
+                      {goal.description && (
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                          {goal.description}
+                        </p>
+                      )}
 
                       {/* Attachments */}
                       {goal.attachments && goal.attachments.length > 0 && (
@@ -185,17 +243,24 @@ export function GoalTrackerWithAttachments() {
                             <span>Attachments ({goal.attachments.length})</span>
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            {goal.attachments.map((attachment: any, index: number) => (
-                              <a
-                                key={index}
-                                href={attachment.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded flex items-center gap-1"
-                              >
-                                <span className="truncate max-w-[100px]">{attachment.filename}</span>
-                              </a>
-                            ))}
+                            {goal.attachments.map(
+                              (url: string, index: number) => {
+                                const attachment = createAttachmentFromUrl(url);
+                                return (
+                                  <a
+                                    key={index}
+                                    href={attachment.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded flex items-center gap-1"
+                                  >
+                                    <span className="truncate max-w-[100px]">
+                                      {attachment.filename}
+                                    </span>
+                                  </a>
+                                );
+                              },
+                            )}
                           </div>
                         </div>
                       )}
@@ -260,19 +325,21 @@ export function GoalTrackerWithAttachments() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                 <div className="space-y-1">
                   <p className="text-xs text-slate-500">Total Goals</p>
-                  <p className="text-lg font-semibold text-slate-900">{totalGoals}</p>
+                  <p className="text-lg font-semibold text-slate-900">
+                    {totalGoals}
+                  </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-slate-500">Completed</p>
-                  <p className="text-lg font-semibold text-blue-600">{completedGoals}</p>
+                  <p className="text-lg font-semibold text-blue-600">
+                    {completedGoals}
+                  </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-slate-500">On Track</p>
-                  <p className="text-lg font-semibold text-green-600">{onTrackGoals}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-slate-500">At Risk</p>
-                  <p className="text-lg font-semibold text-yellow-600">{atRiskGoals}</p>
+                  <p className="text-lg font-semibold text-green-600">
+                    {onTrackGoals}
+                  </p>
                 </div>
               </div>
             </div>
@@ -287,5 +354,5 @@ export function GoalTrackerWithAttachments() {
         isSaving={isMutating}
       />
     </>
-  )
+  );
 }

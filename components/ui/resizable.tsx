@@ -1,8 +1,9 @@
-"use client"
+"use client";
 
-import { GripVertical } from 'lucide-react'
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "react-resizable-panels"
+import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 
-import { cn } from "@/lib/utils"
-
-export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
+export {
+  PanelGroup as ResizablePanelGroup,
+  Panel as ResizablePanel,
+  PanelResizeHandle as ResizableHandle,
+};

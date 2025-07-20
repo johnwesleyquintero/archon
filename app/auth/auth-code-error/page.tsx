@@ -1,11 +1,17 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import Link from "next/link"
-import { ArchonLogoSVG } from "@/components/archon-logo-svg"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import Link from "next/link";
+import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 
 export default function AuthCodeErrorPage({
   searchParams,
 }: {
-  searchParams: { message: string }
+  searchParams: { message: string };
 }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
@@ -15,14 +21,19 @@ export default function AuthCodeErrorPage({
             <ArchonLogoSVG className="h-12 w-12 text-slate-900" />
           </div>
           <CardTitle className="text-2xl">Authentication Status</CardTitle>
-          <CardDescription>{searchParams.message || "An authentication event occurred."}</CardDescription>
+          <CardDescription>
+            {searchParams.message || "An authentication event occurred."}
+          </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
-          <Link href="/login" className="underline text-slate-600 hover:text-slate-900">
+          <Link
+            href="/login"
+            className="underline text-slate-600 hover:text-slate-900"
+          >
             Go to Login
           </Link>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,44 +1,78 @@
-"use server"
+"use server";
 
-import { put } from "@vercel/blob"
-import { customAlphabet } from "nanoid"
+import { put } from "@vercel/blob";
+import { customAlphabet } from "nanoid";
 
-const nanoid = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 7) // 7-character random string
+const nanoid = customAlphabet(
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+  7,
+); // 7-character random string
 
 export async function uploadFile(
   file: File,
   pathPrefix = "uploads",
-): Promise<{ success: boolean; url: string; error?: any }> {
+): Promise<{ success: boolean; url: string; error?: Error }> {
   try {
     if (!file) {
-      return { success: false, url: "", error: new Error("No file provided.") }
+      return { success: false, url: "", error: new Error("No file provided.") };
     }
 
     // Generate a unique filename
-    const fileExtension = file.name.split(".").pop()
-    const filename = `${pathPrefix}/${nanoid()}.${fileExtension}`
+    const fileExtension = file.name.split(".").pop();
+    const filename = `${pathPrefix}/${nanoid()}.${fileExtension}`;
 
     const blob = await put(filename, file, {
       access: "public",
-    })
+    });
 
-    return { success: true, url: blob.url }
-  } catch (error: any) {
-    console.error("Vercel Blob upload error:", error)
-    return { success: false, url: "", error: error }
+    return { success: true, url: blob.url };
+  } catch (err: unknown) {
+    console.error("Vercel Blob upload error:", err);
+    let errorToReturn: Error | undefined = undefined;
+    if (err instanceof Error) {
+      errorToReturn = err;
+    } else if (
+      typeof err === "object" &&
+      err !== null &&
+      "message" in err &&
+      typeof (err as any).message === "string"
+    ) {
+      errorToReturn = new Error((err as any).message);
+    } else {
+      errorToReturn = new Error("An unknown error occurred.");
+    }
+    return { success: false, url: "", error: errorToReturn };
   }
 }
 
-export async function deleteFile(url: string): Promise<{ success: boolean; error?: any }> {
+export async function deleteFile(
+  url: string,
+): Promise<{ success: boolean; error?: Error }> {
   try {
     // This requires the BLOB_READ_WRITE_TOKEN to be available
     // The delete function is not directly exposed by @vercel/blob in 'use client' context
     // You would typically call a server action or API route for deletion.
     // For now, this is a placeholder for future implementation.
-    console.warn("Delete file from Vercel Blob not fully implemented on client side. URL:", url)
-    return { success: true } // Simulate success for now
-  } catch (error: any) {
-    console.error("Vercel Blob delete error:", error)
-    return { success: false, error: error }
+    console.warn(
+      "Delete file from Vercel Blob not fully implemented on client side. URL:",
+      url,
+    );
+    return { success: true }; // Simulate success for now
+  } catch (err: unknown) {
+    console.error("Vercel Blob delete error:", err);
+    let errorToReturn: Error | undefined = undefined;
+    if (err instanceof Error) {
+      errorToReturn = err;
+    } else if (
+      typeof err === "object" &&
+      err !== null &&
+      "message" in err &&
+      typeof (err as any).message === "string"
+    ) {
+      errorToReturn = new Error((err as any).message);
+    } else {
+      errorToReturn = new Error("An unknown error occurred.");
+    }
+    return { success: false, error: errorToReturn };
   }
 }

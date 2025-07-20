@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart, LineChart, PieChart } from "lucide-react" // Using Lucide icons for placeholders
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart, LineChart, PieChart } from "lucide-react"; // Using Lucide icons for placeholders
 
 export function PlaceholderInfographics() {
   return (
@@ -22,7 +22,9 @@ export function PlaceholderInfographics() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">User Acquisition</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            User Acquisition
+          </CardTitle>
           <BarChart className="h-4 w-4 text-slate-500" />
         </CardHeader>
         <CardContent>
@@ -36,7 +38,9 @@ export function PlaceholderInfographics() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Revenue Breakdown</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Revenue Breakdown
+          </CardTitle>
           <PieChart className="h-4 w-4 text-slate-500" />
         </CardHeader>
         <CardContent>
@@ -48,5 +52,5 @@ export function PlaceholderInfographics() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

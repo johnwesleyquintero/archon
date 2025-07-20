@@ -1,4 +1,4 @@
-import { TodoList } from "@/components/todo-list"
+import { TodoList } from "@/components/todo-list";
 
 export default function TasksPage() {
   return (
@@ -6,5 +6,5 @@ export default function TasksPage() {
       <h1 className="text-2xl font-bold text-slate-900">Tasks</h1>
       <TodoList />
     </div>
-  )
+  );
 }

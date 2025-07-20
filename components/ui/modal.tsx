@@ -1,16 +1,14 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { X } from "lucide-react"
+import * as React from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
-const Modal = DialogPrimitive.Root
+const Modal = DialogPrimitive.Root;
 
-const ModalTrigger = DialogPrimitive.Trigger
-
-const ModalPortal = DialogPrimitive.Portal
+const ModalPortal = DialogPrimitive.Portal;
 
 const ModalOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
@@ -24,19 +22,25 @@ const ModalOverlay = React.forwardRef<
     )}
     {...props}
   />
-))
-ModalOverlay.displayName = DialogPrimitive.Overlay.displayName
+));
+ModalOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-interface ModalContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
-  isOpen: boolean
-  onClose: () => void
-  title?: string
-  description?: string
-  footer?: React.ReactNode
+interface ModalContentProps
+  extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+  onClose: () => void;
+  title?: string;
+  description?: string;
+  footer?: React.ReactNode;
 }
 
-const ModalContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Content>, ModalContentProps>(
-  ({ className, children, isOpen, onClose, title, description, footer, ...props }, ref) => (
+const ModalContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  ModalContentProps
+>(
+  (
+    { className, children, onClose, title, description, footer, ...props },
+    ref,
+  ) => (
     <ModalPortal>
       <ModalOverlay />
       <DialogPrimitive.Content
@@ -63,7 +67,9 @@ const ModalContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Co
         </div>
         {children}
         {footer && (
-          <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-4 border-t">{footer}</div>
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-4 border-t">
+            {footer}
+          </div>
         )}
         <DialogPrimitive.Close
           className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
@@ -75,16 +81,17 @@ const ModalContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Co
       </DialogPrimitive.Content>
     </ModalPortal>
   ),
-)
-ModalContent.displayName = "ModalContent"
+);
+ModalContent.displayName = "ModalContent";
 
-interface CustomModalProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
-  isOpen: boolean
-  onClose: () => void
-  title?: string
-  description?: string
-  footer?: React.ReactNode
-  children: React.ReactNode
+interface CustomModalProps
+  extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  description?: string;
+  footer?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 const CustomModal: React.FC<CustomModalProps> = ({
@@ -99,7 +106,6 @@ const CustomModal: React.FC<CustomModalProps> = ({
   return (
     <Modal open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <ModalContent
-        isOpen={isOpen}
         onClose={onClose}
         title={title}
         description={description}
@@ -109,7 +115,7 @@ const CustomModal: React.FC<CustomModalProps> = ({
         {children}
       </ModalContent>
     </Modal>
-  )
-}
+  );
+};
 
-export { CustomModal as Modal }
+export { CustomModal as Modal };

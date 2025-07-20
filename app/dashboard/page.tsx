@@ -1,9 +1,9 @@
-import { StatsGrid } from "@/components/stats-grid"
-import { GoalTrackerWithAttachments } from "@/components/goal-tracker-with-attachments"
-import { TodoList } from "@/components/todo-list"
-import { PlaceholderInfographics } from "@/components/placeholder-infographics"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Activity } from "lucide-react"
+import { StatsGrid } from "@/components/stats-grid";
+import { GoalTrackerWithAttachments } from "@/components/goal-tracker-with-attachments";
+import { TodoList } from "@/components/todo-list";
+import { PlaceholderInfographics } from "@/components/placeholder-infographics";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Activity } from "lucide-react";
 
 export default function DashboardPage() {
   return (
@@ -25,7 +25,9 @@ export default function DashboardPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-slate-500 text-sm">Recent activity feed will go here.</p>
+          <p className="text-slate-500 text-sm">
+            Recent activity feed will go here.
+          </p>
           {/* Placeholder for activity feed */}
           <div className="h-40 bg-slate-50 rounded-md mt-4 flex items-center justify-center text-slate-400 text-sm">
             Activity Feed Placeholder
@@ -33,5 +35,5 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,52 +1,69 @@
 // This file is now deprecated and replaced by profile-form-with-avatar.tsx
 // Keeping it here for reference if needed, but it's not actively used.
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useAuth } from "@/contexts/auth-context"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useAuth } from "@/contexts/auth-context";
 
 export function ProfileForm() {
-  const { user, profile, updateProfile, isLoading } = useAuth()
-  const [fullName, setFullName] = useState(profile?.full_name || "")
-  const [username, setUsername] = useState(profile?.username || "")
-  const [isSaving, setIsSaving] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
-  const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
+  const { user, profile, updateProfile, isLoading } = useAuth();
+  const [fullName, setFullName] = useState(profile?.full_name || "");
+  const [username, setUsername] = useState(profile?.username || "");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile) {
-      setFullName(profile.full_name || "")
-      setUsername(profile.username || "")
+      setFullName(profile.full_name || "");
+      setUsername(profile.username || "");
     }
-  }, [profile])
+  }, [profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSaving(true)
-    setSaveError(null)
-    setSaveSuccess(null)
+    e.preventDefault();
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(null);
 
     if (!user) {
-      setSaveError("User not authenticated.")
-      setIsSaving(false)
-      return
+      setSaveError("User not authenticated.");
+      setIsSaving(false);
+      return;
     }
 
     try {
-      await updateProfile({ full_name: fullName, username: username })
-      setSaveSuccess("Profile updated successfully!")
-    } catch (err: any) {
-      setSaveError(err.message || "Failed to update profile.")
+      await updateProfile({ full_name: fullName, username: username });
+      setSaveSuccess("Profile updated successfully!");
+    } catch (err: unknown) {
+      let errorMessageText = "Failed to update profile.";
+      if (err instanceof Error) {
+        errorMessageText = err.message;
+      } else if (
+        typeof err === "object" &&
+        err !== null &&
+        "message" in err &&
+        typeof (err as any).message === "string"
+      ) {
+        errorMessageText = (err as any).message;
+      }
+      setSaveError(errorMessageText);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -59,7 +76,7 @@ export function ProfileForm() {
           <p>Loading...</p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (!user) {
@@ -70,10 +87,12 @@ export function ProfileForm() {
           <CardDescription>Manage your public profile.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-center text-slate-500">Please log in to manage your profile.</p>
+          <p className="text-center text-slate-500">
+            Please log in to manage your profile.
+          </p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -105,12 +124,18 @@ export function ProfileForm() {
             />
           </div>
           {saveError && <p className="text-sm text-red-500">{saveError}</p>}
-          {saveSuccess && <p className="text-sm text-green-600">{saveSuccess}</p>}
-          <Button type="submit" className="bg-slate-900 hover:bg-slate-800" disabled={isSaving}>
+          {saveSuccess && (
+            <p className="text-sm text-green-600">{saveSuccess}</p>
+          )}
+          <Button
+            type="submit"
+            className="bg-slate-900 hover:bg-slate-800"
+            disabled={isSaving}
+          >
             {isSaving ? "Saving..." : "Save Changes"}
           </Button>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

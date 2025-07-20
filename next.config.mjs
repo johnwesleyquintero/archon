@@ -9,20 +9,20 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: '**.supabase.co',
+        protocol: "https",
+        hostname: "**.supabase.co",
       },
       {
-        protocol: 'https',
-        hostname: '**.vercel-storage.com',
+        protocol: "https",
+        hostname: "**.vercel-storage.com",
       },
       {
-        protocol: 'https',
-        hostname: '**.v0.dev',
+        protocol: "https",
+        hostname: "**.v0.dev",
       },
     ],
     unoptimized: true,
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

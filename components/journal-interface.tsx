@@ -1,76 +1,57 @@
-"use client"
-import { useState, useEffect } from "react"
-import { JournalList } from "@/components/journal-list"
-import { JournalEditorWithAttachments } from "@/components/journal-editor-with-attachments" // Use the one with attachments
-import { JournalTemplates } from "@/components/journal-templates"
-import { useJournal } from "@/hooks/use-journal"
-import { getJournalTemplates } from "@/lib/database/journal" // Server Action for templates
-import type { Database } from "@/lib/supabase/types"
+"use client";
+import { useState, useEffect } from "react";
+import { JournalList } from "@/components/journal-list";
+import { JournalEditorWithAttachments } from "@/components/journal-editor-with-attachments"; // Use the one with attachments
+import { useJournal } from "@/hooks/use-journal";
+import type { Database } from "@/lib/supabase/types";
 
-type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"]
-type JournalTemplate = Database["public"]["Tables"]["journal_templates"]["Row"]
+type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
 
 export function JournalInterface() {
-  const { entries, isLoading, error, isMutating, addEntry, updateEntry, deleteEntry, refetchEntries } = useJournal()
-  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [showTemplates, setShowTemplates] = useState(false)
-  const [templates, setTemplates] = useState<JournalTemplate[]>([])
-  const [templatesLoading, setTemplatesLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      setTemplatesLoading(true)
-      const { data, error: templateError } = await getJournalTemplates()
-      if (templateError) {
-        console.error("Error fetching templates:", templateError)
-      } else {
-        setTemplates(data || [])
-      }
-      setTemplatesLoading(false)
-    }
-    fetchTemplates()
-  }, [])
+  const {
+    entries,
+    isLoading,
+    error,
+    isMutating,
+    addEntry,
+    updateEntry,
+    deleteEntry,
+  } = useJournal();
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     if (!selectedEntryId && entries.length > 0) {
-      setSelectedEntryId(entries[0].id) // Select the first entry by default if none selected
+      setSelectedEntryId(entries[0].id); // Select the first entry by default if none selected
     }
-  }, [entries, selectedEntryId])
+  }, [entries, selectedEntryId]);
 
-  const selectedEntry = entries.find((entry) => entry.id === selectedEntryId) || null
+  const selectedEntry =
+    entries.find((entry) => entry.id === selectedEntryId) || null;
 
   const handleSelectEntry = (entryId: string) => {
-    setSelectedEntryId(entryId)
-    setHasUnsavedChanges(false)
-  }
+    setSelectedEntryId(entryId);
+    setHasUnsavedChanges(false);
+  };
 
   const handleCreateEntry = async () => {
     const newEntryData = {
       title: "New Entry",
       content: "",
       attachments: [],
-    }
-    await addEntry(newEntryData)
+    };
+    await addEntry(newEntryData);
     // The useJournal hook will update the state and revalidate,
     // so we just need to ensure the new entry is selected.
     // This might require a slight delay or a more sophisticated way to get the new ID.
     // For now, the optimistic update in useJournal will handle it.
-    setHasUnsavedChanges(false)
-  }
+    setHasUnsavedChanges(false);
+  };
 
-  const handleCreateFromTemplate = async (template: JournalTemplate) => {
-    const newEntryData = {
-      title: template.title,
-      content: template.content,
-      attachments: [],
-    }
-    await addEntry(newEntryData)
-    setHasUnsavedChanges(false)
-    setShowTemplates(false) // Close template modal
-  }
-
-  const handleUpdateEntry = async (entryId: string, updates: Partial<JournalEntry>) => {
+  const handleUpdateEntry = async (
+    entryId: string,
+    updates: Partial<JournalEntry>,
+  ) => {
     // This function is called frequently as user types.
     // We'll update local state immediately for responsiveness,
     // and then trigger a debounced save or save on blur/button click.
@@ -82,33 +63,33 @@ export function JournalInterface() {
             updated_at: new Date().toISOString(),
           }
         : entry,
-    )
-    setHasUnsavedChanges(true)
-  }
+    );
+    setHasUnsavedChanges(true);
+  };
 
   const handleSaveEntry = async () => {
     if (selectedEntry && hasUnsavedChanges) {
-      const { id, title, content, attachments } = selectedEntry
-      await updateEntry(id, { title, content, attachments })
-      setHasUnsavedChanges(false)
+      const { id, title, content, attachments } = selectedEntry;
+      await updateEntry(id, { title, content, attachments });
+      setHasUnsavedChanges(false);
     }
-  }
+  };
 
   const handleDeleteEntry = async (entryId: string) => {
     if (window.confirm("Are you sure you want to delete this journal entry?")) {
-      await deleteEntry(entryId)
+      await deleteEntry(entryId);
       if (selectedEntryId === entryId) {
-        setSelectedEntryId(null) // Deselect if the current entry is deleted
+        setSelectedEntryId(null); // Deselect if the current entry is deleted
       }
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="h-[600px] flex items-center justify-center border border-slate-200 rounded-lg overflow-hidden bg-white shadow-sm">
         <p className="text-slate-500">Loading journal entries...</p>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -116,7 +97,7 @@ export function JournalInterface() {
       <div className="h-[600px] flex items-center justify-center border border-red-200 rounded-lg overflow-hidden bg-red-50 shadow-sm text-red-700">
         <p>Error: {error.message}</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -129,7 +110,6 @@ export function JournalInterface() {
             selectedEntryId={selectedEntryId}
             onSelectEntry={handleSelectEntry}
             onCreateEntry={handleCreateEntry}
-            onShowTemplates={() => setShowTemplates(true)}
             onDeleteEntry={handleDeleteEntry}
             isMutating={isMutating}
           />
@@ -146,15 +126,6 @@ export function JournalInterface() {
           />
         </div>
       </div>
-
-      {/* Templates Modal */}
-      <JournalTemplates
-        isOpen={showTemplates}
-        onClose={() => setShowTemplates(false)}
-        onSelectTemplate={handleCreateFromTemplate}
-        templates={templates}
-        isLoading={templatesLoading}
-      />
     </>
-  )
+  );
 }
