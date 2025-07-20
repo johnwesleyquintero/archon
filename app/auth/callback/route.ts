@@ -27,12 +27,18 @@ export async function GET(request: NextRequest) {
       },
     );
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(requestUrl.origin + "/dashboard");
+    if (error) {
+      const errorMessage =
+        error.message || "Could not log in with provided credentials.";
+      return NextResponse.redirect(
+        requestUrl.origin +
+          `/auth/auth-code-error?message=${encodeURIComponent(errorMessage)}`,
+      );
     }
+    return NextResponse.redirect(requestUrl.origin + "/dashboard");
   }
 
-  // return the user to an error page with some instructions
+  // If code is not present, return the user to an error page with some instructions
   return NextResponse.redirect(
     requestUrl.origin +
       "/auth/auth-code-error?message=Could not log in with provided credentials.",

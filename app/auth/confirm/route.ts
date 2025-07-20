@@ -35,10 +35,16 @@ export async function GET(request: NextRequest) {
     );
 
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
-    if (!error) {
-      redirectTo.searchParams.delete("next");
+    if (error) {
+      redirectTo.pathname = "/auth/auth-code-error";
+      redirectTo.searchParams.set(
+        "message",
+        error.message || "Could not verify email OTP.",
+      );
       return NextResponse.redirect(redirectTo);
     }
+    redirectTo.searchParams.delete("next");
+    return NextResponse.redirect(redirectTo);
   }
 
   // return the user to an error page with some instructions

@@ -54,7 +54,6 @@ const InputOTPSlot = ({ index, className, ...props }: InputOTPSlotProps) => (
     className={cn(
       "relative flex h-9 w-9 items-center justify-center border-y border-r border-input text-sm shadow-sm transition-all first:rounded-l-md first:border-l last:rounded-r-md",
       "focus:z-10 focus:border-primary focus:ring-offset-background",
-      props.disabled && "cursor-not-allowed opacity-50",
       className,
     )}
     {...props}
