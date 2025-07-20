@@ -8,6 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Tag, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 import type { Database } from "@/lib/supabase/types";
 
@@ -103,20 +114,38 @@ export function TaskItem({
         {isToggling && (
           <Spinner className="w-4 h-4 text-slate-400 dark:text-slate-600" />
         )}
-        <Button
-          size="icon"
-          variant="ghost"
-          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-          disabled={disabled || isDeleting}
-          onClick={() => void handleDelete()}
-        >
-          {isDeleting ? (
-            <Spinner className="h-4 w-4" />
-          ) : (
-            <Trash2 className="h-4 w-4" />
-          )}
-          <span className="sr-only">Delete task</span>
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              disabled={disabled || isDeleting}
+            >
+              {isDeleting ? (
+                <Spinner className="h-4 w-4" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              <span className="sr-only">Delete task</span>
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your
+                task.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => void handleDelete()}>
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       {(category || tags?.length > 0) && (
         <div className="flex items-center gap-2 ml-6 text-xs text-slate-500 dark:text-slate-400">

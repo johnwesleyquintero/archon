@@ -6,8 +6,8 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
-// type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"]; // Commented out as they are defined but never used.
-// type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"]; // Commented out as they are defined but never used.
+type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
+type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
 
 export async function getTasks(): Promise<Task[]> {
   const supabase = await getSupabaseServerClient();
@@ -31,15 +31,7 @@ export async function getTasks(): Promise<Task[]> {
   return data;
 }
 
-export type CreateTaskInput = {
-  title: string;
-  dueDate?: string | null;
-  priority?: "low" | "medium" | "high";
-  category?: string | null;
-  tags?: string[];
-};
-
-export async function addTask(input: CreateTaskInput): Promise<Task | null> {
+export async function addTask(input: TaskInsert): Promise<Task | null> {
   const supabase = await getSupabaseServerClient();
   const user = await getUser();
 
@@ -52,7 +44,7 @@ export async function addTask(input: CreateTaskInput): Promise<Task | null> {
     .insert({
       title: input.title,
       user_id: user.id,
-      due_date: input.dueDate,
+      due_date: input.due_date,
       priority: input.priority || "medium",
       category: input.category,
       tags: input.tags || [],
@@ -82,7 +74,7 @@ export async function toggleTask(
 
   const { data, error } = await supabase
     .from("tasks")
-    .update({ completed })
+    .update({ completed } as TaskUpdate)
     .eq("id", id)
     .eq("user_id", user.id) // Ensure user owns the task
     .select()

@@ -1,25 +1,18 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import "react-quill/dist/quill.snow.css"; // Import Quill styles
 import {
   FormControl,
   FormField,
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Bold,
-  Italic,
-  List,
-  Save,
-  Paperclip,
-  ImageIcon,
-  X,
-} from "lucide-react";
+import { Save, Paperclip, ImageIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FileUpload } from "@/components/file-upload";
 import { uploadFile } from "@/lib/blob";
@@ -30,6 +23,11 @@ import type { z } from "zod";
 import type { Database } from "@/lib/supabase/types";
 import Image from "next/image";
 import { Spinner } from "@/components/ui/spinner";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useJournal } from "@/hooks/use-journal"; // Import useJournal hook
+
+// Dynamically import ReactQuill to prevent SSR issues
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
 type Attachment = {
   url: string;
@@ -43,26 +41,92 @@ type JournalEntryUpdate =
 
 interface JournalEditorProps {
   entry: JournalEntry | null;
-  onUpdateEntry: (
-    entryId: string,
-    updates: Partial<JournalEntryUpdate>,
-  ) => void;
   onSaveEntry: () => void;
   hasUnsavedChanges: boolean;
-  isMutating: boolean;
 }
 
 type JournalFormValues = z.infer<typeof journalEntrySchema>;
 
 export function JournalEditorWithAttachments({
   entry,
-  onUpdateEntry,
   onSaveEntry,
   hasUnsavedChanges,
-  isMutating,
 }: JournalEditorProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [showAttachmentUpload, setShowAttachmentUpload] = useState(false);
+  const quillRef = useRef<any>(null); // Ref for ReactQuill instance
+  const [showAttachmentUpload, setShowAttachmentUpload] = useState(false); // Keep for paperclip button
+  const { updateEntry, isMutating } = useJournal(); // Use useJournal hook
+
+  const debouncedOnUpdateEntryContent = useDebounce(
+    useCallback(
+      (entryId: string, content: string) => {
+        updateEntry(entryId, { content: content }); // Save HTML content directly
+      },
+      [updateEntry],
+    ),
+    500, // Debounce delay of 500ms
+  );
+
+  const debouncedOnUpdateEntryTitle = useDebounce(
+    useCallback(
+      (entryId: string, title: string) => {
+        updateEntry(entryId, { title });
+      },
+      [updateEntry],
+    ),
+    500, // Debounce delay of 500ms
+  );
+
+  // Custom image handler for Quill (triggered by Quill's image button)
+  const imageHandler = useCallback(() => {
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", "image/*");
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (file) {
+        await handleFileUpload(file);
+      }
+    };
+  }, [handleFileUpload]);
+
+  // Quill modules for toolbar and formatting options
+  const modules = useMemo(
+    () => ({
+      toolbar: {
+        container: [
+          [{ header: [1, 2, 3, 4, 5, 6, false] }],
+          ["bold", "italic", "underline", "strike"],
+          [{ list: "ordered" }, { list: "bullet" }],
+          [{ align: [] }],
+          ["link", "image"],
+          ["clean"],
+        ],
+        handlers: {
+          image: imageHandler, // Use custom image handler
+        },
+      },
+      clipboard: {
+        matchVisual: false,
+      },
+    }),
+    [imageHandler],
+  );
+
+  // Quill formats
+  const formats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "list",
+    "bullet",
+    "align",
+    "link",
+    "image",
+  ];
 
   const form = useForm<JournalFormValues>({
     resolver: zodResolver(journalEntrySchema),
@@ -93,7 +157,7 @@ export function JournalEditorWithAttachments({
     if (entry) {
       form.reset({
         title: entry.title,
-        content: entry.content || "",
+        content: entry.content || "", // Set HTML content directly
         attachments: (entry.attachments || []).map(createAttachmentFromUrl),
       });
     } else {
@@ -105,89 +169,27 @@ export function JournalEditorWithAttachments({
     }
   }, [entry, form]);
 
-  // This function is now integrated into FormField's onChange
-  // const handleContentChange = (newContent: string) => {
-  //   form.setValue("content", newContent, {
-  //     shouldDirty: true,
-  //     shouldValidate: true,
-  //   });
-  //   if (entry) {
-  //     onUpdateEntry(entry.id, { content: newContent });
-  //   }
-  // };
-
-  const insertMarkdown = (before: string, after = "") => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const currentContent = form.getValues("content") ?? "";
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = currentContent.substring(start, end);
-    const newContent =
-      currentContent.substring(0, start) +
-      before +
-      selectedText +
-      after +
-      currentContent.substring(end);
-
+  const handleQuillChange = (newContent: string) => {
     form.setValue("content", newContent, {
       shouldDirty: true,
       shouldValidate: true,
     });
     if (entry) {
-      onUpdateEntry(entry.id, { content: newContent });
+      debouncedOnUpdateEntryContent(entry.id, newContent);
     }
-
-    // Restore cursor position
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + before.length, end + before.length);
-    }, 0);
-  };
-
-  const handleBold = () => insertMarkdown("**", "**");
-  const handleItalic = () => insertMarkdown("*", "*");
-  const handleBulletList = () => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const currentContent = form.getValues("content") ?? "";
-    const start = textarea.selectionStart;
-    const lineStart = currentContent.lastIndexOf("\n", start - 1) + 1;
-    const newContent =
-      currentContent.substring(0, lineStart) +
-      "- " +
-      currentContent.substring(lineStart);
-
-    form.setValue("content", newContent, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-    if (entry) {
-      onUpdateEntry(entry.id, { content: newContent });
-    }
-
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + 2, start + 2);
-    }, 0);
   };
 
   const handleFileUpload = async (file: File) => {
     if (!entry) return { success: false };
 
     try {
-      // Upload to Vercel Blob
       const result = await uploadFile(file, `journal/${entry.id}`);
 
       if (result.success) {
-        // Determine file type category
         const fileType: "image" | "document" = file.type.startsWith("image/")
           ? "image"
           : "document";
 
-        // Add to attachments in form state
         const currentAttachments = form.getValues("attachments") || [];
         const newAttachment: Attachment = {
           url: result.url,
@@ -203,10 +205,32 @@ export function JournalEditorWithAttachments({
           shouldValidate: true,
         });
 
-        // Update entry in parent state (which will trigger DB update)
-        onUpdateEntry(entry.id, {
-          attachments: updatedAttachments.map((att) => att.url), // Convert back to string[] for Supabase
+        updateEntry(entry.id, {
+          attachments: updatedAttachments.map((att) => att.url),
         });
+
+        // Insert image directly into Quill editor if it's an image
+        if (fileType === "image" && quillRef.current) {
+          const editor = quillRef.current.getEditor();
+          const range = editor.getSelection();
+          if (range) {
+            editor.insertEmbed(range.index, "image", result.url);
+          } else {
+            editor.insertEmbed(editor.getLength(), "image", result.url);
+          }
+        } else if (quillRef.current) {
+          // For other file types, insert a link
+          const editor = quillRef.current.getEditor();
+          const range = editor.getSelection();
+          const linkText = newAttachment.filename;
+          const linkUrl = newAttachment.url;
+          if (range) {
+            editor.insertText(range.index, linkText, { link: linkUrl });
+            editor.setSelection(range.index + linkText.length);
+          } else {
+            editor.insertText(editor.getLength(), linkText, { link: linkUrl });
+          }
+        }
 
         return { url: result.url, success: true };
       }
@@ -221,10 +245,6 @@ export function JournalEditorWithAttachments({
     }
   };
 
-  const insertImageInContent = (url: string) => {
-    insertMarkdown(`![Image](${url})`, "");
-  };
-
   const removeAttachment = (url: string) => {
     if (!entry) return;
 
@@ -236,7 +256,7 @@ export function JournalEditorWithAttachments({
       shouldDirty: true,
       shouldValidate: true,
     });
-    onUpdateEntry(entry.id, {
+    updateEntry(entry.id, {
       attachments: updatedAttachments.map((att) => att.url),
     });
 
@@ -274,9 +294,6 @@ export function JournalEditorWithAttachments({
     );
   }
 
-  // Ensure 'entry' is treated as non-null after this point
-  // const currentEntry = entry; // This line was causing the issue. Accessing entry directly after the check.
-
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
@@ -294,6 +311,12 @@ export function JournalEditorWithAttachments({
                       className="text-lg font-semibold border-0 px-0 shadow-none focus-visible:ring-0 placeholder:text-slate-400"
                       disabled={isMutating}
                       {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        if (entry) {
+                          debouncedOnUpdateEntryTitle(entry.id, e.target.value);
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -304,55 +327,33 @@ export function JournalEditorWithAttachments({
               {entry && formatDate(entry.created_at)}
             </p>
           </div>
-          <Button
-            onClick={onSaveEntry}
-            size="sm"
-            disabled={!hasUnsavedChanges || isMutating}
-            className={cn(
-              "transition-all duration-200",
-              hasUnsavedChanges
-                ? "bg-slate-900 hover:bg-slate-800 text-white"
-                : "bg-slate-100 text-slate-400 cursor-not-allowed",
+          <div className="flex items-center gap-2">
+            {isMutating && (
+              <span className="text-xs text-slate-500 flex items-center">
+                <Spinner size="sm" className="mr-1" /> Saving...
+              </span>
             )}
-          >
-            {isMutating ? (
-              <Spinner size="sm" className="mr-1" />
-            ) : (
+            <Button
+              onClick={onSaveEntry}
+              size="sm"
+              disabled={!hasUnsavedChanges || isMutating}
+              className={cn(
+                "transition-all duration-200",
+                hasUnsavedChanges
+                  ? "bg-slate-900 hover:bg-slate-800 text-white"
+                  : "bg-slate-100 text-slate-400 cursor-not-allowed",
+              )}
+            >
               <Save className="h-4 w-4 mr-1" />
-            )}
-            {isMutating ? "Saving..." : hasUnsavedChanges ? "Save" : "Saved"}
-          </Button>
+              {hasUnsavedChanges ? "Save" : "Saved"}
+            </Button>
+          </div>
         </div>
 
         {/* Toolbar */}
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBold}
-            className="h-8 w-8 p-0"
-            disabled={isMutating}
-          >
-            <Bold className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleItalic}
-            className="h-8 w-8 p-0"
-            disabled={isMutating}
-          >
-            <Italic className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBulletList}
-            className="h-8 w-8 p-0"
-            disabled={isMutating}
-          >
-            <List className="h-4 w-4" />
-          </Button>
+          {/* Quill's toolbar will be rendered here */}
+          {/* The custom image handler will be triggered by Quill's image button */}
           <Button
             variant="ghost"
             size="sm"
@@ -367,12 +368,12 @@ export function JournalEditorWithAttachments({
           </Button>
           <Separator orientation="vertical" className="h-6 mx-2" />
           <span className="text-xs text-slate-500">
-            Use **bold**, *italic*, and - for lists
+            Rich text editing enabled
           </span>
         </div>
 
         {/* Attachment Upload */}
-        {showAttachmentUpload && (
+        {showAttachmentUpload && ( // Controlled by Paperclip button
           <div className="pt-2">
             <FileUpload
               onUpload={handleFileUpload}
@@ -404,13 +405,49 @@ export function JournalEditorWithAttachments({
                           alt={attachment.filename || "attachment"}
                           fill
                           className="object-cover rounded"
-                          onClick={() => insertImageInContent(attachment.url)}
+                          onClick={() => {
+                            if (quillRef.current) {
+                              const editor = quillRef.current.getEditor();
+                              const range = editor.getSelection();
+                              if (range) {
+                                editor.insertEmbed(
+                                  range.index,
+                                  "image",
+                                  attachment.url,
+                                );
+                              } else {
+                                editor.insertEmbed(
+                                  editor.getLength(),
+                                  "image",
+                                  attachment.url,
+                                );
+                              }
+                            }
+                          }}
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded flex items-center justify-center">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => insertImageInContent(attachment.url)}
+                            onClick={() => {
+                              if (quillRef.current) {
+                                const editor = quillRef.current.getEditor();
+                                const range = editor.getSelection();
+                                if (range) {
+                                  editor.insertEmbed(
+                                    range.index,
+                                    "image",
+                                    attachment.url,
+                                  );
+                                } else {
+                                  editor.insertEmbed(
+                                    editor.getLength(),
+                                    "image",
+                                    attachment.url,
+                                  );
+                                }
+                              }
+                            }}
                             className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 bg-white/80 hover:bg-white"
                             disabled={isMutating}
                           >
@@ -419,9 +456,11 @@ export function JournalEditorWithAttachments({
                         </div>
                       </div>
                     ) : (
-                      <div className="w-16 h-16 bg-slate-100 rounded flex items-center justify-center">
-                        <span className="text-xs text-slate-500 truncate max-w-[56px] px-1">
-                          {attachment.filename?.split(".").pop()}
+                      // Non-image attachment preview
+                      <div className="w-16 h-16 bg-slate-100 rounded flex flex-col items-center justify-center p-1 text-center">
+                        <Paperclip className="h-6 w-6 text-slate-400 mb-1" />
+                        <span className="text-[10px] text-slate-500 truncate w-full">
+                          {attachment.filename}
                         </span>
                       </div>
                     )}
@@ -443,30 +482,26 @@ export function JournalEditorWithAttachments({
       </div>
 
       {/* Editor */}
-      <div className="flex-1 p-4">
+      <div className="flex-1 p-4 flex flex-col">
         <FormField
           control={form.control}
           name="content"
           render={({ field }) => (
-            <FormItem className="flex-1">
+            <FormItem className="flex-1 flex flex-col">
               <FormControl>
-                <Textarea
-                  ref={textareaRef}
+                <ReactQuill
+                  ref={(el) => {
+                    quillRef.current = el;
+                    field.ref(el);
+                  }}
+                  theme="snow"
+                  value={field.value || ""}
+                  onChange={handleQuillChange}
+                  modules={modules}
+                  formats={formats}
                   placeholder="Start writing your thoughts..."
-                  className="w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 text-base leading-relaxed placeholder:text-slate-400"
-                  style={{
-                    fontFamily: "ui-serif, Georgia, Cambria, serif",
-                    fontSize: "16px",
-                    lineHeight: "1.7",
-                  }}
-                  disabled={isMutating}
-                  value={field.value ?? ""} // Ensure value is always a string
-                  onChange={(e) => {
-                    field.onChange(e); // Call react-hook-form's onChange
-                    if (entry) {
-                      onUpdateEntry(entry.id, { content: e.target.value }); // Also call parent update
-                    }
-                  }}
+                  className="flex-1 flex flex-col quill-editor-container"
+                  readOnly={isMutating}
                 />
               </FormControl>
               <FormMessage />

@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
+import React from "react";
 
 interface EmptyStateProps {
   title: string;
@@ -9,6 +10,7 @@ interface EmptyStateProps {
   actionLabel?: string;
   onAction?: () => void;
   disabled?: boolean;
+  icon?: React.ElementType;
 }
 
 export function EmptyState({
@@ -17,10 +19,11 @@ export function EmptyState({
   actionLabel,
   onAction,
   disabled,
+  icon: Icon = PlusCircle,
 }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center text-slate-500 dark:text-slate-400">
-      <PlusCircle className="h-12 w-12 mb-4" />
+      <Icon className="h-12 w-12 mb-4" />
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       {description && <p className="text-sm mb-4">{description}</p>}
       {actionLabel && onAction && (

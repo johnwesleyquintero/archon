@@ -37,6 +37,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   refetchProfile: () => Promise<void>;
+  isSigningOut: boolean;
+  setIsSigningOut: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,6 +56,7 @@ export function AuthProvider({
   const [profile, setProfile] = useState<Profile | null>(initialProfile); // Initialize profile with initialProfile
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [isSigningOut, setIsSigningOut] = useState(false); // Add isSigningOut state
   const supabase = getSupabaseBrowserClient();
 
   const fetchProfile = useCallback(async (userId: string) => {
@@ -245,6 +248,8 @@ export function AuthProvider({
     signOut,
     updateProfile,
     refetchProfile,
+    isSigningOut,
+    setIsSigningOut,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

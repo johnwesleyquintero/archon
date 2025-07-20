@@ -7,6 +7,7 @@ import { EmptyState } from "./empty-state";
 import { useTasks } from "@/hooks/use-tasks";
 import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ListTodo, Filter } from "lucide-react";
 
 interface TaskListProps {
   onAddTaskClick: () => void;
@@ -53,15 +54,16 @@ export function TaskList({ onAddTaskClick }: TaskListProps) {
       <div className="flex-1 overflow-auto py-2">
         {tasks.length === 0 ? (
           <EmptyState
-            title="No tasks yet"
-            description="Add your first task to get started"
+            title="No tasks yet!"
+            description="Looks like your to-do list is sparkling clean. Ready to add your first task and conquer the day?"
             actionLabel="Add New Task"
             onAction={onAddTaskClick}
+            icon={ListTodo}
           />
         ) : filteredAndSortedTasks.length === 0 ? (
           <EmptyState
-            title="No matching tasks"
-            description="No tasks match your current filters"
+            title="No matching tasks found."
+            description="It seems no tasks match your current filter criteria. Try adjusting your filters to see more tasks!"
             actionLabel="Clear Filters"
             onAction={() =>
               setFilters({
@@ -72,6 +74,7 @@ export function TaskList({ onAddTaskClick }: TaskListProps) {
                 tags: [],
               })
             }
+            icon={Filter}
           />
         ) : (
           <ul className="space-y-1">

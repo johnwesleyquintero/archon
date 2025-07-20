@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Modal } from "@/components/ui/modal";
+import { Spinner } from "@/components/ui/spinner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { goalSchema } from "@/lib/validators";
@@ -84,7 +85,13 @@ export function CreateGoalModal({
             disabled={!form.formState.isValid || isSaving}
             className="bg-slate-900 hover:bg-slate-800"
           >
-            {isSaving ? "Saving..." : "Save Goal"}
+            {isSaving ? (
+              <span className="flex items-center">
+                <Spinner className="mr-2 h-4 w-4" /> Saving...
+              </span>
+            ) : (
+              "Save Goal"
+            )}
           </Button>
         </div>
       }

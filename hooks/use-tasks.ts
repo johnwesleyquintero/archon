@@ -6,12 +6,13 @@ import {
   addTask,
   toggleTask,
   deleteTask,
-  CreateTaskInput,
 } from "@/lib/database/tasks";
 import type { Database } from "@/lib/supabase/types";
 import { useAuth } from "@/contexts/auth-context";
+import { useToast } from "@/components/ui/use-toast";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
+type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 
 export function useTasks() {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ export function useTasks() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
 
   const fetchTasks = useCallback(async () => {
     if (!user) {
@@ -35,19 +37,29 @@ export function useTasks() {
     } catch (err) {
       console.error("Failed to fetch tasks:", err);
       setError("Failed to load tasks. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to load tasks. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, toast]);
 
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
 
   const handleAddTask = useCallback(
-    async (input: CreateTaskInput) => {
+    async (input: TaskInsert) => {
       if (!user) {
         setError("You must be logged in to add tasks.");
+        toast({
+          title: "Error",
+          description: "You must be logged in to add tasks.",
+          variant: "destructive",
+        });
         return;
       }
       setError(null);
@@ -58,11 +70,11 @@ export function useTasks() {
           const newTask: Task = {
             id: tempId,
             title: input.title,
-            completed: false,
+            completed: input.completed || false,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             user_id: user.id,
-            due_date: input.dueDate || null,
+            due_date: input.due_date || null,
             priority: input.priority || "medium",
             category: input.category || null,
             tags: input.tags || [],
@@ -74,14 +86,28 @@ export function useTasks() {
             setTasks((prev) =>
               prev.map((task) => (task.id === tempId ? addedTask : task)),
             );
+            toast({
+              title: "Success!",
+              description: "Task added successfully.",
+            });
           } else {
             // Revert optimistic update if actual add failed
             setTasks((prev) => prev.filter((task) => task.id !== tempId));
             setError("Failed to add task.");
+            toast({
+              title: "Error",
+              description: "Failed to add task.",
+              variant: "destructive",
+            });
           }
         } catch (err: any) {
           console.error("Error adding task:", err);
           setError(err.message || "Failed to add task.");
+          toast({
+            title: "Error",
+            description: err.message || "Failed to add task.",
+            variant: "destructive",
+          });
           // Revert optimistic update on error
           setTasks((prev) =>
             prev.filter((task) => task.id !== `temp-${Date.now()}`),
@@ -89,13 +115,18 @@ export function useTasks() {
         }
       });
     },
-    [user],
+    [user, toast],
   );
 
   const handleToggleTask = useCallback(
     async (id: string, completed: boolean) => {
       if (!user) {
         setError("You must be logged in to update tasks.");
+        toast({
+          title: "Error",
+          description: "You must be logged in to update tasks.",
+          variant: "destructive",
+        });
         return;
       }
       setError(null);
@@ -108,7 +139,12 @@ export function useTasks() {
             ),
           );
           const updatedTask = await toggleTask(id, completed);
-          if (!updatedTask) {
+          if (updatedTask) {
+            toast({
+              title: "Success!",
+              description: "Task status updated successfully.",
+            });
+          } else {
             // Revert optimistic update if actual update failed
             setTasks((prev) =>
               prev.map((task) =>
@@ -116,10 +152,20 @@ export function useTasks() {
               ),
             );
             setError("Failed to update task status.");
+            toast({
+              title: "Error",
+              description: "Failed to update task status.",
+              variant: "destructive",
+            });
           }
         } catch (err: any) {
           console.error("Error toggling task:", err);
           setError(err.message || "Failed to update task status.");
+          toast({
+            title: "Error",
+            description: err.message || "Failed to update task status.",
+            variant: "destructive",
+          });
           // Revert optimistic update on error
           setTasks((prev) =>
             prev.map((task) =>
@@ -129,7 +175,7 @@ export function useTasks() {
         }
       });
     },
-    [user],
+    [user, toast],
   );
 
   const handleDeleteTask = useCallback(
@@ -146,15 +192,24 @@ export function useTasks() {
           setTasks((prev) => prev.filter((task) => task.id !== id));
 
           await deleteTask(id);
+          toast({
+            title: "Success!",
+            description: "Task deleted successfully.",
+          });
         } catch (err: any) {
           console.error("Error deleting task:", err);
           setError(err.message || "Failed to delete task.");
+          toast({
+            title: "Error",
+            description: err.message || "Failed to delete task.",
+            variant: "destructive",
+          });
           // Revert optimistic update on error
-          setTasks(tasks); // Restore original tasks
+          setTasks(originalTasks); // Restore original tasks
         }
       });
     },
-    [user, tasks],
+    [user, tasks, toast],
   );
 
   return {

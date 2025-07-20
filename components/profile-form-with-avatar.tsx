@@ -28,14 +28,14 @@ import { profileSchema } from "@/lib/validators";
 import type { z } from "zod";
 import { User } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { useToast } from "@/components/ui/use-toast";
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export function ProfileFormWithAvatar() {
   const { user, profile, updateProfile, isLoading: authLoading } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -69,10 +69,11 @@ export function ProfileFormWithAvatar() {
           shouldDirty: true,
           shouldValidate: true,
         });
-        setSaveSuccess(
-          "Avatar uploaded successfully! Click Save Changes to apply.",
-        );
-        setSaveError(null);
+        toast({
+          title: "Success!",
+          description:
+            "Avatar uploaded successfully! Click Save Changes to apply.",
+        });
         return { success: true, url: result.url };
       } else {
         throw new Error(result.error?.message || "Failed to upload avatar.");
@@ -94,23 +95,27 @@ export function ProfileFormWithAvatar() {
       } else {
         errorToReturn = new Error("An unknown error occurred.");
       }
-      setSaveError(errorMessageText);
-      setSaveSuccess(null);
+      toast({
+        title: "Error",
+        description: errorMessageText,
+        variant: "destructive",
+      });
       return { success: false, error: errorToReturn };
     }
   };
 
   const onSubmit = async (data: ProfileFormValues) => {
     setIsSaving(true);
-    setSaveError(null);
-    setSaveSuccess(null);
     try {
       await updateProfile({
         full_name: data.fullName,
         username: data.username,
         avatar_url: data.avatar,
       });
-      setSaveSuccess("Profile updated successfully!");
+      toast({
+        title: "Success!",
+        description: "Profile updated successfully.",
+      });
     } catch (err: unknown) {
       let errorMessageText = "Failed to update profile.";
       if (err instanceof Error) {
@@ -123,7 +128,11 @@ export function ProfileFormWithAvatar() {
       ) {
         errorMessageText = (err as { message: string }).message;
       }
-      setSaveError(errorMessageText);
+      toast({
+        title: "Error",
+        description: errorMessageText,
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -222,11 +231,6 @@ export function ProfileFormWithAvatar() {
               </FormItem>
             )}
           />
-
-          {saveError && <p className="text-sm text-red-500">{saveError}</p>}
-          {saveSuccess && (
-            <p className="text-sm text-green-600">{saveSuccess}</p>
-          )}
 
           <Button
             type="submit"

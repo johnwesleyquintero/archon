@@ -16,14 +16,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
+import { useToast } from "@/components/ui/use-toast";
 
 export function ProfileForm() {
   const { user, profile, updateProfile, isLoading } = useAuth();
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [username, setUsername] = useState(profile?.username || "");
   const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (profile) {
@@ -35,18 +35,23 @@ export function ProfileForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    setSaveError(null);
-    setSaveSuccess(null);
 
     if (!user) {
-      setSaveError("User not authenticated.");
+      toast({
+        title: "Error",
+        description: "User not authenticated.",
+        variant: "destructive",
+      });
       setIsSaving(false);
       return;
     }
 
     try {
       await updateProfile({ full_name: fullName, username: username });
-      setSaveSuccess("Profile updated successfully!");
+      toast({
+        title: "Success!",
+        description: "Profile updated successfully.",
+      });
     } catch (err: unknown) {
       let errorMessageText = "Failed to update profile.";
       if (err instanceof Error) {
@@ -59,7 +64,11 @@ export function ProfileForm() {
       ) {
         errorMessageText = (err as { message: string }).message;
       }
-      setSaveError(errorMessageText);
+      toast({
+        title: "Error",
+        description: errorMessageText,
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -123,10 +132,6 @@ export function ProfileForm() {
               disabled={isSaving}
             />
           </div>
-          {saveError && <p className="text-sm text-red-500">{saveError}</p>}
-          {saveSuccess && (
-            <p className="text-sm text-green-600">{saveSuccess}</p>
-          )}
           <Button
             type="submit"
             className="bg-slate-900 hover:bg-slate-800"

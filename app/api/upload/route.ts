@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { nanoid } from "nanoid";
+import { apiErrorResponse, AppError } from "@/lib/utils"; // Import AppError and apiErrorResponse
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,7 +10,12 @@ export async function POST(request: NextRequest) {
     const folder = (formData.get("folder") as string) || "general";
 
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      throw new AppError(
+        "No file provided for upload.",
+        "NO_FILE_PROVIDED",
+        {},
+        400,
+      );
     }
 
     // Create a unique filename with original extension
@@ -23,10 +29,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url, success: true });
   } catch (error) {
-    console.error("Error uploading file:", error);
-    return NextResponse.json(
-      { error: "Failed to upload file", details: error },
-      { status: 500 },
-    );
+    return apiErrorResponse(error, "File Upload API");
   }
 }

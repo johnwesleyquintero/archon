@@ -9,48 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      tasks: {
+      profiles: {
         Row: {
+          avatar_url: string | null;
+          full_name: string | null;
           id: string;
-          user_id: string;
-          title: string;
-          completed: boolean;
-          created_at: string;
-          updated_at: string;
-          due_date: string | null;
-          priority: "low" | "medium" | "high";
-          tags: string[];
-          category: string | null;
+          updated_at: string | null;
+          username: string | null;
+          website: string | null;
         };
         Insert: {
-          id?: string;
-          user_id?: string;
-          title: string;
-          completed?: boolean;
-          created_at?: string;
-          updated_at?: string;
-          due_date?: string | null;
-          priority?: "low" | "medium" | "high";
-          tags?: string[];
-          category?: string | null;
+          avatar_url?: string | null;
+          full_name?: string | null;
+          id: string;
+          updated_at?: string | null;
+          username?: string | null;
+          website?: string | null;
         };
         Update: {
+          avatar_url?: string | null;
+          full_name?: string | null;
           id?: string;
-          user_id?: string;
-          title?: string;
-          completed?: boolean;
-          created_at?: string;
-          updated_at?: string;
-          due_date?: string | null;
-          priority?: "low" | "medium" | "high";
-          tags?: string[];
-          category?: string | null;
+          updated_at?: string | null;
+          username?: string | null;
+          website?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "tasks_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
+            foreignKeyName: "profiles_id_fkey";
+            columns: ["id"];
+            isOneToOne: true;
             referencedRelation: "users";
             referencedColumns: ["id"];
           },
@@ -58,36 +46,30 @@ export type Database = {
       };
       goals: {
         Row: {
-          attachments: string[] | null;
           created_at: string;
           description: string | null;
+          due_date: string | null;
           id: string;
-          status: Database["public"]["Enums"]["goal_status"];
-          target_date: string | null;
+          status: string;
           title: string;
-          updated_at: string;
           user_id: string;
         };
         Insert: {
-          attachments?: string[] | null;
           created_at?: string;
           description?: string | null;
+          due_date?: string | null;
           id?: string;
-          status?: Database["public"]["Enums"]["goal_status"];
-          target_date?: string | null;
+          status?: string;
           title: string;
-          updated_at?: string;
-          user_id?: string;
+          user_id: string;
         };
         Update: {
-          attachments?: string[] | null;
           created_at?: string;
           description?: string | null;
+          due_date?: string | null;
           id?: string;
-          status?: Database["public"]["Enums"]["goal_status"];
-          target_date?: string | null;
+          status?: string;
           title?: string;
-          updated_at?: string;
           user_id?: string;
         };
         Relationships: [
@@ -102,30 +84,30 @@ export type Database = {
       };
       journal_entries: {
         Row: {
-          attachments: string[] | null;
+          attachments: Json | null;
           content: string | null;
           created_at: string;
           id: string;
           title: string;
-          updated_at: string;
+          updated_at: string | null;
           user_id: string;
         };
         Insert: {
-          attachments?: string[] | null;
+          attachments?: Json | null;
           content?: string | null;
           created_at?: string;
           id?: string;
           title: string;
-          updated_at?: string;
-          user_id?: string;
+          updated_at?: string | null;
+          user_id: string;
         };
         Update: {
-          attachments?: string[] | null;
+          attachments?: Json | null;
           content?: string | null;
           created_at?: string;
           id?: string;
           title?: string;
-          updated_at?: string;
+          updated_at?: string | null;
           user_id?: string;
         };
         Relationships: [
@@ -138,62 +120,116 @@ export type Database = {
           },
         ];
       };
-      profiles: {
+      journal_templates: {
         Row: {
-          avatar_url: string | null;
-          full_name: string | null;
+          content: string | null;
+          created_at: string;
           id: string;
-          updated_at: string | null;
-          username: string | null;
+          title: string;
+          user_id: string;
         };
         Insert: {
-          avatar_url?: string | null;
-          full_name?: string | null;
-          id: string;
-          updated_at?: string | null;
-          username?: string | null;
+          content?: string | null;
+          created_at?: string;
+          id?: string;
+          title: string;
+          user_id: string;
         };
         Update: {
-          avatar_url?: string | null;
-          full_name?: string | null;
+          content?: string | null;
+          created_at?: string;
           id?: string;
-          updated_at?: string | null;
-          username?: string | null;
+          title?: string;
+          user_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "profiles_id_fkey";
-            columns: ["id"];
-            isOneToOne: true;
-            referencedRelation: "users";
+            foreignKeyName: "journal_templates_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
       };
-
-      journal_templates: {
+      tasks: {
         Row: {
-          id: string;
-          title: string;
-          content: string | null;
+          category: string | null;
           created_at: string;
-          updated_at: string;
+          due_date: string | null;
+          id: string;
+          priority: string | null;
+          status: string;
+          tags: string[] | null;
+          title: string;
+          updated_at: string | null;
+          user_id: string;
         };
         Insert: {
-          id?: string;
-          title: string;
-          content?: string | null;
+          category?: string | null;
           created_at?: string;
-          updated_at?: string;
+          due_date?: string | null;
+          id?: string;
+          priority?: string | null;
+          status?: string;
+          tags?: string[] | null;
+          title: string;
+          updated_at?: string | null;
+          user_id: string;
         };
         Update: {
-          id?: string;
-          title?: string;
-          content?: string | null;
+          category?: string | null;
           created_at?: string;
-          updated_at?: string;
+          due_date?: string | null;
+          id?: string;
+          priority?: string | null;
+          status?: string;
+          tags?: string[] | null;
+          title?: string;
+          updated_at?: string | null;
+          user_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "tasks_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      user_dashboard_settings: {
+        Row: {
+          created_at: string;
+          id: string;
+          settings: Json;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          settings: Json;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          settings?: Json;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_dashboard_settings_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: {
@@ -203,7 +239,7 @@ export type Database = {
       [_ in never]: never;
     };
     Enums: {
-      goal_status: "pending" | "in_progress" | "completed";
+      [_ in never]: never;
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -222,8 +258,7 @@ export type Tables<
         Database[PublicTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Row: infer R;
     }
     ? R
