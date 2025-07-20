@@ -21,6 +21,7 @@ export async function getProfile(id: string) {
     if (error.code === "PGRST116") {
       return null;
     }
+    console.error("Error fetching profile:", error); // Log the actual error
     throw error;
   }
   return data;
