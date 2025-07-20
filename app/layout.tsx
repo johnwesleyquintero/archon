@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   description:
     "A powerful dashboard for managing your tasks, goals, and journal.",
   generator: "v0.dev",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default async function RootLayout({

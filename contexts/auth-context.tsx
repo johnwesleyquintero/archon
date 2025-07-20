@@ -157,7 +157,7 @@ export function AuthProvider({
         email,
         password,
         options: {
-          emailRedirectTo: `${location.origin}/auth/callback`,
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_VERCEL_URL || location.origin}/auth/callback`,
         },
       });
       if (signUpError) {
