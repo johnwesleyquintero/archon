@@ -1,105 +1,114 @@
-"use server";
+"use server"
 
-import { revalidatePath } from "next/cache";
-import { getUser } from "@/lib/supabase/auth";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
+import { getSupabaseServerClient } from "@/lib/supabase/server"
+import { getUser } from "@/lib/supabase/auth"
+import type { Database } from "@/lib/supabase/types"
 
-type Task = Database["public"]["Tables"]["tasks"]["Row"];
-// type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"]; // Commented out as they are defined but never used.
-// type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"]; // Commented out as they are defined but never used.
+export type TaskRow = Database["public"]["Tables"]["tasks"]["Row"]
+export type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"]
+export type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"]
 
-export async function getTasks(): Promise<Task[]> {
-  const supabase = await getSupabaseServerClient();
-  const user = await getUser();
+/**
+ * Fetches all tasks for the current user.
+ */
+export async function getTasks(): Promise<TaskRow[]> {
+  const supabase = await getSupabaseServerClient()
+  const user = await getUser()
 
   if (!user) {
-    return [];
+    console.warn("[Supabase] Attempted to fetch tasks without an authenticated user.")
+    return []
   }
 
   const { data, error } = await supabase
     .from("tasks")
     .select("*")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
 
   if (error) {
-    console.error("Error fetching tasks:", error);
-    return [];
+    console.error("[Supabase] Error fetching tasks:", error)
+    throw new Error(`Failed to fetch tasks: ${error.message}`)
   }
-
-  return data;
+  return data
 }
 
-export async function addTask(title: string): Promise<Task | null> {
-  const supabase = await getSupabaseServerClient();
-  const user = await getUser();
+/**
+ * Adds a new task for the current user.
+ */
+export async function addTask(task: Omit<TaskInsert, "user_id">): Promise<TaskRow | null> {
+  const supabase = await getSupabaseServerClient()
+  const user = await getUser()
 
   if (!user) {
-    throw new Error("User not authenticated.");
+    console.error("[Supabase] Attempted to add task without an authenticated user.")
+    throw new Error("Authentication required to add task.")
   }
 
   const { data, error } = await supabase
     .from("tasks")
-    .insert({ title, user_id: user.id })
+    .insert({ ...task, user_id: user.id })
     .select()
-    .single();
+    .single()
 
   if (error) {
-    console.error("Error adding task:", error);
-    throw new Error(`Failed to add task: ${error.message}`);
+    console.error("[Supabase] Error adding task:", error)
+    throw new Error(`Failed to add task: ${error.message}`)
   }
-
-  revalidatePath("/dashboard");
-  return data;
+  return data
 }
 
-export async function toggleTask(
-  id: string,
-  completed: boolean,
-): Promise<Task | null> {
-  const supabase = await getSupabaseServerClient();
-  const user = await getUser();
+/**
+ * Updates an existing task.
+ */
+export async function updateTask(id: string, updates: TaskUpdate): Promise<TaskRow | null> {
+  const supabase = await getSupabaseServerClient()
+  const user = await getUser()
 
   if (!user) {
-    throw new Error("User not authenticated.");
+    console.error("[Supabase] Attempted to update task without an authenticated user.")
+    throw new Error("Authentication required to update task.")
   }
 
   const { data, error } = await supabase
     .from("tasks")
-    .update({ completed })
+    .update(updates)
     .eq("id", id)
-    .eq("user_id", user.id) // Ensure user owns the task
+    .eq("user_id", user.id) // Ensure user can only update their own tasks
     .select()
-    .single();
+    .single()
 
   if (error) {
-    console.error("Error toggling task:", error);
-    throw new Error(`Failed to toggle task: ${error.message}`);
+    console.error(`[Supabase] Error updating task ${id}:`, error)
+    throw new Error(`Failed to update task: ${error.message}`)
   }
-
-  revalidatePath("/dashboard");
-  return data;
+  return data
 }
 
-export async function deleteTask(id: string): Promise<void> {
-  const supabase = await getSupabaseServerClient();
-  const user = await getUser();
+/**
+ * Toggles the completion status of a task.
+ */
+export async function toggleTask(id: string, is_complete: boolean): Promise<TaskRow | null> {
+  return updateTask(id, { is_complete })
+}
+
+/**
+ * Deletes a task.
+ */
+export async function deleteTask(id: string): Promise<boolean> {
+  const supabase = await getSupabaseServerClient()
+  const user = await getUser()
 
   if (!user) {
-    throw new Error("User not authenticated.");
+    console.error("[Supabase] Attempted to delete task without an authenticated user.")
+    throw new Error("Authentication required to delete task.")
   }
 
-  const { error } = await supabase
-    .from("tasks")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", user.id); // Ensure user owns the task
+  const { error } = await supabase.from("tasks").delete().eq("id", id).eq("user_id", user.id) // Ensure user can only delete their own tasks
 
   if (error) {
-    console.error("Error deleting task:", error);
-    throw new Error(`Failed to delete task: ${error.message}`);
+    console.error(`[Supabase] Error deleting task ${id}:`, error)
+    throw new Error(`Failed to delete task: ${error.message}`)
   }
-
-  revalidatePath("/dashboard");
+  return true
 }

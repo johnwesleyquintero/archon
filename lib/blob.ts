@@ -1,66 +1,95 @@
-"use server";
+"use server"
 
-import { put } from "@vercel/blob";
-import { customAlphabet } from "nanoid";
+import { put, del, type PutBlobResult } from "@vercel/blob"
+import { nanoid } from "nanoid"
+import { getUser } from "@/lib/supabase/auth"
 
-const nanoid = customAlphabet(
-  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-  7,
-); // 7-character random string
-
-export async function uploadFile(
-  file: File,
-  pathPrefix = "uploads",
-): Promise<{ success: boolean; url: string; error?: Error }> {
+/**
+ * Uploads a file to Vercel Blob Storage.
+ * @param file The file to upload (e.g., from FormData).
+ * @param pathname The desired path for the file in the blob store (e.g., "avatars/user-id/image.png").
+ * @returns The result of the upload, including the URL.
+ */
+export async function uploadFileToBlob(file: File, pathname: string): Promise<PutBlobResult> {
   try {
-    if (!file) {
-      return { success: false, url: "", error: new Error("No file provided.") };
-    }
-
-    // Generate a unique filename
-    const fileExtension = file.name.split(".").pop();
-    const filename = `${pathPrefix}/${nanoid()}.${fileExtension}`;
-
-    const blob = await put(filename, file, {
+    const blob = await put(pathname, file, {
       access: "public",
-    });
-
-    return { success: true, url: blob.url };
-  } catch (err) {
-    console.error("Vercel Blob upload error:", err);
-    let errorToReturn: Error | undefined = undefined;
-    if (err instanceof Error) {
-      errorToReturn = err;
-    } else {
-      errorToReturn = new Error(String(err));
-    }
-    return { success: false, url: "", error: errorToReturn };
+    })
+    return blob
+  } catch (error: any) {
+    console.error("Error uploading file to Vercel Blob:", error)
+    throw new Error(`Failed to upload file: ${error.message}`)
   }
 }
 
-export async function deleteFile(
-  url: string,
-): Promise<{ success: boolean; error?: string }> {
+/**
+ * Deletes a file from Vercel Blob Storage.
+ * @param url The URL of the file to delete.
+ */
+export async function deleteFileFromBlob(url: string): Promise<void> {
   try {
-    // This requires the BLOB_READ_WRITE_TOKEN to be available
-    // The delete function is not directly exposed by @vercel/blob in 'use client' context
-    // You would typically call a server action or API route for deletion.
-    // For now, this is a placeholder for future implementation.
-    console.warn(
-      "Delete file from Vercel Blob not fully implemented on client side. URL:",
-      url,
-    );
-    // TODO: Implement actual deletion logic here. For now, simulate success.
-    await Promise.resolve(); // Dummy await to satisfy linter
-    return { success: true };
-  } catch (err) {
-    console.error("Vercel Blob delete error:", err);
-    let errorMessage: string | undefined = undefined;
-    if (err instanceof Error) {
-      errorMessage = err.message;
-    } else {
-      errorMessage = String(err);
-    }
-    return { success: false, error: errorMessage };
+    await del(url)
+  } catch (error: any) {
+    console.error("Error deleting file from Vercel Blob:", error)
+    throw new Error(`Failed to delete file: ${error.message}`)
+  }
+}
+
+/**
+ * Server Action to handle avatar upload and update user profile.
+ * @param formData FormData containing the 'avatar' file.
+ * @returns The updated profile URL or null if failed.
+ */
+export async function uploadAvatar(formData: FormData): Promise<string | null> {
+  const user = await getUser()
+  if (!user) {
+    throw new Error("Authentication required to upload avatar.")
+  }
+
+  const file = formData.get("avatar") as File
+  if (!file || file.size === 0) {
+    console.warn("No avatar file provided for upload.")
+    return null
+  }
+
+  const fileExtension = file.name.split(".").pop()
+  const filename = `${user.id}/${nanoid()}.${fileExtension}` // Unique filename per user
+
+  try {
+    const blob = await uploadFileToBlob(file, `avatars/${filename}`)
+    return blob.url
+  } catch (error) {
+    console.error("Failed to upload avatar:", error)
+    throw error
+  }
+}
+
+/**
+ * Server Action to handle attachment upload for journal entries or goals.
+ * @param formData FormData containing the 'attachment' file.
+ * @param type 'journal' or 'goal' to categorize the attachment.
+ * @returns The URL of the uploaded attachment or null if failed.
+ */
+export async function uploadAttachment(formData: FormData, type: "journal" | "goal"): Promise<string | null> {
+  const user = await getUser()
+  if (!user) {
+    throw new Error("Authentication required to upload attachment.")
+  }
+
+  const file = formData.get("attachment") as File
+  if (!file || file.size === 0) {
+    console.warn("No attachment file provided for upload.")
+    return null
+  }
+
+  const fileExtension = file.name.split(".").pop()
+  const filename = `${user.id}/${type}/${nanoid()}.${fileExtension}` // Unique filename per user and type
+
+  try {
+    const blob = await uploadFileToBlob(file, `attachments/${filename}`)
+    return blob.url
+  } catch (error) {
+    console.error("Failed to upload attachment:", error)
+    throw error
   }
 }

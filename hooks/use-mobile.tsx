@@ -1,28 +1,38 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react"
 
 /**
- * Screens ≤ 768 px are considered “mobile”.
+ * Custom hook to detect if the current viewport width is considered "mobile".
+ * This is based on Tailwind's 'md' breakpoint (768px) by default.
+ * @param breakpoint The maximum width for mobile, defaults to 768.
+ * @returns `true` if the screen width is less than the breakpoint, `false` otherwise.
  */
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = useState<boolean>(
-    typeof window === "undefined" ? false : window.innerWidth <= 768,
-  );
+export function useIsMobile(breakpoint = 768): boolean {
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 768px)");
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < breakpoint)
+    }
 
-    // Initial value & listener
-    setIsMobile(mq.matches);
-    mq.addEventListener("change", handler);
+    // Set initial value
+    checkMobile()
 
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+    // Add event listener for window resize
+    window.addEventListener("resize", checkMobile)
 
-  return isMobile;
+    // Clean up event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", checkMobile)
+    }
+  }, [breakpoint])
+
+  return isMobile
 }
 
-/* Older components import { useMobile } – keep alias. */
-export const useMobile = useIsMobile;
+/**
+ * Alias for useIsMobile for backward compatibility.
+ * @deprecated Use `useIsMobile` directly.
+ */
+export const useMobile = useIsMobile

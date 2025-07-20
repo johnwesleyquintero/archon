@@ -1,50 +1,62 @@
-"use server";
+"use server"
 
-// Load environment variables from .env file
-import "dotenv/config";
+import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
+import type { Database } from "./types"
 
-import { createServerClient as createServerClientSSR } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import type { Database } from "./types";
-
-// Log environment variables to debug loading issues
-console.log("NEXT_PUBLIC_SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-console.log(
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY:",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-);
-
-type CookieOptions = {
-  domain?: string;
-  expires?: Date;
-  httpOnly?: boolean;
-  maxAge?: number;
-  path?: string;
-  secure?: boolean;
-  sameSite?: boolean | "lax" | "strict" | "none";
-  priority?: "low" | "medium" | "high";
-  encode?: (value: string) => string;
-  partitioned?: boolean;
-};
-
+/**
+ * Returns a server-side Supabase client instance for the current request.
+ * This client automatically reads and writes user session cookies.
+ *
+ * Use this function in Server Components, Server Actions, and Route Handlers.
+ */
 export async function getSupabaseServerClient() {
-  const cookieStore = await cookies(); // Await the cookies() call
-  return createServerClientSSR<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, // Use anon key for server-side operations that are user-facing
-    {
+  const cookieStore = cookies() // Access cookies for the current request
+
+  // Ensure environment variables are present
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // In development or Vercel preview, these might be missing.
+    // For production, ensure they are set.
+    console.warn(
+      "Supabase environment variables are missing. Using stub client. " +
+        "Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.",
+    )
+    // Return a stub client to prevent build failures in environments
+    // where env vars might not be fully loaded (e.g., Vercel build step)
+    return createServerClient<Database>("https://stub.supabase.co", "public-anon-key", {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set(name, value, options);
-        },
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        remove(name: string, _options: CookieOptions) {
-          cookieStore.delete(name);
-        },
+        get: () => undefined,
+        set: () => {},
+        remove: () => {},
+      },
+    })
+  }
+
+  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value
+      },
+      set(name: string, value: string, options: object) {
+        try {
+          cookieStore.set(name, value, options)
+        } catch (error) {
+          // This can happen if `set` is called from a Server Component
+          // after headers have been sent. It's often ignorable if
+          // you have middleware refreshing sessions.
+          console.warn("Failed to set cookie:", error)
+        }
+      },
+      remove(name: string, options: object) {
+        try {
+          cookieStore.set(name, "", { ...options, maxAge: -1 })
+        } catch (error) {
+          console.warn("Failed to remove cookie:", error)
+        }
       },
     },
-  );
+  })
 }

@@ -1,46 +1,35 @@
-import { createBrowserClient } from "@supabase/ssr";
-import type { Database } from "./types";
+import { createBrowserClient } from "@supabase/ssr"
+import type { Database } from "./types"
 
-// Client-side Supabase client (for browser)
-let supabaseBrowserClient: ReturnType<
-  typeof createBrowserClient<Database, "public">
-> | null = null;
+/**
+ * Client-side singleton Supabase client.
+ * This client is safe to use in the browser.
+ *
+ * This file is kept for backward compatibility if other modules
+ * are still importing from `@/lib/supabase/config`.
+ * New code should prefer importing `supabaseClient` from `lib/supabase/client.ts`.
+ */
+let _supabaseClient: ReturnType<typeof createBrowserClient<Database>> | null = null
 
 export function getSupabaseBrowserClient() {
-  if (!supabaseBrowserClient) {
-    supabaseBrowserClient = createBrowserClient<Database, "public">(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            if (typeof document !== "undefined") {
-              return document.cookie
-                .split(";")
-                .find((c) => c.trim().startsWith(name + "="))
-                ?.split("=")[1];
-            }
-            return null;
-          },
-          set(name: string, value: string, options: Record<string, unknown>) {
-            if (typeof document !== "undefined") {
-              document.cookie = `${name}=${value}; ${Object.entries(options)
-                .map(([key, val]) => `${key}=${String(val)}`)
-                .join(";")}`;
-            }
-          },
-          remove(name: string, options: Record<string, unknown>) {
-            if (typeof document !== "undefined") {
-              document.cookie = `${name}=; Max-Age=-99999999; ${Object.entries(
-                options,
-              )
-                .map(([key, val]) => `${key}=${String(val)}`)
-                .join(";")}`;
-            }
-          },
-        },
-      },
-    );
+  if (_supabaseClient) return _supabaseClient
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseKey) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be defined.")
+    }
+    console.warn(
+      "[Supabase] Missing env vars in dev/preview; falling back to stub client.\n" +
+        "Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY " +
+        "in your .env.local or Vercel project settings.",
+    )
+    _supabaseClient = createBrowserClient("https://stub.supabase.co", "public-anon-key")
+    return _supabaseClient
   }
-  return supabaseBrowserClient;
+
+  _supabaseClient = createBrowserClient<Database>(supabaseUrl, supabaseKey)
+  return _supabaseClient
 }

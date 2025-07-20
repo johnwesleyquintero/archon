@@ -1,143 +1,141 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import type { z } from "zod"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useAuth } from "@/contexts/auth-context"
+import { loginSchema, signupSchema } from "@/lib/validators"
+import { useRouter } from "next/navigation"
+import { toast } from "@/components/ui/use-toast"
 
-import {
-  FormProvider, // Added this import
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useAuth } from "@/contexts/auth-context";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { authSchema } from "@/lib/validators";
-import type { z } from "zod";
-import { useRouter } from "next/navigation";
-import { Spinner } from "@/components/ui/spinner"; // Assuming you have a Spinner component
-import { useFormStatus } from "react-dom";
-
-type AuthFormValues = z.infer<typeof authSchema>;
+// Define a union type for the schemas
+type AuthFormSchema = z.infer<typeof loginSchema> | z.infer<typeof signupSchema>
 
 interface AuthFormProps {
-  type: "signin" | "signup";
+  mode: "login" | "signup"
 }
 
-export function AuthForm({ type }: AuthFormProps) {
-  const { signIn, signUp } = useAuth();
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const AuthForm = ({ mode }: AuthFormProps) => {
+  const { signIn, signUp } = useAuth()
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const form = useForm<AuthFormValues>({
-    resolver: zodResolver(authSchema),
+  const formSchema = mode === "login" ? loginSchema : signupSchema
+
+  const form = useForm<AuthFormSchema>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
       password: "",
+      ...(mode === "signup" && { confirmPassword: "" }),
     },
-    mode: "onBlur", // Enable real-time validation on blur
-  });
+  })
 
-  const onSubmit = async (data: AuthFormValues) => {
-    setIsLoading(true);
-    setError(null);
+  const onSubmit = async (values: AuthFormSchema) => {
+    setIsSubmitting(true)
     try {
-      if (type === "signin") {
-        await signIn(data.email, data.password);
-        router.push("/dashboard");
+      if (mode === "login") {
+        await signIn(values.email, values.password)
+        toast({
+          title: "Signed in successfully!",
+          description: "Welcome back to Archon.",
+        })
+        router.push("/dashboard")
       } else {
-        await signUp(data.email, data.password);
-        router.push(
-          "/auth/auth-code-error?message=Check your email for a confirmation link to activate your account.",
-        );
+        await signUp(values.email, values.password)
+        toast({
+          title: "Sign up successful!",
+          description: "Please check your email to confirm your account.",
+        })
+        // Optionally redirect to a confirmation page or login page
+        router.push("/auth/signin")
       }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred.",
-      );
+    } catch (error: any) {
+      toast({
+        title: "Authentication Failed",
+        description: error.message || "An unexpected error occurred.",
+        variant: "destructive",
+      })
+      console.error("Authentication error:", error)
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
-    <FormProvider {...form}>
-      <form
-        onSubmit={(e) => {
-          void form.handleSubmit(onSubmit)(e);
-        }}
-        className="space-y-4"
-      >
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  placeholder="m@example.com"
-                  disabled={isLoading}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" disabled={isLoading} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        <SubmitButton
-          type="submit"
-          className="w-full bg-slate-900 hover:bg-slate-800"
-          disabled={isLoading}
-          pendingText={type === "signin" ? "Signing In..." : "Signing Up..."}
-        >
-          {type === "signin" ? "Sign In" : "Sign Up"}
-        </SubmitButton>
-      </form>
-    </FormProvider>
-  );
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle className="text-2xl">{mode === "login" ? "Login" : "Sign Up"}</CardTitle>
+        <CardDescription>
+          {mode === "login"
+            ? "Enter your email below to login to your account."
+            : "Enter your email and password to create an account."}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input id="email" type="email" placeholder="m@example.com" required {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input id="password" type="password" required {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {mode === "signup" && (
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input id="confirmPassword" type="password" required {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting
+                ? mode === "login"
+                  ? "Logging in..."
+                  : "Signing up..."
+                : mode === "login"
+                  ? "Login"
+                  : "Sign Up"}
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  )
 }
 
-interface SubmitButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  pendingText: string;
-}
-
-export function SubmitButton({
-  children,
-  pendingText,
-  ...props
-}: SubmitButtonProps) {
-  const { pending } = useFormStatus();
-
-  return (
-    <Button {...props} type="submit" disabled={pending || props.disabled}>
-      {pending ? (
-        <span className="flex items-center gap-2">
-          <Spinner size="sm" /> {pendingText}
-        </span>
-      ) : (
-        children
-      )}
-    </Button>
-  );
-}
+export { AuthForm } // Named export
+export default AuthForm // Default export
