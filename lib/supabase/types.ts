@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      tasks: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          completed: boolean;
+          created_at: string;
+          updated_at: string;
+          due_date: string | null;
+          priority: "low" | "medium" | "high";
+          tags: string[];
+          category: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          title: string;
+          completed?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          due_date?: string | null;
+          priority?: "low" | "medium" | "high";
+          tags?: string[];
+          category?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          completed?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          due_date?: string | null;
+          priority?: "low" | "medium" | "high";
+          tags?: string[];
+          category?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tasks_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       goals: {
         Row: {
           attachments: string[] | null;
@@ -123,41 +170,7 @@ export type Database = {
           },
         ];
       };
-      tasks: {
-        Row: {
-          completed: boolean;
-          created_at: string;
-          id: string;
-          title: string;
-          updated_at: string;
-          user_id: string;
-        };
-        Insert: {
-          completed?: boolean;
-          created_at?: string;
-          id?: string;
-          title: string;
-          updated_at?: string;
-          user_id?: string;
-        };
-        Update: {
-          completed?: boolean;
-          created_at?: string;
-          id?: string;
-          title?: string;
-          updated_at?: string;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "tasks_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
+
       journal_templates: {
         Row: {
           id: string;

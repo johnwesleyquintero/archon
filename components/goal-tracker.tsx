@@ -159,10 +159,10 @@ export function GoalTracker() {
           ))
         ) : (
           <EmptyState
-            message="No goals set yet"
+            title="No goals set yet"
             description="Create your first strategic goal to get started."
-            buttonText="Add New Goal"
-            onButtonClick={handleAddGoal}
+            actionLabel="Add New Goal"
+            onAction={handleAddGoal}
           />
         )}
 

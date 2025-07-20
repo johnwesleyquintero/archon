@@ -31,7 +31,15 @@ export async function getTasks(): Promise<Task[]> {
   return data;
 }
 
-export async function addTask(title: string): Promise<Task | null> {
+export type CreateTaskInput = {
+  title: string;
+  dueDate?: string | null;
+  priority?: "low" | "medium" | "high";
+  category?: string | null;
+  tags?: string[];
+};
+
+export async function addTask(input: CreateTaskInput): Promise<Task | null> {
   const supabase = await getSupabaseServerClient();
   const user = await getUser();
 
@@ -41,7 +49,14 @@ export async function addTask(title: string): Promise<Task | null> {
 
   const { data, error } = await supabase
     .from("tasks")
-    .insert({ title, user_id: user.id })
+    .insert({
+      title: input.title,
+      user_id: user.id,
+      due_date: input.dueDate,
+      priority: input.priority || "medium",
+      category: input.category,
+      tags: input.tags || [],
+    })
     .select()
     .single();
 

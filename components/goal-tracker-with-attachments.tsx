@@ -227,10 +227,10 @@ export function GoalTrackerWithAttachments() {
         <CardContent className="space-y-4">
           {goals.length === 0 ? (
             <EmptyState
-              message="No Goals Yet"
+              title="No Goals Yet"
               description="Start by creating your first goal to track your progress."
-              buttonText="Create New Goal"
-              onButtonClick={handleAddGoal}
+              actionLabel="Create New Goal"
+              onAction={handleAddGoal}
             />
           ) : (
             goals.map((goal) => (

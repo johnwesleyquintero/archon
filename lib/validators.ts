@@ -7,12 +7,33 @@ export const authSchema = z.object({
     .min(6, { message: "Password must be at least 6 characters." }),
 });
 
-export const taskSchema = z.object({
-  title: z
-    .string()
-    .min(1, { message: "Task title cannot be empty." })
-    .max(255, { message: "Task title is too long." }),
-});
+export const taskPriorityEnum = z.enum(["low", "medium", "high"]);
+
+export const taskSchema = z
+  .object({
+    title: z
+      .string()
+      .min(1, { message: "Task title cannot be empty." })
+      .max(255, { message: "Task title is too long." }),
+    dueDate: z
+      .string()
+      .datetime({ message: "Invalid due date." })
+      .optional()
+      .nullable(),
+    priority: taskPriorityEnum,
+    category: z
+      .string()
+      .max(50, { message: "Category name is too long." })
+      .optional()
+      .nullable(),
+    tags: z.array(z.string().max(30, { message: "Tag is too long." })),
+  })
+  .required({
+    title: true,
+    priority: true,
+    tags: true,
+  })
+  .strict();
 
 export const profileSchema = z.object({
   fullName: z

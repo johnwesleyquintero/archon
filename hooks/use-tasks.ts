@@ -6,6 +6,7 @@ import {
   addTask,
   toggleTask,
   deleteTask,
+  CreateTaskInput,
 } from "@/lib/database/tasks";
 import type { Database } from "@/lib/supabase/types";
 import { useAuth } from "@/contexts/auth-context";
@@ -29,6 +30,7 @@ export function useTasks() {
     setError(null);
     try {
       const fetchedTasks = await getTasks();
+      console.log("Fetched tasks data:", fetchedTasks); // Debug log
       setTasks(fetchedTasks);
     } catch (err) {
       console.error("Failed to fetch tasks:", err);
@@ -43,7 +45,7 @@ export function useTasks() {
   }, [fetchTasks]);
 
   const handleAddTask = useCallback(
-    async (title: string) => {
+    async (input: CreateTaskInput) => {
       if (!user) {
         setError("You must be logged in to add tasks.");
         return;
@@ -55,15 +57,19 @@ export function useTasks() {
           const tempId = `temp-${Date.now()}`;
           const newTask: Task = {
             id: tempId,
-            title,
+            title: input.title,
             completed: false,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            user_id: user.id, // Use actual user ID for optimistic update
+            user_id: user.id,
+            due_date: input.dueDate || null,
+            priority: input.priority || "medium",
+            category: input.category || null,
+            tags: input.tags || [],
           };
           setTasks((prev) => [newTask, ...prev]);
 
-          const addedTask = await addTask(title);
+          const addedTask = await addTask(input);
           if (addedTask) {
             setTasks((prev) =>
               prev.map((task) => (task.id === tempId ? addedTask : task)),

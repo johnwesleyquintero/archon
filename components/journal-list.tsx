@@ -61,10 +61,10 @@ export function JournalList({
       <ScrollArea className="flex-1 py-2">
         {entries.length === 0 ? (
           <EmptyState
-            message="No Journal Entries Yet"
+            title="No Journal Entries Yet"
             description="Click 'New Entry' to record your thoughts."
-            buttonText="Create New Entry"
-            onButtonClick={onCreateEntry}
+            actionLabel="Create New Entry"
+            onAction={onCreateEntry}
           />
         ) : (
           <nav className="grid gap-1 p-2">

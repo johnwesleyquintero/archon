@@ -1,27 +1,21 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import { TaskItem } from "./task-item";
 import { TaskFilterBar } from "./task-filter-bar";
+import { TaskSort } from "./task-sort";
 import { EmptyState } from "./empty-state";
 import { useTasks } from "@/hooks/use-tasks";
+import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
 import { Skeleton } from "@/components/ui/skeleton";
+
 interface TaskListProps {
-  onAddTaskClick: () => void; // Callback for "Add New Task" button
+  onAddTaskClick: () => void;
 }
 
 export function TaskList({ onAddTaskClick }: TaskListProps) {
   const { tasks, loading, toggleTask, deleteTask, isMutating } = useTasks();
-  const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
-
-  const filteredTasks = useMemo(() => {
-    if (filter === "active") {
-      return tasks.filter((task) => !task.completed);
-    } else if (filter === "completed") {
-      return tasks.filter((task) => task.completed);
-    }
-    return tasks;
-  }, [tasks, filter]);
+  const { filteredAndSortedTasks, sort, setSort, filters, setFilters } =
+    useTaskFiltersAndSort(tasks);
 
   if (loading) {
     return (
@@ -38,34 +32,53 @@ export function TaskList({ onAddTaskClick }: TaskListProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <TaskFilterBar currentFilter={filter} onFilterChange={setFilter} />
+      <div className="flex flex-col gap-2 p-2 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between">
+          <TaskFilterBar
+            currentFilter={filters.status}
+            onFilterChange={(status) => setFilters({ ...filters, status })}
+            priorityFilter={filters.priority}
+            onPriorityFilterChange={(priority) =>
+              setFilters({ ...filters, priority })
+            }
+            dueDateFilter={filters.dueDate}
+            onDueDateFilterChange={(dueDate) =>
+              setFilters({ ...filters, dueDate })
+            }
+          />
+          <TaskSort sort={sort} onSortChange={setSort} />
+        </div>
+      </div>
+
       <div className="flex-1 overflow-auto py-2">
-        {filteredTasks.length === 0 ? (
+        {tasks.length === 0 ? (
           <EmptyState
-            message={
-              filter === "all"
-                ? "No tasks yet!"
-                : filter === "active"
-                  ? "No active tasks."
-                  : "No completed tasks."
+            title="No tasks yet"
+            description="Add your first task to get started"
+            actionLabel="Add New Task"
+            onAction={onAddTaskClick}
+          />
+        ) : filteredAndSortedTasks.length === 0 ? (
+          <EmptyState
+            title="No matching tasks"
+            description="No tasks match your current filters"
+            actionLabel="Clear Filters"
+            onAction={() =>
+              setFilters({
+                status: "all",
+                priority: "all",
+                dueDate: "all",
+                category: null,
+                tags: [],
+              })
             }
-            description={
-              filter === "all"
-                ? "Start by adding a new task below."
-                : "Try changing your filter or adding new tasks."
-            }
-            buttonText={filter === "all" ? "Add New Task" : undefined}
-            onButtonClick={filter === "all" ? onAddTaskClick : undefined}
-            buttonDisabled={isMutating}
           />
         ) : (
           <ul className="space-y-1">
-            {filteredTasks.map((task) => (
+            {filteredAndSortedTasks.map((task) => (
               <li key={task.id}>
                 <TaskItem
-                  id={task.id}
-                  title={task.title}
-                  completed={task.completed}
+                  {...task}
                   onToggle={toggleTask}
                   onDelete={deleteTask}
                   disabled={isMutating}
