@@ -106,7 +106,7 @@ export function DashboardHeader({ onToggleSidebar }: DashboardHeaderProps) {
             <Button
               variant="ghost"
               className="flex items-center gap-4 px-2.5 text-slate-600 hover:text-slate-900 justify-start"
-              onClick={handleSignOut}
+              onClick={void handleSignOut}
               disabled={isSigningOut}
             >
               <LogOut className="h-5 w-5" />
@@ -168,7 +168,10 @@ export function DashboardHeader({ onToggleSidebar }: DashboardHeaderProps) {
           </DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut} disabled={isSigningOut}>
+          <DropdownMenuItem
+            onClick={void handleSignOut}
+            disabled={isSigningOut}
+          >
             {isSigningOut ? "Signing out..." : "Logout"}
           </DropdownMenuItem>
         </DropdownMenuContent>

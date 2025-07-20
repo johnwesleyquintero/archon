@@ -67,9 +67,9 @@ export function FileUpload({
         typeof err === "object" &&
         err !== null &&
         "message" in err &&
-        typeof (err as any).message === "string"
+        typeof (err as { message: unknown }).message === "string"
       ) {
-        errorMessageText = (err as any).message;
+        errorMessageText = (err as { message: string }).message;
       }
       setErrorMessage(errorMessageText);
     }
@@ -90,7 +90,7 @@ export function FileUpload({
           disabled={uploadStatus === "uploading" || disabled}
         />
         <Button
-          onClick={handleUpload}
+          onClick={void handleUpload}
           disabled={!file || uploadStatus === "uploading" || disabled}
           className="shrink-0 bg-slate-900 hover:bg-slate-800"
         >

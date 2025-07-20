@@ -1,9 +1,33 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Users, CreditCard, Activity } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function StatsGrid() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Simulate 2 seconds loading time
+    return () => clearTimeout(timer);
+  }, []);
+
+  const renderCardContent = (value: string, percentage: string) => (
+    <>
+      <div className="text-2xl font-bold">{value}</div>
+      <p className="text-xs text-slate-500">{percentage}</p>
+    </>
+  );
+
+  const renderSkeletonContent = () => (
+    <div className="space-y-2">
+      <Skeleton className="h-6 w-3/4" />
+      <Skeleton className="h-4 w-1/2" />
+    </div>
+  );
   return (
     <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
       <Card>
@@ -12,8 +36,9 @@ export function StatsGrid() {
           <DollarSign className="h-4 w-4 text-slate-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">$45,231.89</div>
-          <p className="text-xs text-slate-500">+20.1% from last month</p>
+          {isLoading
+            ? renderSkeletonContent()
+            : renderCardContent("$45,231.89", "+20.1% from last month")}
         </CardContent>
       </Card>
       <Card>
@@ -22,8 +47,9 @@ export function StatsGrid() {
           <Users className="h-4 w-4 text-slate-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">+2350</div>
-          <p className="text-xs text-slate-500">+180.1% from last month</p>
+          {isLoading
+            ? renderSkeletonContent()
+            : renderCardContent("+2350", "+180.1% from last month")}
         </CardContent>
       </Card>
       <Card>
@@ -32,8 +58,9 @@ export function StatsGrid() {
           <CreditCard className="h-4 w-4 text-slate-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">+12,234</div>
-          <p className="text-xs text-slate-500">+19% from last month</p>
+          {isLoading
+            ? renderSkeletonContent()
+            : renderCardContent("+12,234", "+19% from last month")}
         </CardContent>
       </Card>
       <Card>
@@ -42,8 +69,9 @@ export function StatsGrid() {
           <Activity className="h-4 w-4 text-slate-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">+573</div>
-          <p className="text-xs text-slate-500">+201 since last hour</p>
+          {isLoading
+            ? renderSkeletonContent()
+            : renderCardContent("+573", "+201 since last hour")}
         </CardContent>
       </Card>
     </div>

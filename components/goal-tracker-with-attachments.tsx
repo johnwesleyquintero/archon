@@ -6,12 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit3, Calendar, Target, Paperclip, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/empty-state";
 import { CreateGoalModal } from "@/components/create-goal-modal";
 import { FileUpload } from "@/components/file-upload";
 import { uploadFile } from "@/lib/blob";
 import { useGoals } from "@/hooks/use-goals";
 import type { z } from "zod";
 import type { goalSchema } from "@/lib/validators";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 
 type Attachment = {
   url: string;
@@ -125,9 +128,9 @@ export function GoalTrackerWithAttachments() {
         typeof err === "object" &&
         err !== null &&
         "message" in err &&
-        typeof (err as any).message === "string"
+        typeof (err as { message: unknown }).message === "string"
       ) {
-        errorToReturn = new Error((err as any).message);
+        errorToReturn = new Error((err as { message: string }).message);
       } else {
         errorToReturn = new Error("An unknown error occurred.");
       }
@@ -147,8 +150,42 @@ export function GoalTrackerWithAttachments() {
 
   if (isLoading) {
     return (
-      <Card className="w-full p-6 flex items-center justify-center">
-        <p className="text-slate-500">Loading goals...</p>
+      <Card className="w-full">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+            <Target className="h-5 w-5 text-slate-600" />
+            My Strategic Goals
+          </CardTitle>
+          <Button
+            onClick={handleAddGoal}
+            size="sm"
+            className="bg-slate-900 hover:bg-slate-800 text-white"
+            disabled={true} // Disable while loading
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add New Goal
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Card key={index} className="border border-slate-200">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-3">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </CardContent>
       </Card>
     );
   }
@@ -179,19 +216,22 @@ export function GoalTrackerWithAttachments() {
             className="bg-slate-900 hover:bg-slate-800 text-white"
             disabled={isMutating}
           >
-            <Plus className="h-4 w-4 mr-1" />
+            {isMutating ? (
+              <Spinner size="sm" className="mr-1" />
+            ) : (
+              <Plus className="h-4 w-4 mr-1" />
+            )}
             Add New Goal
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           {goals.length === 0 ? (
-            <div className="text-center py-12 text-slate-500">
-              <Target className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-              <p className="text-sm font-medium">No goals set yet</p>
-              <p className="text-xs mt-1">
-                Create your first strategic goal to get started
-              </p>
-            </div>
+            <EmptyState
+              message="No Goals Yet"
+              description="Start by creating your first goal to track your progress."
+              buttonText="Create New Goal"
+              onButtonClick={handleAddGoal}
+            />
           ) : (
             goals.map((goal) => (
               <Card
@@ -306,7 +346,7 @@ export function GoalTrackerWithAttachments() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDeleteGoal(goal.id)}
+                        onClick={() => void handleDeleteGoal(goal.id)}
                         className="h-8 w-8 p-0 text-red-400 hover:text-red-600 hover:bg-red-100 shrink-0"
                         disabled={isMutating}
                       >

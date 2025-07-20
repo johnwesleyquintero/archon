@@ -1,7 +1,7 @@
 import { getSupabaseServerClient } from "../supabase/server";
 import type { Database } from "../supabase/types";
 
-type ProfilesRow = Database["public"]["Tables"]["profiles"]["Row"];
+export type ProfilesRow = Database["public"]["Tables"]["profiles"]["Row"];
 type ProfilesUpdate = Database["public"]["Tables"]["profiles"]["Update"];
 
 /* ──────────────────────────────────────────────────────────
@@ -21,10 +21,17 @@ export async function getProfile(id: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    console.error("Error fetching profile:", error); // Log the actual error
+    console.error(
+      "Error fetching profile:",
+      error.message,
+      error.code,
+      error.details,
+      error.hint,
+    ); // Log the actual error details
     throw error;
   }
-  return data;
+  // Ensure the returned data is a plain object for serialization by stringifying and parsing
+  return JSON.parse(JSON.stringify(data)) as ProfilesRow;
 }
 
 /* ──────────────────────────────────────────────────────────

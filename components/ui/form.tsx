@@ -7,12 +7,23 @@ import {
   type FieldPath,
   type FieldValues,
   useFormContext,
+  FormProvider,
 } from "react-hook-form";
 
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 
-const Form = useFormContext;
+const Form = <
+  TFieldValues extends FieldValues = FieldValues,
+  TContext = object,
+  TTransformedValues = TFieldValues,
+>(
+  props: React.ComponentProps<
+    typeof FormProvider<TFieldValues, TContext, TTransformedValues>
+  >,
+) => {
+  return <FormProvider {...props} />;
+};
 
 type FormFieldContext<
   TFieldValues extends FieldValues = FieldValues,
@@ -173,4 +184,5 @@ export {
   FormDescription,
   FormMessage,
   FormField,
+  FormProvider, // Added FormProvider to exports
 };

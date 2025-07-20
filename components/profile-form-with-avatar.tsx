@@ -3,8 +3,15 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Card,
   CardContent,
@@ -37,6 +44,7 @@ export function ProfileFormWithAvatar() {
       username: "",
       avatar: "",
     },
+    mode: "onBlur", // Enable real-time validation on blur
   });
 
   useEffect(() => {
@@ -79,10 +87,10 @@ export function ProfileFormWithAvatar() {
         typeof err === "object" &&
         err !== null &&
         "message" in err &&
-        typeof (err as any).message === "string"
+        typeof (err as { message: unknown }).message === "string"
       ) {
-        errorMessageText = (err as any).message;
-        errorToReturn = new Error((err as any).message);
+        errorMessageText = (err as { message: string }).message;
+        errorToReturn = new Error((err as { message: string }).message);
       } else {
         errorToReturn = new Error("An unknown error occurred.");
       }
@@ -111,9 +119,9 @@ export function ProfileFormWithAvatar() {
         typeof err === "object" &&
         err !== null &&
         "message" in err &&
-        typeof (err as any).message === "string"
+        typeof (err as { message: unknown }).message === "string"
       ) {
-        errorMessageText = (err as any).message;
+        errorMessageText = (err as { message: string }).message;
       }
       setSaveError(errorMessageText);
     } finally {
@@ -158,7 +166,7 @@ export function ProfileFormWithAvatar() {
         <CardDescription>Manage your public profile.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={void form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="flex items-center gap-6">
             <Avatar className="h-24 w-24">
               <AvatarImage
@@ -183,35 +191,37 @@ export function ProfileFormWithAvatar() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input
-              id="fullName"
-              {...form.register("fullName")}
-              placeholder="John Doe"
-              disabled={isSaving}
-            />
-            {form.formState.errors.fullName && (
-              <p className="text-sm text-red-500">
-                {form.formState.errors.fullName.message}
-              </p>
+          <FormField
+            control={form.control}
+            name="fullName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Full Name</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="John Doe"
+                    disabled={isSaving}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              {...form.register("username")}
-              placeholder="johndoe"
-              disabled={isSaving}
-            />
-            {form.formState.errors.username && (
-              <p className="text-sm text-red-500">
-                {form.formState.errors.username.message}
-              </p>
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Username</FormLabel>
+                <FormControl>
+                  <Input placeholder="johndoe" disabled={isSaving} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
+          />
 
           {saveError && <p className="text-sm text-red-500">{saveError}</p>}
           {saveSuccess && (

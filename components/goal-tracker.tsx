@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Edit3, Calendar, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ErrorState } from "@/components/error-state";
 import { EmptyState } from "@/components/empty-state";
 import { getGoals } from "@/lib/database/goals"; // Import the Server Action
 import type { Database } from "@/lib/supabase/types";
@@ -32,27 +31,16 @@ const statusConfig = {
 export function GoalTracker() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const fetchGoals = async () => {
     setIsLoading(true);
-    setError(null);
     try {
       const goals = await getGoals();
       setGoals(goals || []);
-    } catch (err: unknown) {
-      let errorMessageText = "Failed to load goals.";
-      if (err instanceof Error) {
-        errorMessageText = err.message;
-      } else if (
-        typeof err === "object" &&
-        err !== null &&
-        "message" in err &&
-        typeof (err as any).message === "string"
-      ) {
-        errorMessageText = (err as any).message;
-      }
-      setError(errorMessageText);
+    } catch (err) {
+      // If an error occurs, we simply log it and continue with an empty list.
+      // The global error boundary will catch and display more detailed errors.
+      console.error("Error fetching goals:", err);
       setGoals([]);
     } finally {
       setIsLoading(false);
@@ -60,7 +48,7 @@ export function GoalTracker() {
   };
 
   useEffect(() => {
-    fetchGoals();
+    void fetchGoals();
   }, []);
 
   const handleEditGoal = (goalId: string) => {
@@ -87,22 +75,6 @@ export function GoalTracker() {
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-32 w-full" />
           ))}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <Target className="h-5 w-5 text-slate-600" />
-            My Strategic Goals
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ErrorState message={error} />
         </CardContent>
       </Card>
     );

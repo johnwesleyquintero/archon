@@ -79,7 +79,7 @@ Based on this information, what is the most probable cause of this error? Please
 
   private handleCopyPrompt = () => {
     const prompt = this.generateAIPrompt();
-    navigator.clipboard.writeText(prompt);
+    void navigator.clipboard.writeText(prompt);
     this.setState({ isPromptCopied: true });
     setTimeout(() => this.setState({ isPromptCopied: false }), 2000); // Reset after 2s
   };

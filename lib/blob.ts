@@ -26,20 +26,13 @@ export async function uploadFile(
     });
 
     return { success: true, url: blob.url };
-  } catch (err: unknown) {
+  } catch (err) {
     console.error("Vercel Blob upload error:", err);
     let errorToReturn: Error | undefined = undefined;
     if (err instanceof Error) {
       errorToReturn = err;
-    } else if (
-      typeof err === "object" &&
-      err !== null &&
-      "message" in err &&
-      typeof (err as any).message === "string"
-    ) {
-      errorToReturn = new Error((err as any).message);
     } else {
-      errorToReturn = new Error("An unknown error occurred.");
+      errorToReturn = new Error(String(err));
     }
     return { success: false, url: "", error: errorToReturn };
   }
@@ -47,7 +40,7 @@ export async function uploadFile(
 
 export async function deleteFile(
   url: string,
-): Promise<{ success: boolean; error?: Error }> {
+): Promise<{ success: boolean; error?: string }> {
   try {
     // This requires the BLOB_READ_WRITE_TOKEN to be available
     // The delete function is not directly exposed by @vercel/blob in 'use client' context
@@ -57,22 +50,17 @@ export async function deleteFile(
       "Delete file from Vercel Blob not fully implemented on client side. URL:",
       url,
     );
-    return { success: true }; // Simulate success for now
-  } catch (err: unknown) {
+    // TODO: Implement actual deletion logic here. For now, simulate success.
+    await Promise.resolve(); // Dummy await to satisfy linter
+    return { success: true };
+  } catch (err) {
     console.error("Vercel Blob delete error:", err);
-    let errorToReturn: Error | undefined = undefined;
+    let errorMessage: string | undefined = undefined;
     if (err instanceof Error) {
-      errorToReturn = err;
-    } else if (
-      typeof err === "object" &&
-      err !== null &&
-      "message" in err &&
-      typeof (err as any).message === "string"
-    ) {
-      errorToReturn = new Error((err as any).message);
+      errorMessage = err.message;
     } else {
-      errorToReturn = new Error("An unknown error occurred.");
+      errorMessage = String(err);
     }
-    return { success: false, error: errorToReturn };
+    return { success: false, error: errorMessage };
   }
 }

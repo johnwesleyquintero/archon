@@ -1,9 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Modal } from "@/components/ui/modal";
 import { useForm } from "react-hook-form";
@@ -23,7 +30,7 @@ import { cn } from "@/lib/utils";
 interface CreateGoalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (goalData: z.infer<typeof goalSchema>) => void;
+  onSave: (goalData: z.infer<typeof goalSchema>) => Promise<void>;
   isSaving: boolean;
 }
 
@@ -44,6 +51,7 @@ export function CreateGoalModal({
       status: "pending",
       attachments: [],
     },
+    mode: "onBlur", // Enable real-time validation on blur
   });
 
   useEffect(() => {
@@ -52,8 +60,8 @@ export function CreateGoalModal({
     }
   }, [isOpen, form]);
 
-  const handleSave = form.handleSubmit((data) => {
-    onSave(data);
+  const handleSave = form.handleSubmit(async (data) => {
+    await onSave(data);
   });
 
   const handleCancel = () => {
@@ -72,7 +80,7 @@ export function CreateGoalModal({
             Cancel
           </Button>
           <Button
-            onClick={handleSave}
+            onClick={() => void handleSave()}
             disabled={!form.formState.isValid || isSaving}
             className="bg-slate-900 hover:bg-slate-800"
           >
@@ -81,93 +89,98 @@ export function CreateGoalModal({
         </div>
       }
     >
-      <form onSubmit={handleSave} className="space-y-4">
-        <div className="space-y-2">
-          <Label
-            htmlFor="goal-title"
-            className="text-sm font-medium text-slate-700"
-          >
-            Goal Title <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="goal-title"
-            {...form.register("title")}
-            placeholder="Enter your goal title"
-            className="h-10"
-            disabled={isSaving}
-            autoFocus
+      <Form {...form}>
+        <form onSubmit={void handleSave} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Goal Title <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter your goal title"
+                    className="h-10"
+                    disabled={isSaving}
+                    autoFocus
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {form.formState.errors.title && (
-            <p className="text-sm text-red-500">
-              {form.formState.errors.title.message}
-            </p>
-          )}
-        </div>
 
-        <div className="space-y-2">
-          <Label
-            htmlFor="goal-description"
-            className="text-sm font-medium text-slate-700"
-          >
-            Description
-          </Label>
-          <Textarea
-            id="goal-description"
-            {...form.register("description")}
-            placeholder="Describe your goal in detail..."
-            className="min-h-[100px] resize-none"
-            disabled={isSaving}
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Describe your goal in detail..."
+                    className="min-h-[100px] resize-none"
+                    disabled={isSaving}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+                <p className="text-xs text-slate-500">
+                  Optional: Add more details about your goal and how you plan to
+                  achieve it.
+                </p>
+              </FormItem>
+            )}
           />
-          <p className="text-xs text-slate-500">
-            Optional: Add more details about your goal and how you plan to
-            achieve it.
-          </p>
-        </div>
 
-        <div className="space-y-2">
-          <Label
-            htmlFor="goal-target-date"
-            className="text-sm font-medium text-slate-700"
-          >
-            Target Date
-          </Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !form.watch("target_date") && "text-muted-foreground",
-                )}
-                disabled={isSaving}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {form.watch("target_date") ? (
-                  format(new Date(form.watch("target_date")!), "PPP")
-                ) : (
-                  <span>Pick a date</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={
-                  form.watch("target_date")
-                    ? new Date(form.watch("target_date")!)
-                    : undefined
-                }
-                onSelect={(date) =>
-                  form.setValue("target_date", date?.toISOString(), {
-                    shouldValidate: true,
-                  })
-                }
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      </form>
+          <FormField
+            control={form.control}
+            name="target_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Target Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !field.value && "text-muted-foreground",
+                        )}
+                        disabled={isSaving}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {field.value ? (
+                          format(new Date(field.value), "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(date) =>
+                        field.onChange(date?.toISOString(), {
+                          shouldValidate: true,
+                        })
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </form>
+      </Form>
     </Modal>
   );
 }

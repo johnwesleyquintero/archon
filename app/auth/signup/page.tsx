@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { AuthForm } from "@/components/auth/auth-form";
 import Link from "next/link";
-import { ArchonLogoSVG } from "@/components/archon-logo-svg";
+import Logo from "@/components/logo";
 
 export default function SignUpPage() {
   return (
@@ -15,7 +15,7 @@ export default function SignUpPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <ArchonLogoSVG className="h-12 w-12 text-slate-900" />
+            <Logo className="h-12 w-12 text-slate-900" />
           </div>
           <CardTitle className="text-2xl">Sign Up</CardTitle>
           <CardDescription>Create an account to get started.</CardDescription>

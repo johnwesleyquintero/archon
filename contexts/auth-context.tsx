@@ -19,8 +19,16 @@ import {
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
+// Define a serializable subset of the User object
+export interface SerializableUser {
+  id: string;
+  email?: string; // Make email optional to match Supabase User type
+  created_at?: string; // Add created_at property
+  // Add other serializable properties if needed by client components
+}
+
 interface AuthContextType {
-  user: User | null;
+  user: SerializableUser | null; // Use SerializableUser type
   profile: Profile | null;
   isLoading: boolean;
   error: Error | null;
@@ -39,10 +47,10 @@ export function AuthProvider({
   initialProfile, // Accept initialProfile prop
 }: {
   children: React.ReactNode;
-  initialUser: User | null; // Define type for initialUser
+  initialUser: SerializableUser | null; // Define type for initialUser
   initialProfile: Profile | null; // Define type for initialProfile
 }) {
-  const [user, setUser] = useState<User | null>(initialUser); // Initialize user with initialUser
+  const [user, setUser] = useState<SerializableUser | null>(initialUser); // Initialize user with initialUser
   const [profile, setProfile] = useState<Profile | null>(initialProfile); // Initialize profile with initialProfile
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -72,7 +80,7 @@ export function AuthProvider({
       setIsLoading(true);
       setError(null);
       try {
-        let currentUser = initialUser;
+        let currentUser: SerializableUser | null = initialUser;
 
         // If no initial user, try to get it from Supabase client
         if (!currentUser) {
@@ -84,7 +92,14 @@ export function AuthProvider({
           if (sessionError) {
             throw sessionError;
           }
-          currentUser = sessionUser;
+          // Convert Supabase User object to SerializableUser
+          currentUser = sessionUser
+            ? {
+                id: sessionUser.id,
+                email: sessionUser.email,
+                created_at: sessionUser.created_at,
+              }
+            : null;
         }
 
         if (isMounted) {
@@ -123,10 +138,18 @@ export function AuthProvider({
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event: AuthChangeEvent, session: Session | null) => {
-        console.log("Auth state changed:", event, session);
         if (isMounted) {
           if (event === "SIGNED_IN" || event === "USER_UPDATED") {
-            setUser(session?.user || null);
+            // Ensure the user object is a plain object before setting state
+            console.log("Original Supabase User object:", session?.user);
+            const serializableUser = session?.user
+              ? {
+                  id: session.user.id,
+                  email: session.user.email,
+                  created_at: session.user.created_at,
+                }
+              : null;
+            setUser(serializableUser);
             if (session?.user) {
               fetchProfile(session.user.id);
             }

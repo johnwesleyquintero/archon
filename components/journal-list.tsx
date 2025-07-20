@@ -5,6 +5,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/lib/supabase/types";
+import { Spinner } from "@/components/ui/spinner";
+import { EmptyState } from "@/components/empty-state";
 
 type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
 
@@ -46,7 +48,11 @@ export function JournalList({
             className="w-full bg-slate-900 hover:bg-slate-800 text-white"
             disabled={isMutating}
           >
-            <Plus className="h-4 w-4 mr-2" />
+            {isMutating ? (
+              <Spinner size="sm" className="mr-2" />
+            ) : (
+              <Plus className="h-4 w-4 mr-2" />
+            )}
             New Entry
           </Button>
         </div>
@@ -54,9 +60,12 @@ export function JournalList({
 
       <ScrollArea className="flex-1 py-2">
         {entries.length === 0 ? (
-          <div className="p-4 text-center text-slate-500 text-sm">
-            No entries yet. Create one!
-          </div>
+          <EmptyState
+            message="No Journal Entries Yet"
+            description="Click 'New Entry' to record your thoughts."
+            buttonText="Create New Entry"
+            onButtonClick={onCreateEntry}
+          />
         ) : (
           <nav className="grid gap-1 p-2">
             {entries.map((entry) => (
@@ -88,7 +97,11 @@ export function JournalList({
                   className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-100 ml-2"
                   disabled={isMutating}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  {isMutating ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             ))}

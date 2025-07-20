@@ -1,6 +1,3 @@
-// This file is not used in the current project structure.
-// It was likely a placeholder or part of a different design.
-// Keeping it here for completeness but it can be removed if not needed.
 "use client";
 
 import * as React from "react";

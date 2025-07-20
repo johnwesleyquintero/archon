@@ -1,8 +1,18 @@
 "use server";
 
+// Load environment variables from .env file
+import "dotenv/config";
+
 import { createServerClient as createServerClientSSR } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "./types";
+
+// Log environment variables to debug loading issues
+console.log("NEXT_PUBLIC_SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+console.log(
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY:",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+);
 
 type CookieOptions = {
   domain?: string;

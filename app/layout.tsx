@@ -5,9 +5,12 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
-import { ErrorBoundary } from "@/components/error-boundary";
+import { ErrorBoundary } from "@/app/error-boundary";
+import { Toaster } from "@/components/ui/toaster";
 import { getUser } from "@/lib/supabase/auth"; // Import getUser
 import { getProfile } from "@/lib/database/profiles"; // Import getProfile
+import type { ProfilesRow } from "@/lib/database/profiles"; // Import ProfilesRow type
+import type { SerializableUser } from "@/contexts/auth-context"; // Import SerializableUser type
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -29,20 +32,16 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let initialUser = null;
-  let initialProfile = null;
+  let initialUser: SerializableUser | null = null;
+  let initialProfile: ProfilesRow | null = null;
 
-  try {
-    initialUser = await getUser(); // Fetch initial user on the server
-    if (initialUser) {
-      initialProfile = await getProfile(initialUser.id); // Fetch initial profile on the server
-    }
-  } catch (error) {
-    console.error(
-      "Error fetching initial user or profile in RootLayout:",
-      error,
-    );
-    // Optionally, you could set a flag or pass an error state to AuthProvider
+  const fetchedUser = await getUser(); // Fetch initial user on the server
+  // Only pass serializable parts of the user object
+  initialUser = fetchedUser
+    ? { id: fetchedUser.id, email: fetchedUser.email ?? undefined }
+    : null;
+  if (initialUser) {
+    initialProfile = await getProfile(initialUser.id); // Fetch initial profile on the server
   }
 
   return (
@@ -68,6 +67,7 @@ export default async function RootLayout({
               {children}
             </AuthProvider>
           </ErrorBoundary>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

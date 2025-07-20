@@ -37,7 +37,12 @@ export default function DebugPage() {
           <p>
             <strong>Auth Error:</strong> {error ? error.message : "None"}
           </p>
-          <Button onClick={handleRefetchProfile} disabled={isRefetching}>
+          <Button
+            onClick={() => {
+              void handleRefetchProfile();
+            }}
+            disabled={isRefetching}
+          >
             {isRefetching ? <Spinner size="sm" /> : "Refetch Profile"}
           </Button>
         </CardContent>

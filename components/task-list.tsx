@@ -3,17 +3,15 @@
 import { useState, useMemo } from "react";
 import { TaskItem } from "./task-item";
 import { TaskFilterBar } from "./task-filter-bar";
-import { LoadingSkeleton } from "./loading-skeleton";
 import { EmptyState } from "./empty-state";
-import { ErrorState } from "./error-state";
 import { useTasks } from "@/hooks/use-tasks";
+import { Skeleton } from "@/components/ui/skeleton";
 interface TaskListProps {
   onAddTaskClick: () => void; // Callback for "Add New Task" button
 }
 
 export function TaskList({ onAddTaskClick }: TaskListProps) {
-  const { tasks, loading, error, toggleTask, deleteTask, isMutating } =
-    useTasks();
+  const { tasks, loading, toggleTask, deleteTask, isMutating } = useTasks();
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
 
   const filteredTasks = useMemo(() => {
@@ -26,15 +24,15 @@ export function TaskList({ onAddTaskClick }: TaskListProps) {
   }, [tasks, filter]);
 
   if (loading) {
-    return <LoadingSkeleton />;
-  }
-
-  if (error) {
     return (
-      <ErrorState
-        message={error}
-        description="Please try refreshing the page."
-      />
+      <div className="flex flex-col h-full py-2 space-y-2">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="flex items-center space-x-2">
+            <Skeleton className="h-5 w-5 rounded-full" />
+            <Skeleton className="h-5 w-3/4" />
+          </div>
+        ))}
+      </div>
     );
   }
 

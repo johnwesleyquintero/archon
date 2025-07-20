@@ -55,9 +55,9 @@ export function ProfileForm() {
         typeof err === "object" &&
         err !== null &&
         "message" in err &&
-        typeof (err as any).message === "string"
+        typeof (err as { message: unknown }).message === "string"
       ) {
-        errorMessageText = (err as any).message;
+        errorMessageText = (err as { message: string }).message;
       }
       setSaveError(errorMessageText);
     } finally {
@@ -102,7 +102,7 @@ export function ProfileForm() {
         <CardDescription>Manage your public profile.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={void handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="fullName">Full Name</Label>
             <Input

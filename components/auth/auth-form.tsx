@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
+import {
+  FormProvider, // Added this import
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useAuth } from "@/contexts/auth-context";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,6 +39,7 @@ export function AuthForm({ type }: AuthFormProps) {
       email: "",
       password: "",
     },
+    mode: "onBlur", // Enable real-time validation on blur
   });
 
   const onSubmit = async (data: AuthFormValues) => {
@@ -56,46 +65,55 @@ export function AuthForm({ type }: AuthFormProps) {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="m@example.com"
-          {...form.register("email")}
-          disabled={isLoading}
-        />
-        {form.formState.errors.email && (
-          <p className="text-sm text-red-500">
-            {form.formState.errors.email.message}
-          </p>
-        )}
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          {...form.register("password")}
-          disabled={isLoading}
-        />
-        {form.formState.errors.password && (
-          <p className="text-sm text-red-500">
-            {form.formState.errors.password.message}
-          </p>
-        )}
-      </div>
-      {error && <p className="text-sm text-red-500">{error}</p>}
-      <SubmitButton
-        type="submit"
-        className="w-full bg-slate-900 hover:bg-slate-800"
-        disabled={isLoading}
-        pendingText={type === "signin" ? "Signing In..." : "Signing Up..."}
+    <FormProvider {...form}>
+      <form
+        onSubmit={(e) => {
+          void form.handleSubmit(onSubmit)(e);
+        }}
+        className="space-y-4"
       >
-        {type === "signin" ? "Sign In" : "Sign Up"}
-      </SubmitButton>
-    </form>
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="m@example.com"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input type="password" disabled={isLoading} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        <SubmitButton
+          type="submit"
+          className="w-full bg-slate-900 hover:bg-slate-800"
+          disabled={isLoading}
+          pendingText={type === "signin" ? "Signing In..." : "Signing Up..."}
+        >
+          {type === "signin" ? "Sign In" : "Sign Up"}
+        </SubmitButton>
+      </form>
+    </FormProvider>
   );
 }
 

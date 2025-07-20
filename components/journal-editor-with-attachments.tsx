@@ -6,6 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import {
   Bold,
   Italic,
   List,
@@ -23,6 +29,7 @@ import { journalEntrySchema } from "@/lib/validators";
 import type { z } from "zod";
 import type { Database } from "@/lib/supabase/types";
 import Image from "next/image";
+import { Spinner } from "@/components/ui/spinner";
 
 type Attachment = {
   url: string;
@@ -64,6 +71,7 @@ export function JournalEditorWithAttachments({
       content: "",
       attachments: [],
     },
+    mode: "onBlur", // Enable real-time validation on blur
   });
 
   // Helper function to convert a URL string to an Attachment object
@@ -97,15 +105,16 @@ export function JournalEditorWithAttachments({
     }
   }, [entry, form]);
 
-  const handleContentChange = (newContent: string) => {
-    form.setValue("content", newContent, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-    if (entry) {
-      onUpdateEntry(entry.id, { content: newContent });
-    }
-  };
+  // This function is now integrated into FormField's onChange
+  // const handleContentChange = (newContent: string) => {
+  //   form.setValue("content", newContent, {
+  //     shouldDirty: true,
+  //     shouldValidate: true,
+  //   });
+  //   if (entry) {
+  //     onUpdateEntry(entry.id, { content: newContent });
+  //   }
+  // };
 
   const insertMarkdown = (before: string, after = "") => {
     const textarea = textareaRef.current;
@@ -122,7 +131,13 @@ export function JournalEditorWithAttachments({
       after +
       currentContent.substring(end);
 
-    handleContentChange(newContent);
+    form.setValue("content", newContent, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    if (entry) {
+      onUpdateEntry(entry.id, { content: newContent });
+    }
 
     // Restore cursor position
     setTimeout(() => {
@@ -145,7 +160,13 @@ export function JournalEditorWithAttachments({
       "- " +
       currentContent.substring(lineStart);
 
-    handleContentChange(newContent);
+    form.setValue("content", newContent, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    if (entry) {
+      onUpdateEntry(entry.id, { content: newContent });
+    }
 
     setTimeout(() => {
       textarea.focus();
@@ -262,19 +283,25 @@ export function JournalEditorWithAttachments({
       <div className="p-4 border-b border-slate-200 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <Input
-              {...form.register("title")}
-              placeholder="Entry title..."
-              className="text-lg font-semibold border-0 px-0 shadow-none focus-visible:ring-0 placeholder:text-slate-400"
-              disabled={isMutating}
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      placeholder="Entry title..."
+                      className="text-lg font-semibold border-0 px-0 shadow-none focus-visible:ring-0 placeholder:text-slate-400"
+                      disabled={isMutating}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {form.formState.errors.title && (
-              <p className="text-sm text-red-500">
-                {form.formState.errors.title.message}
-              </p>
-            )}
             <p className="text-xs text-slate-500 mt-1">
-              {formatDate(entry!.created_at)} {/* Use non-null assertion */}
+              {entry && formatDate(entry.created_at)}
             </p>
           </div>
           <Button
@@ -288,7 +315,11 @@ export function JournalEditorWithAttachments({
                 : "bg-slate-100 text-slate-400 cursor-not-allowed",
             )}
           >
-            <Save className="h-4 w-4 mr-1" />
+            {isMutating ? (
+              <Spinner size="sm" className="mr-1" />
+            ) : (
+              <Save className="h-4 w-4 mr-1" />
+            )}
             {isMutating ? "Saving..." : hasUnsavedChanges ? "Save" : "Saved"}
           </Button>
         </div>
@@ -346,7 +377,7 @@ export function JournalEditorWithAttachments({
             <FileUpload
               onUpload={handleFileUpload}
               accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              buttonText="Select File"
+              buttonText={isMutating ? "Uploading..." : "Select File"}
               disabled={isMutating}
             />
           </div>
@@ -413,18 +444,34 @@ export function JournalEditorWithAttachments({
 
       {/* Editor */}
       <div className="flex-1 p-4">
-        <Textarea
-          ref={textareaRef}
-          value={form.watch("content")}
-          onChange={(e) => handleContentChange(e.target.value)}
-          placeholder="Start writing your thoughts..."
-          className="w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 text-base leading-relaxed placeholder:text-slate-400"
-          style={{
-            fontFamily: "ui-serif, Georgia, Cambria, serif",
-            fontSize: "16px",
-            lineHeight: "1.7",
-          }}
-          disabled={isMutating}
+        <FormField
+          control={form.control}
+          name="content"
+          render={({ field }) => (
+            <FormItem className="flex-1">
+              <FormControl>
+                <Textarea
+                  ref={textareaRef}
+                  placeholder="Start writing your thoughts..."
+                  className="w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 text-base leading-relaxed placeholder:text-slate-400"
+                  style={{
+                    fontFamily: "ui-serif, Georgia, Cambria, serif",
+                    fontSize: "16px",
+                    lineHeight: "1.7",
+                  }}
+                  disabled={isMutating}
+                  value={field.value ?? ""} // Ensure value is always a string
+                  onChange={(e) => {
+                    field.onChange(e); // Call react-hook-form's onChange
+                    if (entry) {
+                      onUpdateEntry(entry.id, { content: e.target.value }); // Also call parent update
+                    }
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
       </div>
 
@@ -434,8 +481,8 @@ export function JournalEditorWithAttachments({
           <span>{form.watch("content")?.length || 0} characters</span>
           <span>
             Last updated:{" "}
-            {entry!.updated_at
-              ? new Date(entry!.updated_at).toLocaleTimeString()
+            {entry.updated_at
+              ? new Date(entry.updated_at).toLocaleTimeString()
               : "N/A"}
           </span>
         </div>

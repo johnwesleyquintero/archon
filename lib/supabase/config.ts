@@ -2,7 +2,9 @@ import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "./types";
 
 // Client-side Supabase client (for browser)
-let supabaseBrowserClient: ReturnType<typeof createBrowserClient> | null = null;
+let supabaseBrowserClient: ReturnType<
+  typeof createBrowserClient<Database, "public">
+> | null = null;
 
 export function getSupabaseBrowserClient() {
   if (!supabaseBrowserClient) {
@@ -23,7 +25,7 @@ export function getSupabaseBrowserClient() {
           set(name: string, value: string, options: Record<string, unknown>) {
             if (typeof document !== "undefined") {
               document.cookie = `${name}=${value}; ${Object.entries(options)
-                .map(([key, val]) => `${key}=${val}`)
+                .map(([key, val]) => `${key}=${String(val)}`)
                 .join(";")}`;
             }
           },
@@ -32,7 +34,7 @@ export function getSupabaseBrowserClient() {
               document.cookie = `${name}=; Max-Age=-99999999; ${Object.entries(
                 options,
               )
-                .map(([key, val]) => `${key}=${val}`)
+                .map(([key, val]) => `${key}=${String(val)}`)
                 .join(";")}`;
             }
           },

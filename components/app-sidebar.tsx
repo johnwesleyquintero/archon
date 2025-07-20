@@ -18,7 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ArchonLogoSVG } from "@/components/archon-logo-svg";
+import Logo from "@/components/logo";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -61,7 +61,7 @@ export function AppSidebar({ isCollapsed }: AppSidebarProps) {
           href="/dashboard"
           className="flex items-center gap-2 font-semibold"
         >
-          <ArchonLogoSVG
+          <Logo
             className={cn(
               "h-6 w-6 transition-all duration-200",
               isCollapsed ? "mr-0" : "mr-2",
@@ -126,7 +126,7 @@ export function AppSidebar({ isCollapsed }: AppSidebarProps) {
                   "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-slate-900 transition-all hover:bg-slate-100 mt-2",
                   isCollapsed ? "justify-center" : "",
                 )}
-                onClick={handleSignOut}
+                onClick={() => void handleSignOut()}
                 disabled={isSigningOut}
               >
                 <LogOut className="h-5 w-5" />

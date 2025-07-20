@@ -4,11 +4,11 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SubmitButton } from "@/components/auth/auth-form";
 
-export default function ForgotPassword({
-  searchParams,
-}: {
-  searchParams: { message: string };
-}) {
+interface ForgotPasswordProps {
+  searchParams: { message?: string };
+}
+
+export default function ForgotPassword({ searchParams }: ForgotPasswordProps) {
   const forgotPassword = async (formData: FormData) => {
     "use server";
 
