@@ -15,7 +15,14 @@ export async function getProfile(id: string) {
     .eq("id", id)
     .single<ProfilesRow>();
 
-  if (error) throw error;
+  if (error) {
+    // If the error is "PGRST116" (no rows found for .single()), return null
+    // Otherwise, re-throw the error
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw error;
+  }
   return data;
 }
 

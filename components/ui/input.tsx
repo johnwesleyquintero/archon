@@ -15,7 +15,13 @@ const Input = React.forwardRef<
       )}
       ref={ref}
       {...props}
-      autoComplete={type === "password" ? "current-password" : undefined}
+      autoComplete={
+        type === "password"
+          ? "current-password"
+          : type === "email"
+            ? "email"
+            : props.autoComplete // Allow explicit autocomplete to override
+      }
     />
   );
 });

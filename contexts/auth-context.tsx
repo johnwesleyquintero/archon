@@ -52,7 +52,12 @@ export function AuthProvider({
     setError(null);
     try {
       const fetchedProfile = await getProfile(userId);
-      setProfile(fetchedProfile);
+      if (fetchedProfile) {
+        setProfile(fetchedProfile);
+      } else {
+        // Profile not found, which is now a valid scenario for new users
+        setProfile(null);
+      }
     } catch (err: any) {
       console.error("Error fetching profile:", err);
       setError(err);
