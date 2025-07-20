@@ -25,13 +25,25 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({
-  // Make RootLayout async
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const initialUser = await getUser(); // Fetch initial user on the server
-  const initialProfile = initialUser ? await getProfile(initialUser.id) : null; // Fetch initial profile on the server
+  let initialUser = null;
+  let initialProfile = null;
+
+  try {
+    initialUser = await getUser(); // Fetch initial user on the server
+    if (initialUser) {
+      initialProfile = await getProfile(initialUser.id); // Fetch initial profile on the server
+    }
+  } catch (error) {
+    console.error(
+      "Error fetching initial user or profile in RootLayout:",
+      error,
+    );
+    // Optionally, you could set a flag or pass an error state to AuthProvider
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -54,8 +66,7 @@ export default async function RootLayout({
               initialProfile={initialProfile}
             >
               {children}
-            </AuthProvider>{" "}
-            {/* Pass initialUser and initialProfile */}
+            </AuthProvider>
           </ErrorBoundary>
         </ThemeProvider>
       </body>
