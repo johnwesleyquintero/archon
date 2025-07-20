@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { getUser } from "@/lib/supabase/auth"; // Import getUser
+import { getProfile } from "@/lib/database/profiles"; // Import getProfile
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   title: "Archon",
   description:
     "A powerful dashboard for managing your tasks, goals, and journal.",
-  generator: "v0.dev",
+  generator: "archon team",
   icons: {
     icon: "/favicon.svg",
   },
@@ -30,6 +31,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const initialUser = await getUser(); // Fetch initial user on the server
+  const initialProfile = initialUser ? await getProfile(initialUser.id) : null; // Fetch initial profile on the server
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -47,8 +49,13 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <ErrorBoundary>
-            <AuthProvider initialUser={initialUser}>{children}</AuthProvider>{" "}
-            {/* Pass initialUser */}
+            <AuthProvider
+              initialUser={initialUser}
+              initialProfile={initialProfile}
+            >
+              {children}
+            </AuthProvider>{" "}
+            {/* Pass initialUser and initialProfile */}
           </ErrorBoundary>
         </ThemeProvider>
       </body>

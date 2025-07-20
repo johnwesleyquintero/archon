@@ -36,12 +36,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({
   children,
   initialUser, // Accept initialUser prop
+  initialProfile, // Accept initialProfile prop
 }: {
   children: React.ReactNode;
   initialUser: User | null; // Define type for initialUser
+  initialProfile: Profile | null; // Define type for initialProfile
 }) {
   const [user, setUser] = useState<User | null>(initialUser); // Initialize user with initialUser
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(initialProfile); // Initialize profile with initialProfile
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const supabase = getSupabaseBrowserClient();
@@ -82,9 +84,10 @@ export function AuthProvider({
 
         if (isMounted) {
           setUser(currentUser);
-          if (currentUser) {
+          // Only fetch profile if not already provided initially
+          if (currentUser && !initialProfile) {
             await fetchProfile(currentUser.id);
-          } else {
+          } else if (!currentUser) {
             setProfile(null);
           }
         }
@@ -134,7 +137,7 @@ export function AuthProvider({
       isMounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, [supabase, initialUser, fetchProfile]); // Add initialUser and fetchProfile to dependencies
+  }, [supabase, initialUser, initialProfile, fetchProfile]); // Add initialUser, initialProfile and fetchProfile to dependencies
 
   const signIn = useCallback(
     async (email: string, password: string) => {
