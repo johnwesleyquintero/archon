@@ -1,76 +1,34 @@
-import type React from "react";
-import type { Metadata } from "next";
-import { Inter as FontSans } from "next/font/google";
-import "./globals.css";
-import { cn } from "@/lib/utils";
-import { ThemeProvider } from "@/components/theme-provider";
-import { AuthProvider } from "@/contexts/auth-context";
-import { ErrorBoundary } from "@/app/error-boundary";
-import { Toaster } from "@/components/ui/toaster";
-import { getUser } from "@/lib/supabase/auth"; // Import getUser
-import { getProfile } from "@/lib/database/profiles"; // Import getProfile
-import type { ProfilesRow } from "@/lib/database/profiles"; // Import ProfilesRow type
-import type { SerializableUser } from "@/contexts/auth-context"; // Import SerializableUser type
-import type { Database } from "@/lib/supabase/types"; // Import Database type
+import type React from "react"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from "@/contexts/auth-context"
 
-const fontSans = FontSans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Archon",
-  description:
-    "A powerful dashboard for managing your tasks, goals, and journal.",
-  generator: "archon team",
-  icons: {
-    icon: "/favicon.svg",
-  },
-};
+  title: "Archon Dashboard",
+  description: "A modern dashboard for productivity and goal tracking",
+    generator: 'v0.dev'
+}
 
 export default async function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  let initialUser: SerializableUser | null = null;
-  let initialProfile: ProfilesRow | null = null;
-
-  const fetchedUser = await getUser(); // Fetch initial user on the server
-  // Only pass serializable parts of the user object
-  initialUser = fetchedUser
-    ? { id: fetchedUser.id, email: fetchedUser.email ?? undefined }
-    : null;
-  if (initialUser) {
-    initialProfile = await getProfile(initialUser.id); // Fetch initial profile on the server
-  }
-
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={cn(
-          "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable,
-        )}
-        suppressHydrationWarning={true}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ErrorBoundary>
-            <AuthProvider
-              initialUser={initialUser}
-              initialProfile={initialProfile}
-            >
-              {children}
-            </AuthProvider>
-          </ErrorBoundary>
-          <Toaster />
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }

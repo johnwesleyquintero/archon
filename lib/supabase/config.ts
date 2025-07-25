@@ -1,14 +1,17 @@
-"use client"
+// Validate environment variables
+const requiredEnvVars = {
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+}
 
-import { createClient } from "./client"
-import type { Database } from "./types"
-
-// Client-side Supabase client (for browser)
-let supabaseBrowserClient: ReturnType<typeof createClient<Database, "public">> | null = null
-
-export function getSupabaseBrowserClient() {
-  if (!supabaseBrowserClient) {
-    supabaseBrowserClient = createClient()
+// Check if all required environment variables are present
+for (const [key, value] of Object.entries(requiredEnvVars)) {
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${key}`)
   }
-  return supabaseBrowserClient
+}
+
+export const supabaseConfig = {
+  url: requiredEnvVars.NEXT_PUBLIC_SUPABASE_URL!,
+  anonKey: requiredEnvVars.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 }

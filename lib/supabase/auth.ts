@@ -1,29 +1,83 @@
-/**
- * Lightweight helpers that wrap the server-side Supabase client.
- */
-import { getSupabaseServerClient } from "./server"; // Import the async function
+import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
+import type { User } from "@supabase/supabase-js"
+import type { Database } from "./types"
 
-/**
- * Returns the signed-in user (or null) inside a Server Action /
- * Route Handler / RSC.
- */
+export async function createSupabaseServerClient() {
+  const cookieStore = await cookies()
+
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    },
+  )
+}
+
 export async function getUser() {
-  const supabase = await getSupabaseServerClient(); // Get the Supabase client instance
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-  if (error) {
-    if (error.name === "AuthSessionMissingError") {
-      // Log AuthSessionMissingError at a lower level as it's often expected for unauthenticated access
-      console.log(
-        "[Supabase] getUser (AuthSessionMissingError):",
-        error.message,
-      );
-    } else {
-      // Log other authentication errors as errors
-      console.error("[Supabase] getUser error:", error);
+  try {
+    const supabase = await createSupabaseServerClient()
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
+
+    if (error) {
+      console.log("Auth error (expected for unauthenticated users):", error.message)
+      return { user: null, error }
     }
+
+    return { user, error: null }
+  } catch (error) {
+    console.log("Error getting user (expected for unauthenticated users):", error)
+    return { user: null, error }
   }
-  return user ?? null;
+}
+
+export async function getProfile(userId: string) {
+  try {
+    const supabase = await createSupabaseServerClient()
+    const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
+
+    if (error) {
+      console.log("Profile error:", error.message)
+      return { profile: null, error }
+    }
+
+    return { profile, error: null }
+  } catch (error) {
+    console.log("Error getting profile:", error)
+    return { profile: null, error }
+  }
+}
+
+export async function requireAuth(): Promise<User> {
+  const { user } = await getUser()
+
+  if (!user) {
+    redirect("/login")
+  }
+
+  return user
+}
+
+export async function signOut() {
+  const supabase = await createSupabaseServerClient()
+  await supabase.auth.signOut()
+  redirect("/login")
 }

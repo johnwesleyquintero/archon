@@ -1,329 +1,315 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
   public: {
     Tables: {
-      profiles: {
+      dashboard_settings: {
         Row: {
-          avatar_url: string | null;
-          full_name: string | null;
-          id: string;
-          updated_at: string | null;
-          username: string | null;
-          website: string | null;
-        };
+          created_at: string
+          id: string
+          layout: Json | null
+          theme: string | null
+          updated_at: string
+          user_id: string
+        }
         Insert: {
-          avatar_url?: string | null;
-          full_name?: string | null;
-          id: string;
-          updated_at?: string | null;
-          username?: string | null;
-          website?: string | null;
-        };
+          created_at?: string
+          id?: string
+          layout?: Json | null
+          theme?: string | null
+          updated_at?: string
+          user_id: string
+        }
         Update: {
-          avatar_url?: string | null;
-          full_name?: string | null;
-          id?: string;
-          updated_at?: string | null;
-          username?: string | null;
-          website?: string | null;
-        };
+          created_at?: string
+          id?: string
+          layout?: Json | null
+          theme?: string | null
+          updated_at?: string
+          user_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "profiles_id_fkey";
-            columns: ["id"];
-            isOneToOne: true;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
+            foreignKeyName: "dashboard_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       goals: {
         Row: {
-          created_at: string;
-          description: string | null;
-          due_date: string | null;
-          id: string;
-          status: string;
-          title: string;
-          user_id: string;
-        };
+          category: string | null
+          completed: boolean | null
+          created_at: string
+          deadline: string | null
+          description: string | null
+          id: string
+          milestones: Json | null
+          priority: string | null
+          progress: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
         Insert: {
-          created_at?: string;
-          description?: string | null;
-          due_date?: string | null;
-          id?: string;
-          status?: string;
-          title: string;
-          user_id: string;
-        };
+          category?: string | null
+          completed?: boolean | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          milestones?: Json | null
+          priority?: string | null
+          progress?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
         Update: {
-          created_at?: string;
-          description?: string | null;
-          due_date?: string | null;
-          id?: string;
-          status?: string;
-          title?: string;
-          user_id?: string;
-        };
+          category?: string | null
+          completed?: boolean | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          milestones?: Json | null
+          priority?: string | null
+          progress?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "goals_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
+            foreignKeyName: "goals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       journal_entries: {
         Row: {
-          attachments: Json | null;
-          content: string | null;
-          created_at: string;
-          id: string;
-          title: string;
-          updated_at: string | null;
-          user_id: string;
-        };
+          attachments: Json | null
+          content: string
+          created_at: string
+          id: string
+          mood: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
         Insert: {
-          attachments?: Json | null;
-          content?: string | null;
-          created_at?: string;
-          id?: string;
-          title: string;
-          updated_at?: string | null;
-          user_id: string;
-        };
+          attachments?: Json | null
+          content: string
+          created_at?: string
+          id?: string
+          mood?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
         Update: {
-          attachments?: Json | null;
-          content?: string | null;
-          created_at?: string;
-          id?: string;
-          title?: string;
-          updated_at?: string | null;
-          user_id?: string;
-        };
+          attachments?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          mood?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "journal_entries_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
+            foreignKeyName: "journal_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
           },
-        ];
-      };
-      journal_templates: {
+        ]
+      }
+      profiles: {
         Row: {
-          content: string | null;
-          created_at: string;
-          id: string;
-          title: string;
-          user_id: string;
-        };
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+          username: string | null
+        }
         Insert: {
-          content?: string | null;
-          created_at?: string;
-          id?: string;
-          title: string;
-          user_id: string;
-        };
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+          username?: string | null
+        }
         Update: {
-          content?: string | null;
-          created_at?: string;
-          id?: string;
-          title?: string;
-          user_id?: string;
-        };
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          username?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "journal_templates_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       tasks: {
         Row: {
-          category: string | null;
-          created_at: string;
-          due_date: string | null;
-          id: string;
-          priority: string | null;
-          status: string;
-          tags: string[] | null;
-          title: string;
-          updated_at: string | null;
-          user_id: string;
-        };
+          category: string | null
+          completed: boolean | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
         Insert: {
-          category?: string | null;
-          created_at?: string;
-          due_date?: string | null;
-          id?: string;
-          priority?: string | null;
-          status?: string;
-          tags?: string[] | null;
-          title: string;
-          updated_at?: string | null;
-          user_id: string;
-        };
+          category?: string | null
+          completed?: boolean | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
         Update: {
-          category?: string | null;
-          created_at?: string;
-          due_date?: string | null;
-          id?: string;
-          priority?: string | null;
-          status?: string;
-          tags?: string[] | null;
-          title?: string;
-          updated_at?: string | null;
-          user_id?: string;
-        };
+          category?: string | null
+          completed?: boolean | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "tasks_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
+            foreignKeyName: "tasks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
           },
-        ];
-      };
-      user_dashboard_settings: {
-        Row: {
-          created_at: string;
-          id: string;
-          settings: Json;
-          updated_at: string;
-          user_id: string;
-        };
-        Insert: {
-          created_at?: string;
-          id?: string;
-          settings: Json;
-          updated_at?: string;
-          user_id: string;
-        };
-        Update: {
-          created_at?: string;
-          id?: string;
-          settings?: Json;
-          updated_at?: string;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "user_dashboard_settings_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: true;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-    };
+        ]
+      }
+    }
     Views: {
-      [_ in never]: never;
-    };
+      [_ in never]: never
+    }
     Functions: {
-      [_ in never]: never;
-    };
+      [_ in never]: never
+    }
     Enums: {
-      [_ in never]: never;
-    };
+      [_ in never]: never
+    }
     CompositeTypes: {
-      [_ in never]: never;
-    };
-  };
-};
-
-type PublicSchema = Database[Extract<keyof Database, "public">];
+      [_ in never]: never
+    }
+  }
+}
 
 export type Tables<
   PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+    | keyof (Database["public"]["Tables"] & Database["public"]["Views"])
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Row: infer R;
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R;
+  : PublicTableNameOrOptions extends keyof (Database["public"]["Tables"] & Database["public"]["Views"])
+    ? (Database["public"]["Tables"] & Database["public"]["Views"])[PublicTableNameOrOptions] extends {
+        Row: infer R
       }
       ? R
       : never
-    : never;
+    : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
+  PublicTableNameOrOptions extends keyof Database["public"]["Tables"] | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I;
+      Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Insert: infer I;
+  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
+    ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
+        Insert: infer I
       }
       ? I
       : never
-    : never;
+    : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
+  PublicTableNameOrOptions extends keyof Database["public"]["Tables"] | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U;
+      Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U;
+  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
+    ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
+        Update: infer U
       }
       ? U
       : never
-    : never;
+    : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
-    | { schema: keyof Database },
+  PublicEnumNameOrOptions extends keyof Database["public"]["Enums"] | { schema: keyof Database },
   EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
     ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = PublicEnumNameOrOptions extends { schema: keyof Database }
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
-    : never;
+  : PublicEnumNameOrOptions extends keyof Database["public"]["Enums"]
+    ? Database["public"]["Enums"][PublicEnumNameOrOptions]
+    : never
+
+export type ProfilesRow = Database["public"]["Tables"]["profiles"]["Row"]
+export type TasksRow = Database["public"]["Tables"]["tasks"]["Row"]
+export type GoalsRow = Database["public"]["Tables"]["goals"]["Row"]
+export type JournalEntriesRow = Database["public"]["Tables"]["journal_entries"]["Row"]
+export type DashboardSettingsRow = Database["public"]["Tables"]["dashboard_settings"]["Row"]

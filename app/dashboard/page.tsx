@@ -1,113 +1,102 @@
-import { StatsGrid } from "@/components/stats-grid";
-import { GoalTrackerWithAttachments } from "@/components/goal-tracker-with-attachments";
-import { TodoList } from "@/components/todo-list";
-import { PlaceholderInfographics } from "@/components/placeholder-infographics";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity } from "lucide-react";
-import { CustomizableDashboardLayout } from "@/components/customizable-dashboard-layout";
-import { DashboardWidget } from "@/components/dashboard-widget";
-import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
-import { Skeleton } from "@/components/ui/skeleton";
+"use client"
 
-interface DashboardWidgetConfig {
-  id: string;
-  title: string;
-  component: React.ReactNode;
-  defaultSize: { w: number; h: number };
-}
+import { useState } from "react"
+import { CustomizableDashboardLayout, type DashboardWidget } from "@/components/customizable-dashboard-layout"
+import { DashboardWidget as Widget } from "@/components/dashboard-widget"
+import { StatsGrid } from "@/components/stats-grid"
+import { TaskList } from "@/components/task-list"
+import { GoalTracker } from "@/components/goal-tracker"
+import { JournalList } from "@/components/journal-list"
+import { PlaceholderInfographics } from "@/components/placeholder-infographics"
+import { AdvancedStatsGrid } from "@/components/advanced-stats-grid"
+import type { Layout } from "react-grid-layout"
 
 export default function DashboardPage() {
-  const { layout, isLoading, handleLayoutChange, toggleWidgetVisibility } =
-    useDashboardSettings();
+  const [widgets, setWidgets] = useState<DashboardWidget[]>([
+    {
+      id: "stats",
+      title: "Statistics",
+      component: (
+        <Widget title="Statistics" description="Overview of your productivity metrics">
+          <StatsGrid />
+        </Widget>
+      ),
+      defaultLayout: { w: 12, h: 4, x: 0, y: 0, minW: 6, minH: 3 },
+      visible: true,
+    },
+    {
+      id: "tasks",
+      title: "Recent Tasks",
+      component: (
+        <Widget title="Recent Tasks" description="Your latest task updates">
+          <TaskList />
+        </Widget>
+      ),
+      defaultLayout: { w: 6, h: 6, x: 0, y: 4, minW: 4, minH: 4 },
+      visible: true,
+    },
+    {
+      id: "goals",
+      title: "Goal Progress",
+      component: (
+        <Widget title="Goal Progress" description="Track your goal achievements">
+          <GoalTracker />
+        </Widget>
+      ),
+      defaultLayout: { w: 6, h: 6, x: 6, y: 4, minW: 4, minH: 4 },
+      visible: true,
+    },
+    {
+      id: "journal",
+      title: "Journal Entries",
+      component: (
+        <Widget title="Journal Entries" description="Your recent thoughts and reflections">
+          <JournalList />
+        </Widget>
+      ),
+      defaultLayout: { w: 6, h: 5, x: 0, y: 10, minW: 4, minH: 4 },
+      visible: true,
+    },
+    {
+      id: "infographics",
+      title: "Insights",
+      component: (
+        <Widget title="Insights" description="Visual analytics and trends">
+          <PlaceholderInfographics />
+        </Widget>
+      ),
+      defaultLayout: { w: 6, h: 5, x: 6, y: 10, minW: 4, minH: 4 },
+      visible: true,
+    },
+    {
+      id: "advanced-stats",
+      title: "Advanced Analytics",
+      component: (
+        <Widget title="Advanced Analytics" description="Detailed performance metrics">
+          <AdvancedStatsGrid />
+        </Widget>
+      ),
+      defaultLayout: { w: 12, h: 6, x: 0, y: 15, minW: 6, minH: 4 },
+      visible: false,
+    },
+  ])
 
-  const widgets: DashboardWidgetConfig[] = [
-    {
-      id: "stats-grid",
-      title: "Statistics Overview",
-      component: <StatsGrid />,
-      defaultSize: { w: 4, h: 2 },
-    },
-    {
-      id: "goal-tracker",
-      title: "My Strategic Goals",
-      component: <GoalTrackerWithAttachments />,
-      defaultSize: { w: 4, h: 3 },
-    },
-    {
-      id: "task-list",
-      title: "My Tasks",
-      component: <TodoList />, // TodoList handles its own onAddTaskClick internally
-      defaultSize: { w: 4, h: 3 },
-    },
-  ];
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-6 p-4 md:p-6">
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          <Skeleton className="h-[120px] w-full" />
-          <Skeleton className="h-[120px] w-full" />
-          <Skeleton className="h-[120px] w-full" />
-          <Skeleton className="h-[120px] w-full" />
-        </div>
-        <Skeleton className="h-[200px] w-full" />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Skeleton className="h-[300px] w-full" />
-          <Skeleton className="h-[300px] w-full" />
-        </div>
-        <Skeleton className="h-[250px] w-full" />
-      </div>
-    );
+  const handleLayoutChange = (layout: Layout[]) => {
+    // Save layout to localStorage or database
+    console.log("Layout changed:", layout)
   }
 
-  const visibleWidgets = widgets.filter((widget: DashboardWidgetConfig) => {
-    const item = layout.find((l) => l.i === widget.id);
-    return item ? item.isVisible : true; // Default to visible if not in layout
-  });
+  const handleWidgetVisibilityChange = (widgetId: string, visible: boolean) => {
+    setWidgets((prev) => prev.map((widget) => (widget.id === widgetId ? { ...widget, visible } : widget)))
+  }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
+    <div className="p-6">
       <CustomizableDashboardLayout
-        widgets={visibleWidgets.map((widget) => ({
-          id: widget.id,
-          title: widget.title, // Add title here
-          component: (
-            <DashboardWidget
-              id={widget.id}
-              title={widget.title}
-              isVisible={
-                layout.find((l) => l.i === widget.id)?.isVisible ?? true
-              }
-              onToggleVisibility={toggleWidgetVisibility}
-            >
-              {widget.component}
-            </DashboardWidget>
-          ),
-          defaultSize: widget.defaultSize,
-        }))}
-        initialLayout={layout}
+        widgets={widgets}
         onLayoutChange={handleLayoutChange}
+        onWidgetVisibilityChange={handleWidgetVisibilityChange}
       />
-
-      <PlaceholderInfographics />
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-slate-600" />
-            Recent Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-slate-500 text-sm">
-            Recent activity feed will go here.
-          </p>
-          {/* Placeholder for activity feed */}
-          <div className="h-40 bg-slate-50 rounded-md mt-4 flex items-center justify-center text-slate-400 text-sm">
-            Activity Feed Placeholder
-          </div>
-        </CardContent>
-      </Card>
     </div>
-  );
+  )
 }
