@@ -1,101 +1,91 @@
 "use client"
 
-import { useState } from "react"
-import { CustomizableDashboardLayout, type DashboardWidget } from "@/components/customizable-dashboard-layout"
-import { DashboardWidget as Widget } from "@/components/dashboard-widget"
+import { CustomizableDashboardLayout, type Widget } from "@/components/customizable-dashboard-layout"
 import { StatsGrid } from "@/components/stats-grid"
-import { TaskList } from "@/components/task-list"
+import { TodoList } from "@/components/todo-list"
 import { GoalTracker } from "@/components/goal-tracker"
 import { JournalList } from "@/components/journal-list"
-import { PlaceholderInfographics } from "@/components/placeholder-infographics"
 import { AdvancedStatsGrid } from "@/components/advanced-stats-grid"
+import { PlaceholderInfographics } from "@/components/placeholder-infographics"
 import type { Layout } from "react-grid-layout"
+import { useDashboardSettings } from "@/hooks/use-dashboard-settings"
+
+// Define available widgets
+const availableWidgets: Widget[] = [
+  {
+    id: "stats-overview",
+    type: "stats",
+    title: "Overview Stats",
+    component: StatsGrid,
+    minW: 6,
+    minH: 3,
+    defaultProps: {},
+  },
+  {
+    id: "todo-list",
+    type: "tasks",
+    title: "Quick Tasks",
+    component: TodoList,
+    minW: 4,
+    minH: 4,
+    defaultProps: {},
+  },
+  {
+    id: "goal-tracker",
+    type: "goals",
+    title: "Goal Progress",
+    component: GoalTracker,
+    minW: 4,
+    minH: 4,
+    defaultProps: {},
+  },
+  {
+    id: "recent-journal",
+    type: "journal",
+    title: "Recent Journal Entries",
+    component: JournalList,
+    minW: 4,
+    minH: 4,
+    defaultProps: { limit: 3 },
+  },
+  {
+    id: "advanced-stats",
+    type: "analytics",
+    title: "Advanced Analytics",
+    component: AdvancedStatsGrid,
+    minW: 6,
+    minH: 4,
+    defaultProps: {},
+  },
+  {
+    id: "productivity-chart",
+    type: "charts",
+    title: "Productivity Insights",
+    component: PlaceholderInfographics,
+    minW: 6,
+    minH: 4,
+    defaultProps: {
+      title: "Productivity Trends",
+      description: "Your productivity patterns over time",
+    },
+  },
+]
 
 export default function DashboardPage() {
-  const [widgets, setWidgets] = useState<DashboardWidget[]>([
-    {
-      id: "stats",
-      title: "Statistics",
-      component: (
-        <Widget title="Statistics" description="Overview of your productivity metrics">
-          <StatsGrid />
-        </Widget>
-      ),
-      defaultLayout: { w: 12, h: 4, x: 0, y: 0, minW: 6, minH: 3 },
-      visible: true,
-    },
-    {
-      id: "tasks",
-      title: "Recent Tasks",
-      component: (
-        <Widget title="Recent Tasks" description="Your latest task updates">
-          <TaskList />
-        </Widget>
-      ),
-      defaultLayout: { w: 6, h: 6, x: 0, y: 4, minW: 4, minH: 4 },
-      visible: true,
-    },
-    {
-      id: "goals",
-      title: "Goal Progress",
-      component: (
-        <Widget title="Goal Progress" description="Track your goal achievements">
-          <GoalTracker />
-        </Widget>
-      ),
-      defaultLayout: { w: 6, h: 6, x: 6, y: 4, minW: 4, minH: 4 },
-      visible: true,
-    },
-    {
-      id: "journal",
-      title: "Journal Entries",
-      component: (
-        <Widget title="Journal Entries" description="Your recent thoughts and reflections">
-          <JournalList />
-        </Widget>
-      ),
-      defaultLayout: { w: 6, h: 5, x: 0, y: 10, minW: 4, minH: 4 },
-      visible: true,
-    },
-    {
-      id: "infographics",
-      title: "Insights",
-      component: (
-        <Widget title="Insights" description="Visual analytics and trends">
-          <PlaceholderInfographics />
-        </Widget>
-      ),
-      defaultLayout: { w: 6, h: 5, x: 6, y: 10, minW: 4, minH: 4 },
-      visible: true,
-    },
-    {
-      id: "advanced-stats",
-      title: "Advanced Analytics",
-      component: (
-        <Widget title="Advanced Analytics" description="Detailed performance metrics">
-          <AdvancedStatsGrid />
-        </Widget>
-      ),
-      defaultLayout: { w: 12, h: 6, x: 0, y: 15, minW: 6, minH: 4 },
-      visible: false,
-    },
-  ])
+  const { layout, saveLayout, isLoading } = useDashboardSettings()
 
-  const handleLayoutChange = (layout: Layout[]) => {
-    // Save layout to localStorage or database
-    console.log("Layout changed:", layout)
-  }
-
-  const handleWidgetVisibilityChange = (widgetId: string, visible: boolean) => {
-    setWidgets((prev) => prev.map((widget) => (widget.id === widgetId ? { ...widget, visible } : widget)))
+  const handleLayoutChange = (newLayout: Layout[]) => {
+    // Layout changes are handled by the CustomizableDashboardLayout component
+    // and saved via the useDashboardSettings hook
   }
 
   return (
-    <div className="p-6">
+    <div className="container mx-auto p-6">
       <CustomizableDashboardLayout
-        widgets={widgets}
+        widgets={availableWidgets}
+        initialLayout={layout}
         onLayoutChange={handleLayoutChange}
-        onWidgetVisibilityChange={handleWidgetVisibilityChange}
+        className="min-h-screen"
       />
     </div>
   )

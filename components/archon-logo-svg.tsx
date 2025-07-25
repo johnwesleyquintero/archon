@@ -1,18 +1,21 @@
-export function ArchonLogoSvg({ className }: { className?: string }) {
+interface ArchonLogoSVGProps {
+  className?: string
+}
+
+export function ArchonLogoSVG({ className = "h-8 w-8" }: ArchonLogoSVGProps) {
   return (
-    <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="archon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#3B82F6" />
-          <stop offset="100%" stopColor="#6366F1" />
-        </linearGradient>
-      </defs>
-      <rect width="100" height="100" rx="20" fill="url(#archon-gradient)" />
-      <path d="M30 70L50 30L70 70H60L50 50L40 70H30Z" fill="white" strokeWidth="2" strokeLinejoin="round" />
-      <circle cx="50" cy="75" r="3" fill="white" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M12 2L2 7L12 12L22 7L12 2Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="currentColor"
+        fillOpacity="0.2"
+      />
+      <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
-
-// Export with both names for compatibility
-export const ArchonLogoSVG = ArchonLogoSvg

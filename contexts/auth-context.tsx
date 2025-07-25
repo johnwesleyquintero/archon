@@ -13,6 +13,9 @@ interface AuthContextType {
   profile: Profile | null
   session: Session | null
   loading: boolean
+  signIn: (email: string, password: string) => Promise<{ error: any }>
+  signUp: (email: string, password: string) => Promise<{ error: any }>
+  resetPassword: (email: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
 }
@@ -28,16 +31,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
+      // First, try to get existing profile
+      const { data: existingProfile, error: fetchError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle() // Use maybeSingle() instead of single() to handle no rows
 
-      if (error) {
-        console.error("Error fetching profile:", error)
+      if (fetchError && fetchError.code !== "PGRST116") {
+        // PGRST116 is "no rows returned" which is expected for new users
+        console.error("Error fetching profile:", fetchError)
         return null
       }
 
-      return data
+      if (existingProfile) {
+        return existingProfile
+      }
+
+      // If no profile exists, create one
+      const { data: userData } = await supabase.auth.getUser()
+      if (!userData.user) {
+        console.error("No user data available for profile creation")
+        return null
+      }
+
+      const newProfile = {
+        id: userId,
+        email: userData.user.email || "",
+        full_name: userData.user.user_metadata?.full_name || null,
+        avatar_url: userData.user.user_metadata?.avatar_url || null,
+      }
+
+      const { data: createdProfile, error: createError } = await supabase
+        .from("profiles")
+        .insert(newProfile)
+        .select()
+        .single()
+
+      if (createError) {
+        console.error("Error creating profile:", createError)
+        return null
+      }
+
+      return createdProfile
     } catch (error) {
-      console.error("Error fetching profile:", error)
+      console.error("Error in fetchProfile:", error)
       return null
     }
   }
@@ -47,6 +85,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const profileData = await fetchProfile(user.id)
       setProfile(profileData)
     }
+  }
+
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    return { error }
+  }
+
+  const signUp = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+    return { error }
+  }
+
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    })
+    return { error }
   }
 
   const signOut = async () => {
@@ -118,6 +179,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profile,
     session,
     loading,
+    signIn,
+    signUp,
+    resetPassword,
     signOut,
     refreshProfile,
   }

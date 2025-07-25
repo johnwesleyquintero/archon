@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -11,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Mail, Lock, Github, Chrome, AlertCircle, Loader2 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
+import { useAuth } from "@/contexts/auth-context"
 
 export function AuthForm() {
   const [isLoading, setIsLoading] = useState(false)
@@ -28,7 +27,7 @@ export function AuthForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirectTo") || "/dashboard"
-  const supabase = createClient()
+  const { signIn, resetPassword } = useAuth()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -65,10 +64,7 @@ export function AuthForm() {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      })
+      const { error } = await signIn(formData.email, formData.password)
 
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
@@ -103,9 +99,7 @@ export function AuthForm() {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      })
+      const { error } = await resetPassword(formData.email)
 
       if (error) {
         setError(error.message)
@@ -122,37 +116,12 @@ export function AuthForm() {
     }
   }
 
-  const handleSocialSignIn = async (provider: "github" | "google") => {
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
-        },
-      })
-
-      if (error) {
-        setError(error.message)
-      }
-    } catch (err) {
-      setError("An unexpected error occurred. Please try again.")
-      console.error("Social sign in error:", err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   if (showForgotPassword) {
     return (
       <form onSubmit={handleForgotPassword} className="space-y-4">
         <div className="text-center mb-4">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Reset Password</h3>
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            Enter your email address and we'll send you a reset link
-          </p>
+          <h3 className="text-lg font-semibold text-white">Reset Password</h3>
+          <p className="text-sm text-gray-300">Enter your email address and we'll send you a reset link</p>
         </div>
 
         {error && (
@@ -170,9 +139,11 @@ export function AuthForm() {
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="reset-email">Email</Label>
+          <Label htmlFor="reset-email" className="text-white">
+            Email
+          </Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               id="reset-email"
               name="email"
@@ -180,7 +151,7 @@ export function AuthForm() {
               placeholder="Enter your email"
               value={formData.email}
               onChange={handleInputChange}
-              className="pl-10"
+              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
               required
               disabled={isLoading}
             />
@@ -188,7 +159,7 @@ export function AuthForm() {
         </div>
 
         <div className="flex space-x-2">
-          <Button type="submit" className="flex-1" disabled={isLoading}>
+          <Button type="submit" className="flex-1 bg-purple-600 hover:bg-purple-700" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Send Reset Link
           </Button>
@@ -201,6 +172,7 @@ export function AuthForm() {
               setSuccess(null)
             }}
             disabled={isLoading}
+            className="border-white/20 text-white hover:bg-white/10"
           >
             Cancel
           </Button>
@@ -216,31 +188,29 @@ export function AuthForm() {
         <Button
           type="button"
           variant="outline"
-          className="w-full bg-transparent"
-          onClick={() => handleSocialSignIn("github")}
+          className="w-full bg-transparent border-white/20 text-white hover:bg-white/10"
           disabled={isLoading}
         >
-          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Github className="mr-2 h-4 w-4" />}
+          <Github className="mr-2 h-4 w-4" />
           Continue with GitHub
         </Button>
         <Button
           type="button"
           variant="outline"
-          className="w-full bg-transparent"
-          onClick={() => handleSocialSignIn("google")}
+          className="w-full bg-transparent border-white/20 text-white hover:bg-white/10"
           disabled={isLoading}
         >
-          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Chrome className="mr-2 h-4 w-4" />}
+          <Chrome className="mr-2 h-4 w-4" />
           Continue with Google
         </Button>
       </div>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <Separator className="w-full" />
+          <Separator className="w-full border-white/20" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white dark:bg-slate-900 px-2 text-slate-500">Or continue with email</span>
+          <span className="bg-transparent px-2 text-gray-400">Or continue with email</span>
         </div>
       </div>
 
@@ -254,9 +224,11 @@ export function AuthForm() {
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-white">
+            Email
+          </Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               id="email"
               name="email"
@@ -264,7 +236,7 @@ export function AuthForm() {
               placeholder="Enter your email"
               value={formData.email}
               onChange={handleInputChange}
-              className="pl-10"
+              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
               required
               disabled={isLoading}
               autoComplete="email"
@@ -273,9 +245,11 @@ export function AuthForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password" className="text-white">
+            Password
+          </Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               id="password"
               name="password"
@@ -283,7 +257,7 @@ export function AuthForm() {
               placeholder="Enter your password"
               value={formData.password}
               onChange={handleInputChange}
-              className="pl-10 pr-10"
+              className="pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
               required
               disabled={isLoading}
               autoComplete="current-password"
@@ -291,7 +265,7 @@ export function AuthForm() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
               disabled={isLoading}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -306,22 +280,23 @@ export function AuthForm() {
               checked={rememberMe}
               onCheckedChange={(checked) => setRememberMe(checked as boolean)}
               disabled={isLoading}
+              className="border-white/20"
             />
-            <Label htmlFor="remember" className="text-sm text-slate-600 dark:text-slate-300">
+            <Label htmlFor="remember" className="text-sm text-gray-300">
               Remember me
             </Label>
           </div>
           <button
             type="button"
             onClick={() => setShowForgotPassword(true)}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm text-purple-400 hover:text-purple-300 font-medium"
             disabled={isLoading}
           >
             Forgot password?
           </button>
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Sign In
         </Button>

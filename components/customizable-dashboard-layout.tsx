@@ -1,75 +1,68 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { Responsive, WidthProvider, type Layout } from "react-grid-layout"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Settings, Eye, EyeOff } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Settings, X, GripVertical, Plus, Save, RotateCcw } from "lucide-react"
+import { DashboardWidget } from "./dashboard-widget"
+import { useDashboardSettings } from "@/hooks/use-dashboard-settings"
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
 
-export interface DashboardWidget {
+// Widget type definitions
+export interface Widget {
   id: string
+  type: string
   title: string
-  component: React.ReactNode
-  defaultLayout: {
-    w: number
-    h: number
-    x: number
-    y: number
-    minW?: number
-    minH?: number
-  }
-  visible: boolean
+  component: React.ComponentType<any>
+  defaultProps?: any
+  minW?: number
+  minH?: number
+  maxW?: number
+  maxH?: number
 }
 
 interface CustomizableDashboardLayoutProps {
-  widgets: DashboardWidget[]
+  widgets: Widget[]
+  initialLayout?: Layout[]
   onLayoutChange?: (layout: Layout[]) => void
-  onWidgetVisibilityChange?: (widgetId: string, visible: boolean) => void
   className?: string
 }
 
 export function CustomizableDashboardLayout({
   widgets,
+  initialLayout = [],
   onLayoutChange,
-  onWidgetVisibilityChange,
-  className,
+  className = "",
 }: CustomizableDashboardLayoutProps) {
   const [isCustomizing, setIsCustomizing] = useState(false)
-  const [layouts, setLayouts] = useState<{ [key: string]: Layout[] }>({})
+  const [layouts, setLayouts] = useState<{ [key: string]: Layout[] }>({
+    lg: initialLayout,
+  })
 
-  const visibleWidgets = widgets.filter((widget) => widget.visible)
+  const { saveLayout, isLoading } = useDashboardSettings()
 
-  const defaultLayouts = {
-    lg: visibleWidgets.map((widget) => ({
+  // Generate default layout if none provided
+  const defaultLayout = useMemo(() => {
+    if (initialLayout.length > 0) return initialLayout
+
+    return widgets.map((widget, index) => ({
       i: widget.id,
-      ...widget.defaultLayout,
-    })),
-    md: visibleWidgets.map((widget) => ({
-      i: widget.id,
-      ...widget.defaultLayout,
-      w: Math.min(widget.defaultLayout.w, 8),
-    })),
-    sm: visibleWidgets.map((widget) => ({
-      i: widget.id,
-      ...widget.defaultLayout,
-      w: Math.min(widget.defaultLayout.w, 6),
-    })),
-    xs: visibleWidgets.map((widget) => ({
-      i: widget.id,
-      ...widget.defaultLayout,
-      w: 4,
-    })),
-    xxs: visibleWidgets.map((widget) => ({
-      i: widget.id,
-      ...widget.defaultLayout,
-      w: 2,
-    })),
-  }
+      x: (index % 3) * 4,
+      y: Math.floor(index / 3) * 4,
+      w: widget.minW || 4,
+      h: widget.minH || 4,
+      minW: widget.minW || 2,
+      minH: widget.minH || 2,
+      maxW: widget.maxW || 12,
+      maxH: widget.maxH || 8,
+    }))
+  }, [widgets, initialLayout])
+
+  const currentLayout = layouts.lg?.length > 0 ? layouts.lg : defaultLayout
 
   const handleLayoutChange = useCallback(
     (layout: Layout[], allLayouts: { [key: string]: Layout[] }) => {
@@ -79,137 +72,226 @@ export function CustomizableDashboardLayout({
     [onLayoutChange],
   )
 
-  const toggleWidgetVisibility = (widgetId: string) => {
-    const widget = widgets.find((w) => w.id === widgetId)
-    if (widget) {
-      onWidgetVisibilityChange?.(widgetId, !widget.visible)
+  const handleSaveLayout = async () => {
+    try {
+      await saveLayout(currentLayout)
+      setIsCustomizing(false)
+    } catch (error) {
+      console.error("Failed to save layout:", error)
     }
   }
 
+  const handleResetLayout = () => {
+    const resetLayouts = { lg: defaultLayout }
+    setLayouts(resetLayouts)
+    onLayoutChange?.(defaultLayout)
+  }
+
+  const toggleCustomization = () => {
+    setIsCustomizing(!isCustomizing)
+  }
+
   return (
-    <div className={cn("space-y-4", className)}>
-      {/* Controls */}
+    <div className={`space-y-4 ${className}`}>
+      {/* Control Bar */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Dashboard</h2>
         <div className="flex items-center space-x-2">
-          <Button
-            variant={isCustomizing ? "default" : "outline"}
-            size="sm"
-            onClick={() => setIsCustomizing(!isCustomizing)}
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            {isCustomizing ? "Done" : "Customize"}
-          </Button>
+          <h2 className="text-2xl font-bold">Dashboard</h2>
+          {isCustomizing && (
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              Customizing
+            </Badge>
+          )}
+        </div>
+
+        <div className="flex items-center space-x-2">
+          {isCustomizing ? (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetLayout}
+                className="flex items-center space-x-1 bg-transparent"
+              >
+                <RotateCcw className="h-4 w-4" />
+                <span>Reset</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsCustomizing(false)}
+                className="flex items-center space-x-1"
+              >
+                <X className="h-4 w-4" />
+                <span>Cancel</span>
+              </Button>
+              <Button size="sm" onClick={handleSaveLayout} disabled={isLoading} className="flex items-center space-x-1">
+                <Save className="h-4 w-4" />
+                <span>{isLoading ? "Saving..." : "Save"}</span>
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleCustomization}
+              className="flex items-center space-x-1 bg-transparent"
+            >
+              <Settings className="h-4 w-4" />
+              <span>Customize</span>
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Widget Visibility Controls */}
+      {/* Help Text */}
       {isCustomizing && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Widget Visibility</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-              {widgets.map((widget) => (
-                <Button
-                  key={widget.id}
-                  variant={widget.visible ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => toggleWidgetVisibility(widget.id)}
-                  className="justify-start"
-                >
-                  {widget.visible ? <Eye className="h-4 w-4 mr-2" /> : <EyeOff className="h-4 w-4 mr-2" />}
-                  {widget.title}
-                </Button>
-              ))}
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-4">
+            <div className="flex items-start space-x-2">
+              <GripVertical className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div>
+                <p className="text-sm text-blue-800 font-medium">Customization Mode Active</p>
+                <p className="text-sm text-blue-600">
+                  Drag widgets to rearrange them, resize by dragging corners, or use the controls in each widget header.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
       )}
 
       {/* Grid Layout */}
-      <div
-        className={cn(
-          "transition-all duration-200",
-          isCustomizing && "ring-2 ring-blue-200 dark:ring-blue-800 rounded-lg p-2",
-        )}
+      <ResponsiveGridLayout
+        className="layout"
+        layouts={layouts}
+        onLayoutChange={handleLayoutChange}
+        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+        cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+        rowHeight={60}
+        isDraggable={isCustomizing}
+        isResizable={isCustomizing}
+        margin={[16, 16]}
+        containerPadding={[0, 0]}
+        useCSSTransforms={true}
+        compactType="vertical"
+        preventCollision={false}
       >
-        <ResponsiveGridLayout
-          className="layout"
-          layouts={Object.keys(layouts).length > 0 ? layouts : defaultLayouts}
-          onLayoutChange={handleLayoutChange}
-          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-          cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-          rowHeight={60}
-          isDraggable={isCustomizing}
-          isResizable={isCustomizing}
-          margin={[16, 16]}
-          containerPadding={[0, 0]}
-          useCSSTransforms={true}
-          compactType="vertical"
-          preventCollision={false}
-        >
-          {visibleWidgets.map((widget) => (
+        {widgets.map((widget) => {
+          const WidgetComponent = widget.component
+          return (
             <div key={widget.id} className="widget-container">
-              <div
-                className={cn(
-                  "h-full w-full rounded-lg transition-all duration-200",
-                  isCustomizing && "ring-1 ring-slate-200 dark:ring-slate-700",
-                )}
-                style={{
-                  cursor: isCustomizing ? "move" : "default",
+              <DashboardWidget
+                title={widget.title}
+                isCustomizing={isCustomizing}
+                onRemove={() => {
+                  // Handle widget removal if needed
+                  console.log(`Remove widget: ${widget.id}`)
                 }}
               >
-                {widget.component}
-              </div>
+                <WidgetComponent {...(widget.defaultProps || {})} />
+              </DashboardWidget>
             </div>
-          ))}
-        </ResponsiveGridLayout>
-      </div>
+          )
+        })}
+      </ResponsiveGridLayout>
 
+      {/* Add Widget Button (when customizing) */}
       {isCustomizing && (
-        <div className="text-sm text-slate-600 dark:text-slate-400 text-center">
-          Drag widgets to rearrange them, resize by dragging the corners, or toggle visibility above.
-        </div>
+        <Card className="border-dashed border-2 border-gray-300 hover:border-gray-400 transition-colors">
+          <CardContent className="flex items-center justify-center py-8">
+            <Button variant="ghost" className="flex items-center space-x-2 text-gray-600">
+              <Plus className="h-5 w-5" />
+              <span>Add Widget</span>
+            </Button>
+          </CardContent>
+        </Card>
       )}
-
-      <style jsx global>{`
-        .react-grid-item {
-          transition: all 200ms ease;
-          transition-property: left, top;
-        }
-        .react-grid-item.cssTransforms {
-          transition-property: transform;
-        }
-        .react-grid-item > .react-resizable-handle {
-          position: absolute;
-          width: 20px;
-          height: 20px;
-          bottom: 0;
-          right: 0;
-          background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNiIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgNiA2IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZG90cyBmaWxsPSIjOTk5IiBkPSJtMTUgMTJjMCAuNTUyLS40NDggMS0xIDFzLTEtLjQ0OC0xLTEgLjQ0OC0xIDEtMSAxIC40NDggMSAxem0wIDRjMCAuNTUyLS40NDggMS0xIDFzLTEtLjQ0OC0xLTEgLjQ0OC0xIDEtMSAxIC40NDggMSAxem0wIDRjMCAuNTUyLS40NDggMS0xIDFzLTEtLjQ0OC0xLTEgLjQ0OC0xIDEtMSAxIC40NDggMSAxem0tNS00YzAtLjU1Mi40NDgtMSAxLTFzMSAuNDQ4IDEgMS0uNDQ4IDEtMSAxLTEtLjQ0OC0xLTF6bTAgNGMwLS41NTIuNDQ4LTEgMS0xczEgLjQ0OCAxIDEtLjQ0OCAxLTEgMS0xLS40NDgtMS0xem0wLThjMC0uNTUyLjQ0OC0xIDEtMXMxIC40NDggMSAxLS40NDggMS0xIDEtMS0uNDQ4LTEtMXoiLz4KPHN2Zz4K')
-            no-repeat;
-          background-size: contain;
-          cursor: se-resize;
-        }
-        .react-grid-item.react-grid-placeholder {
-          background: rgb(59 130 246 / 0.15);
-          border-radius: 8px;
-          opacity: 0.2;
-          transition-duration: 100ms;
-          z-index: 2;
-          user-select: none;
-        }
-        .react-grid-item.react-draggable-dragging {
-          transition: none;
-          z-index: 3;
-        }
-        .react-grid-item.react-resizable-resizing {
-          transition: none;
-          z-index: 1;
-        }
-      `}</style>
     </div>
   )
 }
+
+// CSS for react-grid-layout (add to your global CSS)
+export const gridLayoutStyles = `
+.react-grid-layout {
+  position: relative;
+}
+
+.react-grid-item {
+  transition: all 200ms ease;
+  transition-property: left, top;
+}
+
+.react-grid-item img {
+  pointer-events: none;
+  user-select: none;
+}
+
+.react-grid-item.cssTransforms {
+  transition-property: transform;
+}
+
+.react-grid-item.resizing {
+  transition: none;
+  z-index: 1;
+  will-change: width, height;
+}
+
+.react-grid-item.react-draggable-dragging {
+  transition: none;
+  z-index: 3;
+  will-change: transform;
+}
+
+.react-grid-item.dropping {
+  visibility: hidden;
+}
+
+.react-grid-item.react-grid-placeholder {
+  background: rgb(59 130 246 / 0.15);
+  opacity: 0.2;
+  transition-duration: 100ms;
+  z-index: 2;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  border: 2px dashed rgb(59 130 246 / 0.4);
+  border-radius: 8px;
+}
+
+.react-grid-item.react-grid-placeholder.placeholder-active {
+  opacity: 0.3;
+}
+
+.react-resizable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 0;
+  background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNiIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgNiA2IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZG90cyBmaWxsPSIjOTk5IiBkPSJtMTUgMTJjMCAuNTUyLS40NDggMS0xIDFzLTEtLjQ0OC0xLTEgLjQ0OC0xIDEtMSAxIC40NDggMSAxem0wIDRjMCAuNTUyLS40NDggMS0xIDFzLTEtLjQ0OC0xLTEgLjQ0OC0xIDEtMSAxIC40NDggMSAxem0wIDRjMCAuNTUyLS40NDggMS0xIDFzLTEgLjQ0OCAxIDEtLjQ0OCAxLTEgMS0xLS40NDgtMS0xeiIvPgo8L3N2Zz4K');
+  background-position: bottom right;
+  padding: 0 3px 3px 0;
+  background-repeat: no-repeat;
+  background-origin: content-box;
+  box-sizing: border-box;
+  cursor: se-resize;
+}
+
+.react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 5px;
+  height: 5px;
+  border-right: 2px solid rgba(0, 0, 0, 0.4);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.4);
+}
+
+.widget-container {
+  height: 100%;
+}
+`

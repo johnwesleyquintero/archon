@@ -8,7 +8,6 @@ export type Database = {
           created_at: string
           id: string
           layout: Json | null
-          theme: string | null
           updated_at: string
           user_id: string
         }
@@ -16,7 +15,6 @@ export type Database = {
           created_at?: string
           id?: string
           layout?: Json | null
-          theme?: string | null
           updated_at?: string
           user_id: string
         }
@@ -24,7 +22,6 @@ export type Database = {
           created_at?: string
           id?: string
           layout?: Json | null
-          theme?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -40,43 +37,31 @@ export type Database = {
       }
       goals: {
         Row: {
-          category: string | null
-          completed: boolean | null
+          completed: boolean
           created_at: string
-          deadline: string | null
           description: string | null
+          due_date: string | null
           id: string
-          milestones: Json | null
-          priority: string | null
-          progress: number | null
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
-          category?: string | null
-          completed?: boolean | null
+          completed?: boolean
           created_at?: string
-          deadline?: string | null
           description?: string | null
+          due_date?: string | null
           id?: string
-          milestones?: Json | null
-          priority?: string | null
-          progress?: number | null
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
-          category?: string | null
-          completed?: boolean | null
+          completed?: boolean
           created_at?: string
-          deadline?: string | null
           description?: string | null
+          due_date?: string | null
           id?: string
-          milestones?: Json | null
-          priority?: string | null
-          progress?: number | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -93,34 +78,25 @@ export type Database = {
       }
       journal_entries: {
         Row: {
-          attachments: Json | null
           content: string
           created_at: string
           id: string
-          mood: string | null
-          tags: string[] | null
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
-          attachments?: Json | null
           content: string
           created_at?: string
           id?: string
-          mood?: string | null
-          tags?: string[] | null
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
-          attachments?: Json | null
           content?: string
           created_at?: string
           id?: string
-          mood?: string | null
-          tags?: string[] | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -139,29 +115,26 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
-          email: string | null
+          email: string
           full_name: string | null
           id: string
           updated_at: string
-          username: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
-          email?: string | null
+          email: string
           full_name?: string | null
           id: string
           updated_at?: string
-          username?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
-          email?: string | null
+          email?: string
           full_name?: string | null
           id?: string
           updated_at?: string
-          username?: string | null
         }
         Relationships: [
           {
@@ -176,7 +149,7 @@ export type Database = {
       tasks: {
         Row: {
           category: string | null
-          completed: boolean | null
+          completed: boolean
           created_at: string
           description: string | null
           due_date: string | null
@@ -188,7 +161,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
-          completed?: boolean | null
+          completed?: boolean
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -200,7 +173,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
-          completed?: boolean | null
+          completed?: boolean
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -307,9 +280,3 @@ export type Enums<
   : PublicEnumNameOrOptions extends keyof Database["public"]["Enums"]
     ? Database["public"]["Enums"][PublicEnumNameOrOptions]
     : never
-
-export type ProfilesRow = Database["public"]["Tables"]["profiles"]["Row"]
-export type TasksRow = Database["public"]["Tables"]["tasks"]["Row"]
-export type GoalsRow = Database["public"]["Tables"]["goals"]["Row"]
-export type JournalEntriesRow = Database["public"]["Tables"]["journal_entries"]["Row"]
-export type DashboardSettingsRow = Database["public"]["Tables"]["dashboard_settings"]["Row"]
