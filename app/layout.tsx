@@ -11,6 +11,7 @@ import { getUser } from "@/lib/supabase/auth"; // Import getUser
 import { getProfile } from "@/lib/database/profiles"; // Import getProfile
 import type { ProfilesRow } from "@/lib/database/profiles"; // Import ProfilesRow type
 import type { SerializableUser } from "@/contexts/auth-context"; // Import SerializableUser type
+import type { Database } from "@/lib/supabase/types"; // Import Database type
 
 const fontSans = FontSans({
   subsets: ["latin"],

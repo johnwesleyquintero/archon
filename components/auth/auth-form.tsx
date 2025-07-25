@@ -47,10 +47,10 @@ export function AuthForm({ type }: AuthFormProps) {
     setError(null);
     try {
       if (type === "signin") {
-        await signIn(data.email, data.password);
+        await signIn(data.email as string, data.password as string);
         router.push("/dashboard");
       } else {
-        await signUp(data.email, data.password);
+        await signUp(data.email as string, data.password as string);
         router.push(
           "/auth/auth-code-error?message=Check your email for a confirmation link to activate your account.",
         );

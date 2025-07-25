@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
-import { Layout } from "react-grid-layout";
+import { Responsive, WidthProvider, Layout } from "react-grid-layout";
+
+const ResponsiveGridLayout = WidthProvider(Responsive);
 import "/node_modules/react-grid-layout/css/styles.css";
 import "/node_modules/react-resizable/css/styles.css";
 
@@ -47,24 +49,35 @@ export function CustomizableDashboardLayout({
         <div className="flex items-center">
           <h1 className="text-lg font-semibold md:text-2xl">Dashboard</h1>
         </div>
-        <div
-          className="grid flex-1 auto-rows-max items-start gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-          x-chunk="dashboard-05-chunk-0"
+        <ResponsiveGridLayout
+          className="layout"
+          layouts={{ lg: initialLayout }}
+          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+          cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+          rowHeight={100}
+          width={1200} // This will be overridden by WidthProvider
+          onLayoutChange={onLayoutChange}
+          isBounded={true}
         >
-          {widgets.map((widget) => (
-            <DashboardWidget
-              key={widget.id}
-              id={widget.id}
-              title={widget.title}
-              isVisible={
-                initialLayout.find((l) => l.i === widget.id)?.isVisible ?? true
-              }
-              onToggleVisibility={toggleWidgetVisibility}
-            >
-              {widget.component}
-            </DashboardWidget>
-          ))}
-        </div>
+          {widgets.map((widget) => {
+            const layoutItem = initialLayout.find((l) => l.i === widget.id);
+            if (!layoutItem || !layoutItem.isVisible) {
+              return null;
+            }
+            return (
+              <div key={widget.id} data-grid={layoutItem}>
+                <DashboardWidget
+                  id={widget.id}
+                  title={widget.title}
+                  isVisible={layoutItem.isVisible ?? true}
+                  onToggleVisibility={toggleWidgetVisibility}
+                >
+                  {widget.component}
+                </DashboardWidget>
+              </div>
+            );
+          })}
+        </ResponsiveGridLayout>
       </main>
     </div>
   );

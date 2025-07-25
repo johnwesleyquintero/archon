@@ -17,7 +17,7 @@ import {
   updateProfile as updateProfileDb,
 } from "@/lib/database/profiles"; // Server Action for profile updates
 
-type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 // Define a serializable subset of the User object
 export interface SerializableUser {

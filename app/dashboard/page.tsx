@@ -6,10 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity } from "lucide-react";
 import { CustomizableDashboardLayout } from "@/components/customizable-dashboard-layout";
 import { DashboardWidget } from "@/components/dashboard-widget";
-import {
-  useDashboardSettings,
-  WidgetLayout,
-} from "@/hooks/use-dashboard-settings";
+import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface DashboardWidgetConfig {
@@ -71,8 +68,9 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <CustomizableDashboardLayout
-        widgets={visibleWidgets.map((widget: DashboardWidgetConfig) => ({
+        widgets={visibleWidgets.map((widget) => ({
           id: widget.id,
+          title: widget.title, // Add title here
           component: (
             <DashboardWidget
               id={widget.id}

@@ -36,8 +36,6 @@ type Attachment = {
 };
 
 type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
-type JournalEntryUpdate =
-  Database["public"]["Tables"]["journal_entries"]["Update"];
 
 interface JournalEditorProps {
   entry: JournalEntry | null;
@@ -75,6 +73,102 @@ export function JournalEditorWithAttachments({
     ),
     500, // Debounce delay of 500ms
   );
+
+  const form = useForm<JournalFormValues>({
+    resolver: zodResolver(journalEntrySchema),
+    defaultValues: {
+      title: "",
+      content: "",
+      attachments: [],
+    },
+    mode: "onBlur", // Enable real-time validation on blur
+  });
+
+  // Helper function to convert a URL string to an Attachment object
+  const createAttachmentFromUrl = (url: string): Attachment => {
+    const fileExtension = url.substring(url.lastIndexOf(".") + 1).toLowerCase();
+    const type: "image" | "document" = ["jpeg", "jpg", "gif", "png"].includes(
+      fileExtension,
+    )
+      ? "image"
+      : "document";
+    return {
+      url,
+      filename: url.substring(url.lastIndexOf("/") + 1),
+      type,
+    };
+  };
+
+  const handleFileUpload = useCallback(
+    async (file: File) => {
+      if (!entry) return { success: false };
+
+      try {
+        const result = await uploadFile(file, `journal/${entry.id}`);
+
+        if (result.success) {
+          const fileType: "image" | "document" = file.type.startsWith("image/")
+            ? "image"
+            : "document";
+
+          const currentAttachments = form.getValues("attachments") || [];
+          const newAttachment: Attachment = {
+            url: result.url,
+            filename: file.name,
+            type: fileType,
+          };
+          const updatedAttachments: Attachment[] = [
+            ...currentAttachments,
+            newAttachment,
+          ];
+          form.setValue("attachments", updatedAttachments, {
+            shouldDirty: true,
+            shouldValidate: true,
+          });
+
+          void updateEntry(entry.id, {
+            attachments: updatedAttachments.map((att) => att.url),
+          });
+
+          // Insert image directly into Quill editor if it's an image
+          if (fileType === "image" && quillRef.current) {
+            const editor = quillRef.current.getEditor();
+            const range = editor.getSelection();
+            if (range) {
+              editor.insertEmbed(range.index, "image", result.url);
+            } else {
+              editor.insertEmbed(editor.getLength(), "image", result.url);
+            }
+          } else if (quillRef.current) {
+            // For other file types, insert a link
+            const editor = quillRef.current.getEditor();
+            const range = editor.getSelection();
+            const linkText = newAttachment.filename;
+            const linkUrl = newAttachment.url;
+            if (range) {
+              editor.insertText(range.index, linkText, { link: linkUrl });
+              editor.setSelection(range.index + linkText.length);
+            } else {
+              editor.insertText(editor.getLength(), linkText, {
+                link: linkUrl,
+              });
+            }
+          }
+
+          return { url: result.url, success: true };
+        }
+
+        return { success: false };
+      } catch (error: unknown) {
+        console.error("Error uploading file:", error);
+        return {
+          success: false,
+          error: error instanceof Error ? error : new Error(String(error)),
+        };
+      }
+    },
+    [entry, form, updateEntry, quillRef],
+  ); // Add dependencies for useCallback
 
   // Custom image handler for Quill (triggered by Quill's image button)
   const imageHandler = useCallback(() => {
@@ -128,37 +222,16 @@ export function JournalEditorWithAttachments({
     "image",
   ];
 
-  const form = useForm<JournalFormValues>({
-    resolver: zodResolver(journalEntrySchema),
-    defaultValues: {
-      title: "",
-      content: "",
-      attachments: [],
-    },
-    mode: "onBlur", // Enable real-time validation on blur
-  });
-
-  // Helper function to convert a URL string to an Attachment object
-  const createAttachmentFromUrl = (url: string): Attachment => {
-    const fileExtension = url.substring(url.lastIndexOf(".") + 1).toLowerCase();
-    const type: "image" | "document" = ["jpeg", "jpg", "gif", "png"].includes(
-      fileExtension,
-    )
-      ? "image"
-      : "document";
-    return {
-      url,
-      filename: url.substring(url.lastIndexOf("/") + 1),
-      type,
-    };
-  };
-
   useEffect(() => {
     if (entry) {
       form.reset({
         title: entry.title,
         content: entry.content || "", // Set HTML content directly
-        attachments: (entry.attachments || []).map(createAttachmentFromUrl),
+        attachments: Array.isArray(entry.attachments)
+          ? entry.attachments
+              .filter((att): att is string => typeof att === "string")
+              .map(createAttachmentFromUrl)
+          : [],
       });
     } else {
       form.reset({
@@ -175,73 +248,7 @@ export function JournalEditorWithAttachments({
       shouldValidate: true,
     });
     if (entry) {
-      debouncedOnUpdateEntryContent(entry.id, newContent);
-    }
-  };
-
-  const handleFileUpload = async (file: File) => {
-    if (!entry) return { success: false };
-
-    try {
-      const result = await uploadFile(file, `journal/${entry.id}`);
-
-      if (result.success) {
-        const fileType: "image" | "document" = file.type.startsWith("image/")
-          ? "image"
-          : "document";
-
-        const currentAttachments = form.getValues("attachments") || [];
-        const newAttachment: Attachment = {
-          url: result.url,
-          filename: file.name,
-          type: fileType,
-        };
-        const updatedAttachments: Attachment[] = [
-          ...currentAttachments,
-          newAttachment,
-        ];
-        form.setValue("attachments", updatedAttachments, {
-          shouldDirty: true,
-          shouldValidate: true,
-        });
-
-        updateEntry(entry.id, {
-          attachments: updatedAttachments.map((att) => att.url),
-        });
-
-        // Insert image directly into Quill editor if it's an image
-        if (fileType === "image" && quillRef.current) {
-          const editor = quillRef.current.getEditor();
-          const range = editor.getSelection();
-          if (range) {
-            editor.insertEmbed(range.index, "image", result.url);
-          } else {
-            editor.insertEmbed(editor.getLength(), "image", result.url);
-          }
-        } else if (quillRef.current) {
-          // For other file types, insert a link
-          const editor = quillRef.current.getEditor();
-          const range = editor.getSelection();
-          const linkText = newAttachment.filename;
-          const linkUrl = newAttachment.url;
-          if (range) {
-            editor.insertText(range.index, linkText, { link: linkUrl });
-            editor.setSelection(range.index + linkText.length);
-          } else {
-            editor.insertText(editor.getLength(), linkText, { link: linkUrl });
-          }
-        }
-
-        return { url: result.url, success: true };
-      }
-
-      return { success: false };
-    } catch (error: unknown) {
-      console.error("Error uploading file:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error : new Error(String(error)),
-      };
+      void debouncedOnUpdateEntryContent(entry.id, newContent);
     }
   };
 
@@ -256,7 +263,7 @@ export function JournalEditorWithAttachments({
       shouldDirty: true,
       shouldValidate: true,
     });
-    updateEntry(entry.id, {
+    void updateEntry(entry.id, {
       attachments: updatedAttachments.map((att) => att.url),
     });
 
@@ -314,7 +321,10 @@ export function JournalEditorWithAttachments({
                       onChange={(e) => {
                         field.onChange(e);
                         if (entry) {
-                          debouncedOnUpdateEntryTitle(entry.id, e.target.value);
+                          void debouncedOnUpdateEntryTitle(
+                            entry.id,
+                            e.target.value,
+                          );
                         }
                       }}
                     />
@@ -490,7 +500,7 @@ export function JournalEditorWithAttachments({
             <FormItem className="flex-1 flex flex-col">
               <FormControl>
                 <ReactQuill
-                  ref={(el) => {
+                  ref={(el: any) => {
                     quillRef.current = el;
                     field.ref(el);
                   }}
