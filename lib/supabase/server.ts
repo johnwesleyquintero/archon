@@ -1,50 +1,34 @@
-"use server";
+"use server"
 
-// Load environment variables from .env file
-import "dotenv/config";
-
-import { createServerClient as createServerClientSSR } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import type { Database } from "./types";
-
-// Log environment variables to debug loading issues
-console.log("NEXT_PUBLIC_SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-console.log(
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY:",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-);
-
-type CookieOptions = {
-  domain?: string;
-  expires?: Date;
-  httpOnly?: boolean;
-  maxAge?: number;
-  path?: string;
-  secure?: boolean;
-  sameSite?: boolean | "lax" | "strict" | "none";
-  priority?: "low" | "medium" | "high";
-  encode?: (value: string) => string;
-  partitioned?: boolean;
-};
+import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
+import type { Database } from "./types"
 
 export async function getSupabaseServerClient() {
-  const cookieStore = await cookies(); // Await the cookies() call
-  return createServerClientSSR<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, // Use anon key for server-side operations that are user-facing
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set(name, value, options);
-        },
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        remove(name: string, _options: CookieOptions) {
-          cookieStore.delete(name);
-        },
+  const cookieStore = await cookies()
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Missing Supabase environment variables")
+  }
+
+  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll()
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options)
+          })
+        } catch (error) {
+          // The `setAll` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing user sessions.
+        }
       },
     },
-  );
+  })
 }

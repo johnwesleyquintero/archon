@@ -1,143 +1,273 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import type React from "react"
 
-import {
-  FormProvider, // Added this import
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useAuth } from "@/contexts/auth-context";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { authSchema } from "@/lib/validators";
-import type { z } from "zod";
-import { useRouter } from "next/navigation";
-import { Spinner } from "@/components/ui/spinner"; // Assuming you have a Spinner component
-import { useFormStatus } from "react-dom";
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { createClient } from "@/lib/supabase/client"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 
-type AuthFormValues = z.infer<typeof authSchema>;
+export function AuthForm() {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState("signin")
 
-interface AuthFormProps {
-  type: "signin" | "signup";
-}
+  const router = useRouter()
+  const supabase = createClient()
 
-export function AuthForm({ type }: AuthFormProps) {
-  const { signIn, signUp } = useAuth();
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+    setMessage(null)
 
-  const form = useForm<AuthFormValues>({
-    resolver: zodResolver(authSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-    mode: "onBlur", // Enable real-time validation on blur
-  });
-
-  const onSubmit = async (data: AuthFormValues) => {
-    setIsLoading(true);
-    setError(null);
     try {
-      if (type === "signin") {
-        await signIn(data.email as string, data.password as string);
-        router.push("/dashboard");
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        setError(error.message)
       } else {
-        await signUp(data.email as string, data.password as string);
-        router.push(
-          "/auth/auth-code-error?message=Check your email for a confirmation link to activate your account.",
-        );
+        setMessage("Sign in successful! Redirecting...")
+        router.push("/dashboard")
       }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred.",
-      );
+    } catch (err: any) {
+      setError("An unexpected error occurred")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+    setMessage(null)
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+
+      if (error) {
+        setError(error.message)
+      } else {
+        setMessage("Check your email for the confirmation link!")
+      }
+    } catch (err: any) {
+      setError("An unexpected error occurred")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError("Please enter your email address first")
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+    setMessage(null)
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      })
+
+      if (error) {
+        setError(error.message)
+      } else {
+        setMessage("Password reset email sent!")
+      }
+    } catch (err: any) {
+      setError("An unexpected error occurred")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
-    <FormProvider {...form}>
-      <form
-        onSubmit={(e) => {
-          void form.handleSubmit(onSubmit)(e);
-        }}
-        className="space-y-4"
-      >
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  placeholder="m@example.com"
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Welcome to Archon</CardTitle>
+          <CardDescription className="text-center">Sign in to your account or create a new one</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="signin">Sign In</TabsTrigger>
+              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="signin" className="space-y-4">
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signin-email">Email</Label>
+                  <Input
+                    id="signin-email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signin-password">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="signin-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      disabled={isLoading}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
+              </form>
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={handleForgotPassword}
                   disabled={isLoading}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+                  className="text-sm"
+                >
+                  Forgot your password?
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="signup" className="space-y-4">
+              <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-email">Email</Label>
+                  <Input
+                    id="signup-email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="signup-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Create a password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      disabled={isLoading}
+                      minLength={6}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Input
+                    id="confirm-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    minLength={6}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+
+          {error && (
+            <Alert className="mt-4" variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" disabled={isLoading} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+
+          {message && (
+            <Alert className="mt-4">
+              <AlertDescription>{message}</AlertDescription>
+            </Alert>
           )}
-        />
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        <SubmitButton
-          type="submit"
-          className="w-full bg-slate-900 hover:bg-slate-800"
-          disabled={isLoading}
-          pendingText={type === "signin" ? "Signing In..." : "Signing Up..."}
-        >
-          {type === "signin" ? "Sign In" : "Sign Up"}
-        </SubmitButton>
-      </form>
-    </FormProvider>
-  );
+        </CardContent>
+      </Card>
+    </div>
+  )
 }
 
-interface SubmitButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  pendingText: string;
-}
-
-export function SubmitButton({
-  children,
-  pendingText,
-  ...props
-}: SubmitButtonProps) {
-  const { pending } = useFormStatus();
-
-  return (
-    <Button {...props} type="submit" disabled={pending || props.disabled}>
-      {pending ? (
-        <span className="flex items-center gap-2">
-          <Spinner size="sm" /> {pendingText}
-        </span>
-      ) : (
-        children
-      )}
-    </Button>
-  );
-}
+export default AuthForm
