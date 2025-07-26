@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  Form,
   FormControl,
   FormField,
   FormItem,
@@ -175,71 +176,80 @@ export function ProfileFormWithAvatar() {
         <CardDescription>Manage your public profile.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={void form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="flex items-center gap-6">
-            <Avatar className="h-24 w-24">
-              <AvatarImage
-                src={form.watch("avatar") || "/placeholder-user.png"}
-                alt={form.watch("fullName") || "User Avatar"}
-              />
-              <AvatarFallback>
-                {form.watch("fullName") ? (
-                  form.watch("fullName").charAt(0)
-                ) : (
-                  <User className="h-12 w-12" />
-                )}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <FileUpload
-                onUpload={handleAvatarUpload}
-                accept="image/*"
-                buttonText="Change Avatar"
-                disabled={isSaving}
-              />
-            </div>
-          </div>
-
-          <FormField
-            control={form.control}
-            name="fullName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Full Name</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="John Doe"
-                    disabled={isSaving}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Username</FormLabel>
-                <FormControl>
-                  <Input placeholder="johndoe" disabled={isSaving} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <Button
-            type="submit"
-            className="bg-slate-900 hover:bg-slate-800"
-            disabled={isSaving || !form.formState.isDirty}
+        <Form {...form}>
+          <form
+            onSubmit={void form.handleSubmit(onSubmit)}
+            className="space-y-6"
           >
-            {isSaving ? <Spinner size="sm" /> : "Save Changes"}
-          </Button>
-        </form>
+            <div className="flex items-center gap-6">
+              <Avatar className="h-24 w-24">
+                <AvatarImage
+                  src={form.watch("avatar") || "/placeholder-user.png"}
+                  alt={form.watch("fullName") || "User Avatar"}
+                />
+                <AvatarFallback>
+                  {form.watch("fullName") ? (
+                    form.watch("fullName").charAt(0)
+                  ) : (
+                    <User className="h-12 w-12" />
+                  )}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <FileUpload
+                  onUpload={handleAvatarUpload}
+                  accept="image/*"
+                  buttonText="Change Avatar"
+                  disabled={isSaving}
+                />
+              </div>
+            </div>
+
+            <FormField
+              control={form.control}
+              name="fullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="John Doe"
+                      disabled={isSaving}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="johndoe"
+                      disabled={isSaving}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button
+              type="submit"
+              className="bg-slate-900 hover:bg-slate-800"
+              disabled={isSaving || !form.formState.isDirty}
+            >
+              {isSaving ? <Spinner size="sm" /> : "Save Changes"}
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );

@@ -1,256 +1,266 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { createContext, useContext, useEffect, useState, useCallback } from "react"
-import { createClient } from "@/lib/supabase/client"
-import type { AuthChangeEvent, Session } from "@supabase/supabase-js"
-import type { Database } from "@/lib/supabase/types"
-import { getProfile, updateProfile as updateProfileDb } from "@/lib/database/profiles"
+import type React from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import type {
+  User,
+  Session,
+  AuthError as SupabaseAuthError,
+  AuthChangeEvent,
+} from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
+import type { Database } from "@/lib/supabase/types";
 
-export type Profile = Database["public"]["Tables"]["profiles"]["Row"]
-
-export interface SerializableUser {
-  id: string
-  email?: string
-  created_at?: string
-}
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 interface AuthContextType {
-  user: SerializableUser | null
-  profile: Profile | null
-  isLoading: boolean
-  error: Error | null
-  signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<void>
-  signOut: () => Promise<void>
-  updateProfile: (updates: Partial<Profile>) => Promise<void>
-  refetchProfile: () => Promise<void>
-  isSigningOut: boolean
-  setIsSigningOut: React.Dispatch<React.SetStateAction<boolean>>
+  user: User | null;
+  profile: Profile | null;
+  session: Session | null;
+  loading: boolean;
+  error: SupabaseAuthError | null; // Use SupabaseAuthError type
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: SupabaseAuthError | null }>;
+  signUp: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: SupabaseAuthError | null }>;
+  resetPassword: (
+    email: string,
+  ) => Promise<{ error: SupabaseAuthError | null }>;
+  signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+  updateProfile: (
+    profileData: Partial<Omit<Profile, "id" | "updated_at">>,
+  ) => Promise<{ error: SupabaseAuthError | null }>;
+  isSigningOut: boolean;
+  setIsSigningOut: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({
-  children,
-  initialUser,
-  initialProfile,
-}: {
-  children: React.ReactNode
-  initialUser: SerializableUser | null
-  initialProfile: Profile | null
-}) {
-  const [user, setUser] = useState<SerializableUser | null>(initialUser)
-  const [profile, setProfile] = useState<Profile | null>(initialProfile)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
-  const [isSigningOut, setIsSigningOut] = useState(false)
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<SupabaseAuthError | null>(null); // Initialize error state with SupabaseAuthError
+  const [isSigningOut, setIsSigningOut] = useState(false); // Add isSigningOut state
+  const supabase = createClient();
 
-  const supabase = createClient()
-
-  const fetchProfile = useCallback(async (userId: string) => {
-    setError(null)
+  const fetchProfile = async (userId: string) => {
     try {
-      const fetchedProfile = await getProfile(userId)
-      setProfile(fetchedProfile || null)
-    } catch (err: any) {
-      console.error("Error fetching profile:", err)
-      setError(err)
-      setProfile(null)
+      // First, try to get existing profile
+      const { data: existingProfile, error: fetchError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle(); // Use maybeSingle() instead of single() to handle no rows
+
+      if (fetchError && fetchError.code !== "PGRST116") {
+        // PGRST116 is "no rows returned" which is expected for new users
+        console.error("Error fetching profile:", fetchError);
+        return null;
+      }
+
+      if (existingProfile) {
+        return existingProfile;
+      }
+
+      // If no profile exists, create one
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        console.error("No user data available for profile creation");
+        return null;
+      }
+
+      // Create profile with only the columns that exist in the database
+      const newProfile = {
+        id: userId,
+        full_name: userData.user.user_metadata?.full_name || null,
+        avatar_url: userData.user.user_metadata?.avatar_url || null,
+        username: null, // Will be set later if user wants to customize
+      };
+
+      const { data: createdProfile, error: createError } = await supabase
+        .from("profiles")
+        .insert(newProfile)
+        .select()
+        .single();
+
+      if (createError) {
+        console.error("Error creating profile:", createError);
+        return null;
+      }
+
+      return createdProfile;
+    } catch (error) {
+      console.error("Error in fetchProfile:", error);
+      return null;
     }
-  }, [])
+  };
+
+  const refreshProfile = async () => {
+    if (user) {
+      const profileData = await fetchProfile(user.id);
+      setProfile(profileData);
+    }
+  };
+
+  const signIn = async (
+    email: string,
+    password: string,
+  ): Promise<{ error: SupabaseAuthError | null }> => {
+    setError(null); // Clear previous errors
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) setError(error);
+    return { error };
+  };
+
+  const signUp = async (
+    email: string,
+    password: string,
+  ): Promise<{ error: SupabaseAuthError | null }> => {
+    setError(null); // Clear previous errors
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    if (error) setError(error);
+    return { error };
+  };
+
+  const resetPassword = async (
+    email: string,
+  ): Promise<{ error: SupabaseAuthError | null }> => {
+    setError(null); // Clear previous errors
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    if (error) setError(error);
+    return { error };
+  };
+
+  const signOut = async () => {
+    setError(null); // Clear previous errors
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+    } catch (error) {
+      console.error("Error signing out:", error);
+      setError(error as SupabaseAuthError); // Cast to SupabaseAuthError
+    }
+  };
+
+  const updateProfile = async (
+    profileData: Partial<Omit<Profile, "id" | "updated_at">>,
+  ): Promise<{ error: SupabaseAuthError | null }> => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .update(profileData)
+        .eq("id", user?.id!)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      setProfile(data);
+      return { error: null };
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      setError(error as SupabaseAuthError); // Set global error state, cast to SupabaseAuthError
+      return { error: error as SupabaseAuthError };
+    }
+  };
 
   useEffect(() => {
-    let isMounted = true
-
-    const initializeAuth = async () => {
+    // Get initial session
+    const getInitialSession = async () => {
       try {
-        // Get initial session
         const {
           data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession()
+          error,
+        } = await supabase.auth.getSession();
 
-        if (sessionError) {
-          console.error("Session error:", sessionError)
-          if (isMounted) {
-            setError(sessionError)
-          }
-          return
-        }
+        if (error) {
+          console.error("Error getting session:", error);
+        } else {
+          setSession(session);
+          setUser(session?.user ?? null);
 
-        let currentUser: SerializableUser | null = null
-
-        if (session?.user) {
-          currentUser = {
-            id: session.user.id,
-            email: session.user.email,
-            created_at: session.user.created_at,
-          }
-        } else if (initialUser) {
-          currentUser = initialUser
-        }
-
-        if (isMounted) {
-          setUser(currentUser)
-
-          // Fetch profile if we have a user but no initial profile
-          if (currentUser && !initialProfile) {
-            await fetchProfile(currentUser.id)
-          } else if (!currentUser) {
-            setProfile(null)
+          if (session?.user) {
+            const profileData = await fetchProfile(session.user.id);
+            setProfile(profileData);
           }
         }
-      } catch (err: any) {
-        console.error("Auth initialization error:", err)
-        if (isMounted) {
-          setError(err)
-          setUser(null)
-          setProfile(null)
-        }
+      } catch (error) {
+        console.error("Error getting initial session:", error);
       } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
+        setLoading(false);
       }
-    }
+    };
 
-    initializeAuth()
+    getInitialSession();
 
-    // Listen for auth state changes
+    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-      console.log("Auth state changed:", event, session?.user?.email)
+    } = supabase.auth.onAuthStateChange(
+      async (event: AuthChangeEvent, session: Session | null) => {
+        console.log("Auth state changed:", event, session?.user?.email);
 
-      if (isMounted) {
-        if (event === "SIGNED_IN" && session?.user) {
-          const serializableUser: SerializableUser = {
-            id: session.user.id,
-            email: session.user.email,
-            created_at: session.user.created_at,
-          }
-          setUser(serializableUser)
-          await fetchProfile(session.user.id)
-        } else if (event === "SIGNED_OUT") {
-          setUser(null)
-          setProfile(null)
-        } else if (event === "USER_UPDATED" && session?.user) {
-          const serializableUser: SerializableUser = {
-            id: session.user.id,
-            email: session.user.email,
-            created_at: session.user.created_at,
-          }
-          setUser(serializableUser)
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          const profileData = await fetchProfile(session.user.id);
+          setProfile(profileData);
+        } else {
+          setProfile(null);
         }
-      }
-    })
+
+        setLoading(false);
+      },
+    );
 
     return () => {
-      isMounted = false
-      subscription.unsubscribe()
-    }
-  }, [supabase, initialUser, initialProfile, fetchProfile])
-
-  const signIn = useCallback(
-    async (email: string, password: string) => {
-      setError(null)
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      if (signInError) {
-        throw signInError
-      }
-    },
-    [supabase],
-  )
-
-  const signUp = useCallback(
-    async (email: string, password: string) => {
-      setError(null)
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_VERCEL_URL || location.origin}/auth/callback`,
-        },
-      })
-      if (signUpError) {
-        throw signUpError
-      }
-    },
-    [supabase],
-  )
-
-  const signOut = useCallback(async () => {
-    setError(null)
-    setIsSigningOut(true)
-    try {
-      const { error: signOutError } = await supabase.auth.signOut()
-      if (signOutError) {
-        throw signOutError
-      }
-      // Redirect to home page
-      window.location.href = "/"
-    } catch (error) {
-      console.error("Sign out error:", error)
-      throw error
-    } finally {
-      setIsSigningOut(false)
-    }
-  }, [supabase])
-
-  const updateProfile = useCallback(
-    async (updates: Partial<Profile>) => {
-      if (!user) {
-        throw new Error("User not authenticated.")
-      }
-      setError(null)
-      try {
-        const updated = await updateProfileDb(user.id, updates)
-        if (updated) {
-          setProfile(updated)
-        } else {
-          throw new Error("Failed to update profile in database.")
-        }
-      } catch (err: any) {
-        console.error("Error updating profile:", err)
-        setError(err)
-        throw err
-      }
-    },
-    [user],
-  )
-
-  const refetchProfile = useCallback(async () => {
-    if (user) {
-      const fetchedProfile = await getProfile(user.id)
-      setProfile(fetchedProfile)
-    }
-  }, [user])
+      subscription.unsubscribe();
+    };
+  }, [supabase.auth]);
 
   const value = {
     user,
     profile,
-    isLoading,
-    error,
+    session,
+    loading,
+    error, // Include error in the context value
     signIn,
     signUp,
+    resetPassword,
     signOut,
+    refreshProfile,
     updateProfile,
-    refetchProfile,
     isSigningOut,
     setIsSigningOut,
-  }
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context
+  return context;
 }

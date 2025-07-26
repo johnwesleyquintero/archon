@@ -23,9 +23,9 @@ export default function SignInPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <AuthForm type="signin" />
+          <AuthForm />
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
+            Don't have an account?{" "}
             <Link
               href="/auth/signup"
               className="underline text-slate-600 hover:text-slate-900"

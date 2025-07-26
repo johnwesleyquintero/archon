@@ -70,14 +70,14 @@ export function useTasks() {
           const newTask: Task = {
             id: tempId,
             title: input.title,
-            completed: input.completed || false,
+            is_completed: input.is_completed || false,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             user_id: user.id,
             due_date: input.due_date || null,
-            priority: input.priority || "medium",
+            priority: input.priority || null,
             category: input.category || null,
-            tags: input.tags || [],
+            tags: input.tags || null,
           };
           setTasks((prev) => [newTask, ...prev]);
 
@@ -135,7 +135,7 @@ export function useTasks() {
           // Optimistic update
           setTasks((prev) =>
             prev.map((task) =>
-              task.id === id ? { ...task, completed: completed } : task,
+              task.id === id ? { ...task, is_completed: completed } : task,
             ),
           );
           const updatedTask = await toggleTask(id, completed);
@@ -148,7 +148,7 @@ export function useTasks() {
             // Revert optimistic update if actual update failed
             setTasks((prev) =>
               prev.map((task) =>
-                task.id === id ? { ...task, completed: !completed } : task,
+                task.id === id ? { ...task, is_completed: !completed } : task,
               ),
             );
             setError("Failed to update task status.");
@@ -169,7 +169,7 @@ export function useTasks() {
           // Revert optimistic update on error
           setTasks((prev) =>
             prev.map((task) =>
-              task.id === id ? { ...task, completed: !completed } : task,
+              task.id === id ? { ...task, is_completed: !completed } : task,
             ),
           );
         }
@@ -186,9 +186,9 @@ export function useTasks() {
       }
       setError(null);
       startTransition(async () => {
+        const originalTasks = tasks;
         try {
           // Optimistic update
-          const originalTasks = tasks;
           setTasks((prev) => prev.filter((task) => task.id !== id));
 
           await deleteTask(id);

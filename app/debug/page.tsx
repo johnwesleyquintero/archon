@@ -7,12 +7,12 @@ import { useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 
 export default function DebugPage() {
-  const { user, profile, isLoading, error, refetchProfile } = useAuth();
+  const { user, profile, loading, error, refreshProfile } = useAuth(); // Changed isLoading to loading, and refetchProfile to refreshProfile
   const [isRefetching, setIsRefetching] = useState(false);
 
   const handleRefetchProfile = async () => {
     setIsRefetching(true);
-    await refetchProfile();
+    await refreshProfile(); // Use refreshProfile
     setIsRefetching(false);
   };
 
@@ -26,7 +26,7 @@ export default function DebugPage() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <p>
-            <strong>Loading:</strong> {isLoading ? "Yes" : "No"}
+            <strong>Loading:</strong> {loading ? "Yes" : "No"}
           </p>
           <p>
             <strong>User ID:</strong> {user?.id || "N/A"}
@@ -35,7 +35,7 @@ export default function DebugPage() {
             <strong>User Email:</strong> {user?.email || "N/A"}
           </p>
           <p>
-            <strong>Auth Error:</strong> {error ? error.message : "None"}
+            <strong>Auth Error:</strong> {error?.message || "None"}
           </p>
           <Button
             onClick={() => {

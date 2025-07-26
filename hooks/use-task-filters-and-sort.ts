@@ -18,7 +18,7 @@ export type TaskFilters = {
   tags: string[];
 };
 
-const priorityOrder = {
+const priorityOrder: { [key: string]: number } = {
   high: 3,
   medium: 2,
   low: 1,
@@ -41,16 +41,19 @@ export function useTaskFiltersAndSort(tasks: Task[]) {
     // First, apply filters
     let result = tasks.filter((task) => {
       // Status filter
-      if (filters.status === "active" && task.completed) return false;
-      if (filters.status === "completed" && !task.completed) return false;
+      if (filters.status === "active" && task.is_completed) return false;
+      if (filters.status === "completed" && !task.is_completed) return false;
 
       // Priority filter
-      if (filters.priority !== "all" && task.priority !== filters.priority)
+      if (
+        filters.priority !== "all" &&
+        (task as any).priority !== filters.priority
+      )
         return false;
 
       // Due date filter
-      if (filters.dueDate !== "all" && task.due_date) {
-        const dueDate = new Date(task.due_date);
+      if (filters.dueDate !== "all" && (task as any).due_date) {
+        const dueDate = new Date((task as any).due_date);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -74,12 +77,13 @@ export function useTaskFiltersAndSort(tasks: Task[]) {
       }
 
       // Category filter
-      if (filters.category && task.category !== filters.category) return false;
+      if (filters.category && (task as any).category !== filters.category)
+        return false;
 
       // Tags filter
       if (
         filters.tags.length > 0 &&
-        !filters.tags.every((tag) => task.tags.includes(tag))
+        !filters.tags.every((tag) => ((task as any).tags || []).includes(tag))
       )
         return false;
 
@@ -88,19 +92,26 @@ export function useTaskFiltersAndSort(tasks: Task[]) {
 
     // Then, apply sorting
     result.sort((a, b) => {
+      const aTyped = a as any;
+      const bTyped = b as any;
+
       switch (sort.field) {
         case "due_date":
-          if (!a.due_date && !b.due_date) return 0;
-          if (!a.due_date) return sort.direction === "asc" ? 1 : -1;
-          if (!b.due_date) return sort.direction === "asc" ? -1 : 1;
+          if (!aTyped.due_date && !bTyped.due_date) return 0;
+          if (!aTyped.due_date) return sort.direction === "asc" ? 1 : -1;
+          if (!bTyped.due_date) return sort.direction === "asc" ? -1 : 1;
           return sort.direction === "asc"
-            ? new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
-            : new Date(b.due_date).getTime() - new Date(a.due_date).getTime();
+            ? new Date(aTyped.due_date).getTime() -
+                new Date(bTyped.due_date).getTime()
+            : new Date(bTyped.due_date).getTime() -
+                new Date(aTyped.due_date).getTime();
 
         case "priority":
           return sort.direction === "asc"
-            ? priorityOrder[a.priority] - priorityOrder[b.priority]
-            : priorityOrder[b.priority] - priorityOrder[a.priority];
+            ? (priorityOrder[aTyped.priority] || 0) -
+                (priorityOrder[bTyped.priority] || 0)
+            : (priorityOrder[bTyped.priority] || 0) -
+                (priorityOrder[aTyped.priority] || 0);
 
         case "title":
           return sort.direction === "asc"

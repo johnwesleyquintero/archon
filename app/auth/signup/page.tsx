@@ -21,7 +21,7 @@ export default function SignUpPage() {
           <CardDescription>Create an account to get started.</CardDescription>
         </CardHeader>
         <CardContent>
-          <AuthForm type="signup" />
+          <AuthForm />
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
             <Link

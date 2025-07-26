@@ -102,9 +102,13 @@ export function GoalTrackerWithAttachments() {
             type: file.type.startsWith("image/") ? "image" : "document",
           };
           // Convert existing string attachments to Attachment objects before adding new one
-          const currentAttachmentsAsObjects: Attachment[] = (
-            currentGoal.attachments || []
-          ).map(createAttachmentFromUrl);
+          const currentAttachmentsAsObjects: Attachment[] = Array.isArray(
+            currentGoal.attachments,
+          )
+            ? currentGoal.attachments.map((att: any) =>
+                createAttachmentFromUrl(att as string),
+              )
+            : [];
 
           const updatedAttachments: Attachment[] = [
             ...currentAttachmentsAsObjects,
@@ -121,19 +125,7 @@ export function GoalTrackerWithAttachments() {
       return { success: false };
     } catch (err: unknown) {
       console.error("Error uploading file:", err);
-      let errorToReturn: Error | undefined = undefined;
-      if (err instanceof Error) {
-        errorToReturn = err;
-      } else if (
-        typeof err === "object" &&
-        err !== null &&
-        "message" in err &&
-        typeof (err as { message: unknown }).message === "string"
-      ) {
-        errorToReturn = new Error((err as { message: string }).message);
-      } else {
-        errorToReturn = new Error("An unknown error occurred.");
-      }
+      const errorToReturn = err instanceof Error ? err : new Error(String(err));
       return { success: false, error: errorToReturn };
     }
   };
@@ -250,10 +242,16 @@ export function GoalTrackerWithAttachments() {
                           variant="outline"
                           className={cn(
                             "text-xs font-medium shrink-0",
-                            statusConfig[goal.status].color,
+                            statusConfig[
+                              goal.status as keyof typeof statusConfig
+                            ]?.color,
                           )}
                         >
-                          {statusConfig[goal.status].icon}
+                          {
+                            statusConfig[
+                              goal.status as keyof typeof statusConfig
+                            ]?.icon
+                          }
                         </Badge>
                       </div>
 
@@ -276,34 +274,39 @@ export function GoalTrackerWithAttachments() {
                       )}
 
                       {/* Attachments */}
-                      {goal.attachments && goal.attachments.length > 0 && (
-                        <div className="pt-2">
-                          <div className="flex items-center gap-1 text-xs text-slate-600 mb-2">
-                            <Paperclip className="h-3 w-3" />
-                            <span>Attachments ({goal.attachments.length})</span>
+                      {Array.isArray(goal.attachments) &&
+                        goal.attachments.length > 0 && (
+                          <div className="pt-2">
+                            <div className="flex items-center gap-1 text-xs text-slate-600 mb-2">
+                              <Paperclip className="h-3 w-3" />
+                              <span>
+                                Attachments ({goal.attachments.length})
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {goal.attachments.map(
+                                (url: any, index: number) => {
+                                  const attachment = createAttachmentFromUrl(
+                                    url as string,
+                                  );
+                                  return (
+                                    <a
+                                      key={index}
+                                      href={attachment.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded flex items-center gap-1"
+                                    >
+                                      <span className="truncate max-w-[100px]">
+                                        {attachment.filename}
+                                      </span>
+                                    </a>
+                                  );
+                                },
+                              )}
+                            </div>
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            {goal.attachments.map(
-                              (url: string, index: number) => {
-                                const attachment = createAttachmentFromUrl(url);
-                                return (
-                                  <a
-                                    key={index}
-                                    href={attachment.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded flex items-center gap-1"
-                                  >
-                                    <span className="truncate max-w-[100px]">
-                                      {attachment.filename}
-                                    </span>
-                                  </a>
-                                );
-                              },
-                            )}
-                          </div>
-                        </div>
-                      )}
+                        )}
 
                       {/* File Upload */}
                       {showUploadFor === goal.id && (

@@ -11,7 +11,10 @@ import { AuthForm } from "@/components/auth/auth-form";
 import Link from "next/link";
 import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 
-export default function LoginForm() {
+// Legacy component - redirects to new login form
+export { LoginForm as default } from "@/components/auth/login-form";
+
+function LoginForm() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
       <Card className="w-full max-w-md">

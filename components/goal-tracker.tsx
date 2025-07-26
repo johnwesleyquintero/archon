@@ -119,10 +119,14 @@ export function GoalTracker() {
                         variant="outline"
                         className={cn(
                           "text-xs font-medium shrink-0",
-                          statusConfig[goal.status].color,
+                          statusConfig[goal.status as keyof typeof statusConfig]
+                            ?.color,
                         )}
                       >
-                        {statusConfig[goal.status].icon}
+                        {
+                          statusConfig[goal.status as keyof typeof statusConfig]
+                            ?.icon
+                        }
                       </Badge>
                     </div>
 

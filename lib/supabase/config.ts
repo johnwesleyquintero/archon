@@ -1,14 +1,13 @@
-"use client"
+export const supabaseConfig = {
+  url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+};
 
-import { createClient } from "./client"
-import type { Database } from "./types"
+if (!supabaseConfig.url) {
+  throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL environment variable");
+}
 
-// Client-side Supabase client (for browser)
-let supabaseBrowserClient: ReturnType<typeof createClient<Database, "public">> | null = null
-
-export function getSupabaseBrowserClient() {
-  if (!supabaseBrowserClient) {
-    supabaseBrowserClient = createClient()
-  }
-  return supabaseBrowserClient
+if (!supabaseConfig.anonKey) {
+  throw new Error("Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable");
 }

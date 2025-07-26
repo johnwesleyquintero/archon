@@ -21,7 +21,6 @@ const nextConfig = {
         hostname: "**.v0.dev",
       },
     ],
-    unoptimized: true,
   },
 };
 

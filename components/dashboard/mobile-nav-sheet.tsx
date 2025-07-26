@@ -17,14 +17,12 @@ import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 
 export function MobileNavSheet() {
-  const { signOut, isSigningOut, setIsSigningOut } = useAuth();
+  const { signOut, loading } = useAuth();
   const router = useRouter();
 
   const handleSignOut = async () => {
-    setIsSigningOut(true);
     await signOut();
     router.push("/login");
-    setIsSigningOut(false);
   };
 
   return (
@@ -86,11 +84,11 @@ export function MobileNavSheet() {
           <Button
             variant="ghost"
             className="flex items-center gap-4 px-2.5 text-slate-600 hover:text-slate-900 justify-start"
-            onClick={void handleSignOut}
-            disabled={isSigningOut}
+            onClick={void handleSignOut()}
+            disabled={loading}
           >
             <LogOut className="h-5 w-5" />
-            {isSigningOut ? "Signing out..." : "Sign Out"}
+            {loading ? "Signing out..." : "Sign Out"}
           </Button>
         </nav>
       </SheetContent>

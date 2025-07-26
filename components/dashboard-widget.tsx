@@ -1,54 +1,177 @@
 "use client";
 
-import React from "react";
+import type React from "react";
+
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, GripVertical } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import {
+  MoreHorizontal,
+  Eye,
+  EyeOff,
+  Settings,
+  Trash2,
+  RefreshCw,
+  Maximize2,
+  Minimize2,
+} from "lucide-react";
 
 interface DashboardWidgetProps {
-  id: string;
   title: string;
   children: React.ReactNode;
-  isVisible: boolean;
-  onToggleVisibility: (id: string, isVisible: boolean) => void;
+  isCustomizing?: boolean;
+  onRemove?: () => void;
+  onRefresh?: () => Promise<void>; // Changed to return Promise<void>
+  onToggleVisibility?: () => void;
+  isVisible?: boolean;
   className?: string;
 }
 
 export function DashboardWidget({
-  id,
   title,
   children,
-  isVisible,
+  isCustomizing = false,
+  onRemove,
+  onRefresh,
   onToggleVisibility,
-  className,
+  isVisible = true,
+  className = "",
 }: DashboardWidgetProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (onRefresh) {
+      setIsRefreshing(true);
+      try {
+        await onRefresh();
+      } finally {
+        setIsRefreshing(false);
+      }
+    }
+  };
+
+  const handleToggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  if (!isVisible && !isCustomizing) {
+    return null;
+  }
+
   return (
-    <Card className={cn("h-full flex flex-col", className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-          <GripVertical className="h-5 w-5 text-slate-400 cursor-grab react-grid-drag-handle" />
-          {title}
-        </CardTitle>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleVisibility(id, !isVisible)}
-          className="h-8 w-8 p-0 text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-        >
-          {isVisible ? (
-            <EyeOff className="h-4 w-4" />
-          ) : (
-            <Eye className="h-4 w-4" />
+    <Card
+      className={`h-full flex flex-col ${!isVisible ? "opacity-50" : ""} ${className}`}
+    >
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 flex-shrink-0">
+        <CardTitle className="text-sm font-medium flex items-center space-x-2">
+          <span>{title}</span>
+          {!isVisible && (
+            <Badge variant="secondary" className="text-xs">
+              Hidden
+            </Badge>
           )}
-        </Button>
+          {isCustomizing && (
+            <Badge variant="outline" className="text-xs">
+              Customizing
+            </Badge>
+          )}
+        </CardTitle>
+
+        <div className="flex items-center space-x-1">
+          {isRefreshing && (
+            <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+          )}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {onRefresh && (
+                <DropdownMenuItem
+                  onClick={() => void handleRefresh()}
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh
+                </DropdownMenuItem>
+              )}
+
+              <DropdownMenuItem onClick={handleToggleExpand}>
+                {isExpanded ? (
+                  <>
+                    <Minimize2 className="mr-2 h-4 w-4" />
+                    Minimize
+                  </>
+                ) : (
+                  <>
+                    <Maximize2 className="mr-2 h-4 w-4" />
+                    Expand
+                  </>
+                )}
+              </DropdownMenuItem>
+
+              {onToggleVisibility && (
+                <DropdownMenuItem onClick={onToggleVisibility}>
+                  {isVisible ? (
+                    <>
+                      <EyeOff className="mr-2 h-4 w-4" />
+                      Hide
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="mr-2 h-4 w-4" />
+                      Show
+                    </>
+                  )}
+                </DropdownMenuItem>
+              )}
+
+              <DropdownMenuItem>
+                <Settings className="mr-2 h-4 w-4" />
+                Configure
+              </DropdownMenuItem>
+
+              {isCustomizing && onRemove && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={onRemove}
+                    className="text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Remove
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </CardHeader>
-      <CardContent className="flex-1 p-4 pt-0">
+
+      <CardContent
+        className={`flex-1 overflow-auto ${isExpanded ? "p-6" : "p-4"}`}
+      >
         {isVisible ? (
           children
         ) : (
-          <div className="flex items-center justify-center h-full text-slate-400 text-sm">
-            Widget is hidden. Click the eye icon to show.
+          <div className="flex items-center justify-center h-full text-muted-foreground">
+            <div className="text-center">
+              <EyeOff className="h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm">Widget is hidden</p>
+            </div>
           </div>
         )}
       </CardContent>

@@ -1,29 +1,33 @@
-/**
- * Lightweight helpers that wrap the server-side Supabase client.
- */
-import { getSupabaseServerClient } from "./server"; // Import the async function
+import { getSupabaseServerClient } from "./server";
+import { redirect } from "next/navigation";
 
-/**
- * Returns the signed-in user (or null) inside a Server Action /
- * Route Handler / RSC.
- */
-export async function getUser() {
-  const supabase = await getSupabaseServerClient(); // Get the Supabase client instance
+export async function requireAuth() {
+  const supabase = await getSupabaseServerClient();
+
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+
+  if (error || !session) {
+    redirect("/login");
+  }
+
+  return session;
+}
+
+export async function getAuthUser() {
+  const supabase = await getSupabaseServerClient();
+
   const {
     data: { user },
     error,
   } = await supabase.auth.getUser();
+
   if (error) {
-    if (error.name === "AuthSessionMissingError") {
-      // Log AuthSessionMissingError at a lower level as it's often expected for unauthenticated access
-      console.log(
-        "[Supabase] getUser (AuthSessionMissingError):",
-        error.message,
-      );
-    } else {
-      // Log other authentication errors as errors
-      console.error("[Supabase] getUser error:", error);
-    }
+    console.error("Error getting user:", error);
+    return null;
   }
-  return user ?? null;
+
+  return user;
 }

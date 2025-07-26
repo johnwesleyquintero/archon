@@ -1,113 +1,95 @@
-import { StatsGrid } from "@/components/stats-grid";
-import { GoalTrackerWithAttachments } from "@/components/goal-tracker-with-attachments";
-import { TodoList } from "@/components/todo-list";
-import { PlaceholderInfographics } from "@/components/placeholder-infographics";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity } from "lucide-react";
-import { CustomizableDashboardLayout } from "@/components/customizable-dashboard-layout";
-import { DashboardWidget } from "@/components/dashboard-widget";
-import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
-import { Skeleton } from "@/components/ui/skeleton";
+"use client";
 
-interface DashboardWidgetConfig {
-  id: string;
-  title: string;
-  component: React.ReactNode;
-  defaultSize: { w: number; h: number };
-}
+import {
+  CustomizableDashboardLayout,
+  type Widget,
+} from "@/components/customizable-dashboard-layout";
+import { StatsGrid } from "@/components/stats-grid";
+import { TodoList } from "@/components/todo-list";
+import { GoalTracker } from "@/components/goal-tracker";
+import { JournalList } from "@/components/journal-list";
+import { AdvancedStatsGrid } from "@/components/advanced-stats-grid";
+import { PlaceholderInfographics } from "@/components/placeholder-infographics";
+import type { Layout } from "react-grid-layout";
+import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
+
+// Define available widgets
+const availableWidgets: Widget[] = [
+  {
+    id: "stats-overview",
+    type: "stats",
+    title: "Overview Stats",
+    component: StatsGrid,
+    minW: 6,
+    minH: 3,
+    defaultProps: {},
+  },
+  {
+    id: "todo-list",
+    type: "tasks",
+    title: "Quick Tasks",
+    component: TodoList,
+    minW: 4,
+    minH: 4,
+    defaultProps: {},
+  },
+  {
+    id: "goal-tracker",
+    type: "goals",
+    title: "Goal Progress",
+    component: GoalTracker,
+    minW: 4,
+    minH: 4,
+    defaultProps: {},
+  },
+  {
+    id: "recent-journal",
+    type: "journal",
+    title: "Recent Journal Entries",
+    component: JournalList,
+    minW: 4,
+    minH: 4,
+    defaultProps: { limit: 3 },
+  },
+  {
+    id: "advanced-stats",
+    type: "analytics",
+    title: "Advanced Analytics",
+    component: AdvancedStatsGrid,
+    minW: 6,
+    minH: 4,
+    defaultProps: {},
+  },
+  {
+    id: "productivity-chart",
+    type: "charts",
+    title: "Productivity Insights",
+    component: PlaceholderInfographics,
+    minW: 6,
+    minH: 4,
+    defaultProps: {
+      title: "Productivity Trends",
+      description: "Your productivity patterns over time",
+    },
+  },
+];
 
 export default function DashboardPage() {
-  const { layout, isLoading, handleLayoutChange, toggleWidgetVisibility } =
-    useDashboardSettings();
+  const { layout } = useDashboardSettings();
 
-  const widgets: DashboardWidgetConfig[] = [
-    {
-      id: "stats-grid",
-      title: "Statistics Overview",
-      component: <StatsGrid />,
-      defaultSize: { w: 4, h: 2 },
-    },
-    {
-      id: "goal-tracker",
-      title: "My Strategic Goals",
-      component: <GoalTrackerWithAttachments />,
-      defaultSize: { w: 4, h: 3 },
-    },
-    {
-      id: "task-list",
-      title: "My Tasks",
-      component: <TodoList />, // TodoList handles its own onAddTaskClick internally
-      defaultSize: { w: 4, h: 3 },
-    },
-  ];
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-6 p-4 md:p-6">
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          <Skeleton className="h-[120px] w-full" />
-          <Skeleton className="h-[120px] w-full" />
-          <Skeleton className="h-[120px] w-full" />
-          <Skeleton className="h-[120px] w-full" />
-        </div>
-        <Skeleton className="h-[200px] w-full" />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Skeleton className="h-[300px] w-full" />
-          <Skeleton className="h-[300px] w-full" />
-        </div>
-        <Skeleton className="h-[250px] w-full" />
-      </div>
-    );
-  }
-
-  const visibleWidgets = widgets.filter((widget: DashboardWidgetConfig) => {
-    const item = layout.find((l) => l.i === widget.id);
-    return item ? item.isVisible : true; // Default to visible if not in layout
-  });
+  const handleLayoutChange = (_newLayout: Layout[]) => {
+    // Layout changes are handled by the CustomizableDashboardLayout component
+    // and saved via the useDashboardSettings hook
+  };
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
+    <div className="container mx-auto p-6">
       <CustomizableDashboardLayout
-        widgets={visibleWidgets.map((widget) => ({
-          id: widget.id,
-          title: widget.title, // Add title here
-          component: (
-            <DashboardWidget
-              id={widget.id}
-              title={widget.title}
-              isVisible={
-                layout.find((l) => l.i === widget.id)?.isVisible ?? true
-              }
-              onToggleVisibility={toggleWidgetVisibility}
-            >
-              {widget.component}
-            </DashboardWidget>
-          ),
-          defaultSize: widget.defaultSize,
-        }))}
+        widgets={availableWidgets}
         initialLayout={layout}
         onLayoutChange={handleLayoutChange}
+        className="min-h-screen"
       />
-
-      <PlaceholderInfographics />
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-slate-600" />
-            Recent Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-slate-500 text-sm">
-            Recent activity feed will go here.
-          </p>
-          {/* Placeholder for activity feed */}
-          <div className="h-40 bg-slate-50 rounded-md mt-4 flex items-center justify-center text-slate-400 text-sm">
-            Activity Feed Placeholder
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

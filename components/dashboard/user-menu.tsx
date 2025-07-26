@@ -12,15 +12,12 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "lucide-react";
 import Link from "next/link";
-import { useAuth, type Profile } from "@/contexts/auth-context"; // Import Profile type from auth-context
+import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 
 export function UserMenu() {
   const { user, signOut, profile, isSigningOut, setIsSigningOut } = useAuth();
   const router = useRouter();
-
-  // Explicitly type profile to ensure correct type inference
-  const typedProfile: Profile | null = profile;
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -35,12 +32,12 @@ export function UserMenu() {
         <Button variant="ghost" size="icon" className="rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage
-              src={typedProfile?.avatar_url || "/placeholder-user.png"}
-              alt={typedProfile?.full_name || "User"}
+              src={profile?.avatar_url || "/placeholder-user.png"}
+              alt={profile?.full_name || "User"}
             />
             <AvatarFallback>
-              {typedProfile?.full_name ? (
-                typedProfile.full_name.charAt(0)
+              {profile?.full_name ? (
+                profile.full_name.charAt(0)
               ) : (
                 <User className="h-4 w-4" />
               )}
@@ -51,7 +48,7 @@ export function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>
-          {typedProfile?.full_name || user?.email || "My Account"}
+          {profile?.full_name || user?.email || "My Account"}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>

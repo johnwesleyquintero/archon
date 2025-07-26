@@ -104,5 +104,11 @@ export function useDashboardSettings() {
     [],
   );
 
-  return { layout, isLoading, handleLayoutChange, toggleWidgetVisibility };
+  return {
+    layout,
+    isLoading,
+    saveLayout: debouncedSaveLayout,
+    handleLayoutChange,
+    toggleWidgetVisibility,
+  };
 }

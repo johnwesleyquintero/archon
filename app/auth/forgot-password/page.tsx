@@ -2,7 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { SubmitButton } from "@/components/auth/auth-form";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 interface ForgotPasswordProps {
   searchParams: { message?: string };

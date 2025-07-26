@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import "react-quill/dist/quill.snow.css"; // Import Quill styles
 import {
+  Form,
   FormControl,
   FormField,
   FormItem,
@@ -126,7 +127,7 @@ export function JournalEditorWithAttachments({
             shouldValidate: true,
           });
 
-          void updateEntry(entry.id, {
+          await updateEntry(entry.id, {
             attachments: updatedAttachments.map((att) => att.url),
           });
 
@@ -302,143 +303,120 @@ export function JournalEditorWithAttachments({
   }
 
   return (
-    <div className="h-full flex flex-col bg-white">
-      {/* Header */}
-      <div className="p-4 border-b border-slate-200 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      placeholder="Entry title..."
-                      className="text-lg font-semibold border-0 px-0 shadow-none focus-visible:ring-0 placeholder:text-slate-400"
-                      disabled={isMutating}
-                      {...field}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        if (entry) {
-                          void debouncedOnUpdateEntryTitle(
-                            entry.id,
-                            e.target.value,
-                          );
-                        }
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+    <Form {...form}>
+      <div className="h-full flex flex-col bg-white">
+        {/* Header */}
+        <div className="p-4 border-b border-slate-200 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        placeholder="Entry title..."
+                        className="text-lg font-semibold border-0 px-0 shadow-none focus-visible:ring-0 placeholder:text-slate-400"
+                        disabled={isMutating}
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          if (entry) {
+                            void debouncedOnUpdateEntryTitle(
+                              entry.id,
+                              e.target.value,
+                            );
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                {entry && formatDate(entry.created_at)}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {isMutating && (
+                <span className="text-xs text-slate-500 flex items-center">
+                  <Spinner size="sm" className="mr-1" /> Saving...
+                </span>
               )}
-            />
-            <p className="text-xs text-slate-500 mt-1">
-              {entry && formatDate(entry.created_at)}
-            </p>
+              <Button
+                onClick={onSaveEntry}
+                size="sm"
+                disabled={!hasUnsavedChanges || isMutating}
+                className={cn(
+                  "transition-all duration-200",
+                  hasUnsavedChanges
+                    ? "bg-slate-900 hover:bg-slate-800 text-white"
+                    : "bg-slate-100 text-slate-400 cursor-not-allowed",
+                )}
+              >
+                <Save className="h-4 w-4 mr-1" />
+                {hasUnsavedChanges ? "Save" : "Saved"}
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {isMutating && (
-              <span className="text-xs text-slate-500 flex items-center">
-                <Spinner size="sm" className="mr-1" /> Saving...
-              </span>
-            )}
+
+          {/* Toolbar */}
+          <div className="flex items-center gap-1">
+            {/* Quill's toolbar will be rendered here */}
+            {/* The custom image handler will be triggered by Quill's image button */}
             <Button
-              onClick={onSaveEntry}
+              variant="ghost"
               size="sm"
-              disabled={!hasUnsavedChanges || isMutating}
+              onClick={() => setShowAttachmentUpload(!showAttachmentUpload)}
               className={cn(
-                "transition-all duration-200",
-                hasUnsavedChanges
-                  ? "bg-slate-900 hover:bg-slate-800 text-white"
-                  : "bg-slate-100 text-slate-400 cursor-not-allowed",
+                "h-8 w-8 p-0",
+                showAttachmentUpload && "bg-slate-100",
               )}
-            >
-              <Save className="h-4 w-4 mr-1" />
-              {hasUnsavedChanges ? "Save" : "Saved"}
-            </Button>
-          </div>
-        </div>
-
-        {/* Toolbar */}
-        <div className="flex items-center gap-1">
-          {/* Quill's toolbar will be rendered here */}
-          {/* The custom image handler will be triggered by Quill's image button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowAttachmentUpload(!showAttachmentUpload)}
-            className={cn(
-              "h-8 w-8 p-0",
-              showAttachmentUpload && "bg-slate-100",
-            )}
-            disabled={isMutating}
-          >
-            <Paperclip className="h-4 w-4" />
-          </Button>
-          <Separator orientation="vertical" className="h-6 mx-2" />
-          <span className="text-xs text-slate-500">
-            Rich text editing enabled
-          </span>
-        </div>
-
-        {/* Attachment Upload */}
-        {showAttachmentUpload && ( // Controlled by Paperclip button
-          <div className="pt-2">
-            <FileUpload
-              onUpload={handleFileUpload}
-              accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              buttonText={isMutating ? "Uploading..." : "Select File"}
               disabled={isMutating}
-            />
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            <Separator orientation="vertical" className="h-6 mx-2" />
+            <span className="text-xs text-slate-500">
+              Rich text editing enabled
+            </span>
           </div>
-        )}
 
-        {/* Attachments Preview */}
-        {(form.watch("attachments") ?? []).length > 0 && (
-          <div className="pt-2">
-            <p className="text-xs font-medium text-slate-700 mb-2">
-              Attachments ({form.watch("attachments")?.length})
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {form.watch("attachments")?.map((attachment: Attachment) => {
-                if (!attachment || !attachment.url) return null;
-                return (
-                  <div
-                    key={attachment.url}
-                    className="group relative border border-slate-200 rounded-md p-1 hover:border-slate-300"
-                  >
-                    {attachment.type === "image" ? (
-                      <div className="relative w-16 h-16">
-                        <Image
-                          src={attachment.url || "/placeholder.png"}
-                          alt={attachment.filename || "attachment"}
-                          fill
-                          className="object-cover rounded"
-                          onClick={() => {
-                            if (quillRef.current) {
-                              const editor = quillRef.current.getEditor();
-                              const range = editor.getSelection();
-                              if (range) {
-                                editor.insertEmbed(
-                                  range.index,
-                                  "image",
-                                  attachment.url,
-                                );
-                              } else {
-                                editor.insertEmbed(
-                                  editor.getLength(),
-                                  "image",
-                                  attachment.url,
-                                );
-                              }
-                            }
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded flex items-center justify-center">
-                          <Button
-                            variant="ghost"
-                            size="sm"
+          {/* Attachment Upload */}
+          {showAttachmentUpload && ( // Controlled by Paperclip button
+            <div className="pt-2">
+              <FileUpload
+                onUpload={handleFileUpload}
+                accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                buttonText={isMutating ? "Uploading..." : "Select File"}
+                disabled={isMutating}
+              />
+            </div>
+          )}
+
+          {/* Attachments Preview */}
+          {(form.watch("attachments") ?? []).length > 0 && (
+            <div className="pt-2">
+              <p className="text-xs font-medium text-slate-700 mb-2">
+                Attachments ({form.watch("attachments")?.length})
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {form.watch("attachments")?.map((attachment: Attachment) => {
+                  if (!attachment || !attachment.url) return null;
+                  return (
+                    <div
+                      key={attachment.url}
+                      className="group relative border border-slate-200 rounded-md p-1 hover:border-slate-300"
+                    >
+                      {attachment.type === "image" ? (
+                        <div className="relative w-16 h-16">
+                          <Image
+                            src={attachment.url || "/placeholder.png"}
+                            alt={attachment.filename || "attachment"}
+                            fill
+                            className="object-cover rounded"
                             onClick={() => {
                               if (quillRef.current) {
                                 const editor = quillRef.current.getEditor();
@@ -458,80 +436,102 @@ export function JournalEditorWithAttachments({
                                 }
                               }
                             }}
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 bg-white/80 hover:bg-white"
-                            disabled={isMutating}
-                          >
-                            <ImageIcon className="h-3 w-3" />
-                          </Button>
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded flex items-center justify-center">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (quillRef.current) {
+                                  const editor = quillRef.current.getEditor();
+                                  const range = editor.getSelection();
+                                  if (range) {
+                                    editor.insertEmbed(
+                                      range.index,
+                                      "image",
+                                      attachment.url,
+                                    );
+                                  } else {
+                                    editor.insertEmbed(
+                                      editor.getLength(),
+                                      "image",
+                                      attachment.url,
+                                    );
+                                  }
+                                }
+                              }}
+                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 bg-white/80 hover:bg-white"
+                              disabled={isMutating}
+                            >
+                              <ImageIcon className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      // Non-image attachment preview
-                      <div className="w-16 h-16 bg-slate-100 rounded flex flex-col items-center justify-center p-1 text-center">
-                        <Paperclip className="h-6 w-6 text-slate-400 mb-1" />
-                        <span className="text-[10px] text-slate-500 truncate w-full">
-                          {attachment.filename}
-                        </span>
-                      </div>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeAttachment(attachment.url)}
-                      className="absolute -top-2 -right-2 h-5 w-5 p-0 bg-white border border-slate-200 rounded-full opacity-0 group-hover:opacity-100"
-                      disabled={isMutating}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                );
-              })}
+                      ) : (
+                        // Non-image attachment preview
+                        <div className="w-16 h-16 bg-slate-100 rounded flex flex-col items-center justify-center p-1 text-center">
+                          <Paperclip className="h-6 w-6 text-slate-400 mb-1" />
+                          <span className="text-[10px] text-slate-500 truncate w-full">
+                            {attachment.filename}
+                          </span>
+                        </div>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => void removeAttachment(attachment.url)}
+                        className="absolute -top-2 -right-2 h-5 w-5 p-0 bg-white border border-slate-200 rounded-full opacity-0 group-hover:opacity-100"
+                        disabled={isMutating}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* Editor */}
-      <div className="flex-1 p-4 flex flex-col">
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem className="flex-1 flex flex-col">
-              <FormControl>
-                <ReactQuill
-                  ref={(el: any) => {
-                    quillRef.current = el;
-                    field.ref(el);
-                  }}
-                  theme="snow"
-                  value={field.value || ""}
-                  onChange={handleQuillChange}
-                  modules={modules}
-                  formats={formats}
-                  placeholder="Start writing your thoughts..."
-                  className="flex-1 flex flex-col quill-editor-container"
-                  readOnly={isMutating}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
           )}
-        />
-      </div>
+        </div>
 
-      {/* Status Bar */}
-      <div className="px-4 py-2 border-t border-slate-100 bg-slate-50">
-        <div className="flex items-center justify-between text-xs text-slate-500">
-          <span>{form.watch("content")?.length || 0} characters</span>
-          <span>
-            Last updated:{" "}
-            {entry.updated_at
-              ? new Date(entry.updated_at).toLocaleTimeString()
-              : "N/A"}
-          </span>
+        {/* Editor */}
+        <div className="flex-1 p-4 flex flex-col">
+          <FormField
+            control={form.control}
+            name="content"
+            render={({ field }) => (
+              <FormItem className="flex-1 flex flex-col">
+                <FormControl>
+                  <ReactQuill
+                    ref={(el: any) => (quillRef.current = el)} // Use callback ref
+                    theme="snow"
+                    value={field.value || ""}
+                    onChange={handleQuillChange}
+                    modules={modules}
+                    formats={formats}
+                    placeholder="Start writing your thoughts..."
+                    className="flex-1 flex flex-col quill-editor-container"
+                    readOnly={isMutating}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Status Bar */}
+        <div className="px-4 py-2 border-t border-slate-100 bg-slate-50">
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <span>{form.watch("content")?.length || 0} characters</span>
+            <span>
+              Last updated:{" "}
+              {entry.updated_at
+                ? new Date(entry.updated_at).toLocaleTimeString()
+                : "N/A"}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </Form>
   );
 }
