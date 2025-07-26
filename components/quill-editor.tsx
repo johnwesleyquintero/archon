@@ -39,13 +39,14 @@ const QuillEditorBase: ForwardRefRenderFunction<
   QuillEditorRef,
   QuillEditorProps
 > = (props, ref) => {
-  const quillRef = useRef<any | null>(null);
+  const quillRef = useRef<{ getEditor: () => Quill }>(null);
 
   useImperativeHandle(
     ref,
     () => ({
       getEditor: (): Quill => {
-        return quillRef.current!.getEditor();
+        if (!quillRef.current) throw new Error("Editor not initialized");
+        return quillRef.current.getEditor();
       },
       getSelection: () => {
         return quillRef.current?.getEditor()?.getSelection() || null;

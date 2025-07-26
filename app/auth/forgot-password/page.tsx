@@ -75,7 +75,7 @@ export default function ForgotPasswordPage({ searchParams }: PageProps) {
         </SubmitButton>
         {searchParams?.message && (
           <p className="mt-4 p-4 bg-foreground/10 text-foreground text-center">
-            {searchParams.message as string}
+            {String(searchParams.message)}
           </p>
         )}
       </form>

@@ -16,8 +16,7 @@ export const metadata: Metadata = {
   description: "Authorization code error page",
 };
 export default function AuthCodeErrorPage({ searchParams }: PageProps) {
-  const message =
-    (searchParams?.message as string) ?? "No error message provided";
+  const message = searchParams?.message || "No error message provided";
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">

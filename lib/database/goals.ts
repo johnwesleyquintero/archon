@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server-auth";
 import { User } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
-import type { Json } from "@/lib/database/tasks"; // Assuming Json type is available here or globally
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 type GoalInsert = Database["public"]["Tables"]["goals"]["Insert"];
@@ -12,10 +11,8 @@ type GoalUpdate = Database["public"]["Tables"]["goals"]["Update"];
 
 async function getUser(): Promise<User | null> {
   const client = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await client.auth.getUser();
-  return user;
+  const authResponse = await client.auth.getUser();
+  return authResponse.data.user;
 }
 
 export async function getGoals(): Promise<Goal[]> {
@@ -27,11 +24,13 @@ export async function getGoals(): Promise<Goal[]> {
   }
 
   // Reverted select to '*' to potentially resolve TS2345 on user.id
-  const { data, error } = await supabase
+  const result = await supabase
     .from("goals")
     .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
+
+  const { data, error } = result;
 
   if (error) {
     console.error("Error fetching goals:", error);
@@ -97,7 +96,7 @@ export async function updateGoal(
   // Explicitly casting to GoalUpdate might help if the input `goalData` is not strictly typed.
   const { data, error } = await supabase
     .from("goals")
-    .update(goalData as GoalUpdate) // Explicitly cast goalData to GoalUpdate
+    .update(goalData)
     .eq("id", id)
     .eq("user_id", user.id) // Ensure user owns the goal
     .select()
