@@ -1,16 +1,16 @@
-import { getSupabaseServerClient } from "../supabase/server"; // Import the async function
+import { createSupabaseServerClient } from "@/lib/supabase/auth";
 import type { Database } from "../supabase/types";
 
 type JournalRow = Database["public"]["Tables"]["journal_entries"]["Row"];
 type JournalInsert = Database["public"]["Tables"]["journal_entries"]["Insert"];
 type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];
-type TemplateRow = Database["public"]["Tables"]["journal_templates"]["Row"];
+// TODO: Add journal templates table to database
 
 /* ─────────────────────────
    CRUD – Journal entries
    ───────────────────────── */
 export async function getJournalEntries(userId: string) {
-  const supabase = await getSupabaseServerClient(); // Call the async function
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("journal_entries")
     .select("*")
@@ -22,7 +22,7 @@ export async function getJournalEntries(userId: string) {
 }
 
 export async function addJournalEntry(entry: JournalInsert) {
-  const supabase = await getSupabaseServerClient(); // Call the async function
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("journal_entries")
     .insert(entry)
@@ -33,7 +33,7 @@ export async function addJournalEntry(entry: JournalInsert) {
 }
 
 export async function updateJournalEntry(id: string, patch: JournalUpdate) {
-  const supabase = await getSupabaseServerClient(); // Call the async function
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("journal_entries")
     .update(patch)
@@ -45,24 +45,10 @@ export async function updateJournalEntry(id: string, patch: JournalUpdate) {
 }
 
 export async function deleteJournalEntry(id: string) {
-  const supabase = await getSupabaseServerClient(); // Call the async function
+  const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from("journal_entries")
     .delete()
     .eq("id", id);
   if (error) throw error;
-}
-
-/* ─────────────────────────
-   Templates
-   ───────────────────────── */
-export async function getJournalTemplates() {
-  const supabase = await getSupabaseServerClient(); // Call the async function
-  const { data, error } = await supabase
-    .from("journal_templates")
-    .select("*")
-    .order("title", { ascending: true });
-
-  if (error) throw error;
-  return data as TemplateRow[];
 }

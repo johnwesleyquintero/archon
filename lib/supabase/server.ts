@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "./types";
@@ -8,7 +7,7 @@ export async function getSupabaseServerClient() {
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
@@ -19,26 +18,6 @@ export async function getSupabaseServerClient() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options),
             );
-=======
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
-import type { Database } from "./types"
-
-export async function createClient() {
-  const cookieStore = await cookies()
-
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
           } catch {
             // The `setAll` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
@@ -47,30 +26,5 @@ export async function createClient() {
         },
       },
     },
-<<<<<<< HEAD
   );
-}
-
-export async function getUser() {
-  const supabase = await getSupabaseServerClient();
-
-  try {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error) {
-      console.error("Auth error:", error);
-      return null;
-    }
-
-    return user;
-  } catch (error) {
-    console.error("Error getting user:", error);
-    return null;
-  }
-=======
-  )
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 }

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { Database, DashboardSettingsRow, Json } from "@/lib/supabase/types";
+import { DashboardSettingsRow, Json } from "@/lib/supabase/types";
 import { Layout } from "react-grid-layout";
 
 export async function getDashboardSettings(

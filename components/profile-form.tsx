@@ -19,7 +19,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/use-toast";
 
 export function ProfileForm() {
-  const { user, profile, updateProfile, isLoading } = useAuth();
+  const { user, profile, updateProfile, loading } = useAuth();
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [username, setUsername] = useState(profile?.username || "");
   const [isSaving, setIsSaving] = useState(false);
@@ -74,7 +74,7 @@ export function ProfileForm() {
     }
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <Card className="w-full">
         <CardHeader>

@@ -1,25 +1,16 @@
-"use client"
+"use client";
 
-<<<<<<< HEAD
 import type React from "react";
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-=======
-import type React from "react"
-
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-<<<<<<< HEAD
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -42,21 +33,6 @@ interface DashboardWidgetProps {
   onToggleVisibility?: () => void;
   isVisible?: boolean;
   className?: string;
-=======
-} from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, Eye, EyeOff, Settings, Trash2, RefreshCw, Maximize2, Minimize2 } from "lucide-react"
-
-interface DashboardWidgetProps {
-  title: string
-  children: React.ReactNode
-  isCustomizing?: boolean
-  onRemove?: () => void
-  onRefresh?: () => void
-  onToggleVisibility?: () => void
-  isVisible?: boolean
-  className?: string
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 }
 
 export function DashboardWidget({
@@ -69,7 +45,6 @@ export function DashboardWidget({
   isVisible = true,
   className = "",
 }: DashboardWidgetProps) {
-<<<<<<< HEAD
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -96,32 +71,6 @@ export function DashboardWidget({
     <Card
       className={`h-full flex flex-col ${!isVisible ? "opacity-50" : ""} ${className}`}
     >
-=======
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [isRefreshing, setIsRefreshing] = useState(false)
-
-  const handleRefresh = async () => {
-    if (onRefresh) {
-      setIsRefreshing(true)
-      try {
-        await onRefresh()
-      } finally {
-        setIsRefreshing(false)
-      }
-    }
-  }
-
-  const handleToggleExpand = () => {
-    setIsExpanded(!isExpanded)
-  }
-
-  if (!isVisible && !isCustomizing) {
-    return null
-  }
-
-  return (
-    <Card className={`h-full flex flex-col ${!isVisible ? "opacity-50" : ""} ${className}`}>
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 flex-shrink-0">
         <CardTitle className="text-sm font-medium flex items-center space-x-2">
           <span>{title}</span>
@@ -138,13 +87,9 @@ export function DashboardWidget({
         </CardTitle>
 
         <div className="flex items-center space-x-1">
-<<<<<<< HEAD
           {isRefreshing && (
             <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
           )}
-=======
-          {isRefreshing && <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />}
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -155,14 +100,10 @@ export function DashboardWidget({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {onRefresh && (
-<<<<<<< HEAD
                 <DropdownMenuItem
                   onClick={() => void handleRefresh()}
                   disabled={isRefreshing}
                 >
-=======
-                <DropdownMenuItem onClick={handleRefresh} disabled={isRefreshing}>
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
                   <RefreshCw className="mr-2 h-4 w-4" />
                   Refresh
                 </DropdownMenuItem>
@@ -206,14 +147,10 @@ export function DashboardWidget({
               {isCustomizing && onRemove && (
                 <>
                   <DropdownMenuSeparator />
-<<<<<<< HEAD
                   <DropdownMenuItem
                     onClick={onRemove}
                     className="text-destructive"
                   >
-=======
-                  <DropdownMenuItem onClick={onRemove} className="text-destructive">
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
                     <Trash2 className="mr-2 h-4 w-4" />
                     Remove
                   </DropdownMenuItem>
@@ -224,13 +161,9 @@ export function DashboardWidget({
         </div>
       </CardHeader>
 
-<<<<<<< HEAD
       <CardContent
         className={`flex-1 overflow-auto ${isExpanded ? "p-6" : "p-4"}`}
       >
-=======
-      <CardContent className={`flex-1 overflow-auto ${isExpanded ? "p-6" : "p-4"}`}>
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
         {isVisible ? (
           children
         ) : (
@@ -243,5 +176,5 @@ export function DashboardWidget({
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

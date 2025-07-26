@@ -13,21 +13,21 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children }: AuthGuardProps) {
-  const { user, isLoading, error } = useAuth();
+  const { user, loading, error } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     // If not loading, no user, and either no error or a specific AuthSessionMissingError, redirect to login
     if (
-      !isLoading &&
+      !loading &&
       !user &&
       (!error || error instanceof AuthSessionMissingError)
     ) {
       router.push("/login");
     }
-  }, [user, isLoading, error, router]);
+  }, [user, loading, error, router]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-100">
         <Spinner size="lg" />

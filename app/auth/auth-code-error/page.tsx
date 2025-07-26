@@ -8,11 +8,13 @@ import {
 import Link from "next/link";
 import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 
+interface AuthCodeErrorPageProps {
+  searchParams: { message: string };
+}
+
 export default function AuthCodeErrorPage({
   searchParams,
-}: {
-  searchParams: { message: string };
-}) {
+}: AuthCodeErrorPageProps) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
       <Card className="w-full max-w-md">

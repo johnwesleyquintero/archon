@@ -22,22 +22,25 @@ import {
 type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
 
 interface JournalListProps {
-  entries: JournalEntry[];
-  selectedEntryId: string | null;
-  onSelectEntry: (id: string) => void;
-  onCreateEntry: () => void;
-  onDeleteEntry: (id: string) => void;
-  isMutating: boolean;
+  entries?: JournalEntry[];
+  selectedEntryId?: string | null;
+  onSelectEntry?: (id: string) => void;
+  onCreateEntry?: () => void;
+  onDeleteEntry?: (id: string) => void;
+  isMutating?: boolean;
+  limit?: number;
 }
 
 export function JournalList({
-  entries,
-  selectedEntryId,
-  onSelectEntry,
-  onCreateEntry,
-  onDeleteEntry,
-  isMutating,
+  entries = [],
+  selectedEntryId = null,
+  onSelectEntry = () => {},
+  onCreateEntry = () => {},
+  onDeleteEntry = () => {},
+  isMutating = false,
+  limit,
 }: JournalListProps) {
+  const displayedEntries = limit ? entries.slice(0, limit) : entries;
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -70,7 +73,7 @@ export function JournalList({
       </div>
 
       <ScrollArea className="flex-1 py-2">
-        {entries.length === 0 ? (
+        {displayedEntries.length === 0 ? (
           <EmptyState
             title="No Journal Entries Yet"
             description="Click 'New Entry' to record your thoughts."
@@ -79,7 +82,7 @@ export function JournalList({
           />
         ) : (
           <nav className="grid gap-1 p-2">
-            {entries.map((entry) => (
+            {displayedEntries.map((entry) => (
               <div
                 key={entry.id}
                 className={cn(

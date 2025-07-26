@@ -105,9 +105,9 @@ export function GoalTrackerWithAttachments() {
           const currentAttachmentsAsObjects: Attachment[] = Array.isArray(
             currentGoal.attachments,
           )
-            ? currentGoal.attachments.map((att: any) =>
-                createAttachmentFromUrl(att as string),
-              )
+            ? currentGoal.attachments
+                .filter((att): att is string => typeof att === "string")
+                .map((att: string) => createAttachmentFromUrl(att))
             : [];
 
           const updatedAttachments: Attachment[] = [
@@ -284,11 +284,14 @@ export function GoalTrackerWithAttachments() {
                               </span>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                              {goal.attachments.map(
-                                (url: any, index: number) => {
-                                  const attachment = createAttachmentFromUrl(
-                                    url as string,
-                                  );
+                              {goal.attachments
+                                .filter(
+                                  (url): url is string =>
+                                    typeof url === "string",
+                                )
+                                .map((url: string, index: number) => {
+                                  const attachment =
+                                    createAttachmentFromUrl(url);
                                   return (
                                     <a
                                       key={index}
@@ -302,8 +305,7 @@ export function GoalTrackerWithAttachments() {
                                       </span>
                                     </a>
                                   );
-                                },
-                              )}
+                                })}
                             </div>
                           </div>
                         )}

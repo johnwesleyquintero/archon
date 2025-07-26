@@ -49,6 +49,10 @@ export function useJournal() {
 
   const addEntryMutation = useCallback(
     async (newEntryData: Omit<JournalEntryInsert, "user_id">) => {
+      if (!user?.id) {
+        throw new Error("User must be logged in to add journal entries");
+      }
+
       startTransition(async () => {
         setError(null);
         try {
@@ -56,7 +60,7 @@ export function useJournal() {
           const tempId = `temp-${Date.now()}`;
           const optimisticEntry: JournalEntry = {
             id: tempId,
-            user_id: "optimistic_user", // Placeholder, will be replaced by server
+            user_id: user.id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             title: newEntryData.title,
@@ -65,7 +69,10 @@ export function useJournal() {
           };
           setEntries((prev) => [optimisticEntry, ...prev]);
 
-          const data = await addJournalEntry(newEntryData);
+          const data = await addJournalEntry({
+            ...newEntryData,
+            user_id: user.id,
+          });
 
           if (!data) {
             throw new Error("Failed to add journal entry.");

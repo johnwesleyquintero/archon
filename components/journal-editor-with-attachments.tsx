@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -26,9 +25,8 @@ import Image from "next/image";
 import { Spinner } from "@/components/ui/spinner";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useJournal } from "@/hooks/use-journal"; // Import useJournal hook
-
-// Dynamically import ReactQuill to prevent SSR issues
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+import { QuillEditor } from "./quill-editor";
+import type { QuillEditorRef } from "@/types/quill";
 
 type Attachment = {
   url: string;
@@ -51,14 +49,14 @@ export function JournalEditorWithAttachments({
   onSaveEntry,
   hasUnsavedChanges,
 }: JournalEditorProps) {
-  const quillRef = useRef<any>(null); // Ref for ReactQuill instance
+  const quillRef = useRef<QuillEditorRef>(null);
   const [showAttachmentUpload, setShowAttachmentUpload] = useState(false); // Keep for paperclip button
   const { updateEntry, isMutating } = useJournal(); // Use useJournal hook
 
   const debouncedOnUpdateEntryContent = useDebounce(
     useCallback(
       (entryId: string, content: string) => {
-        updateEntry(entryId, { content: content }); // Save HTML content directly
+        void updateEntry(entryId, { content: content }); // Save HTML content directly
       },
       [updateEntry],
     ),
@@ -68,7 +66,7 @@ export function JournalEditorWithAttachments({
   const debouncedOnUpdateEntryTitle = useDebounce(
     useCallback(
       (entryId: string, title: string) => {
-        updateEntry(entryId, { title });
+        void updateEntry(entryId, { title });
       },
       [updateEntry],
     ),
@@ -133,7 +131,7 @@ export function JournalEditorWithAttachments({
 
           // Insert image directly into Quill editor if it's an image
           if (fileType === "image" && quillRef.current) {
-            const editor = quillRef.current.getEditor();
+            const editor = (quillRef.current as any).getEditor(); // Cast to any to access getEditor
             const range = editor.getSelection();
             if (range) {
               editor.insertEmbed(range.index, "image", result.url);
@@ -142,7 +140,7 @@ export function JournalEditorWithAttachments({
             }
           } else if (quillRef.current) {
             // For other file types, insert a link
-            const editor = quillRef.current.getEditor();
+            const editor = (quillRef.current as any).getEditor(); // Cast to any to access getEditor
             const range = editor.getSelection();
             const linkText = newAttachment.filename;
             const linkUrl = newAttachment.url;
@@ -419,7 +417,9 @@ export function JournalEditorWithAttachments({
                             className="object-cover rounded"
                             onClick={() => {
                               if (quillRef.current) {
-                                const editor = quillRef.current.getEditor();
+                                const editor = (
+                                  quillRef.current as any
+                                ).getEditor(); // Cast to any
                                 const range = editor.getSelection();
                                 if (range) {
                                   editor.insertEmbed(
@@ -443,7 +443,9 @@ export function JournalEditorWithAttachments({
                               size="sm"
                               onClick={() => {
                                 if (quillRef.current) {
-                                  const editor = quillRef.current.getEditor();
+                                  const editor = (
+                                    quillRef.current as any
+                                  ).getEditor(); // Cast to any
                                   const range = editor.getSelection();
                                   if (range) {
                                     editor.insertEmbed(
@@ -501,8 +503,8 @@ export function JournalEditorWithAttachments({
             render={({ field }) => (
               <FormItem className="flex-1 flex flex-col">
                 <FormControl>
-                  <ReactQuill
-                    ref={(el: any) => (quillRef.current = el)} // Use callback ref
+                  <QuillEditor
+                    ref={quillRef}
                     theme="snow"
                     value={field.value || ""}
                     onChange={handleQuillChange}
@@ -510,7 +512,6 @@ export function JournalEditorWithAttachments({
                     formats={formats}
                     placeholder="Start writing your thoughts..."
                     className="flex-1 flex flex-col quill-editor-container"
-                    readOnly={isMutating}
                   />
                 </FormControl>
                 <FormMessage />

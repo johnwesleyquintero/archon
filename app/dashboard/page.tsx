@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 "use client";
 
 import {
@@ -13,19 +12,6 @@ import { AdvancedStatsGrid } from "@/components/advanced-stats-grid";
 import { PlaceholderInfographics } from "@/components/placeholder-infographics";
 import type { Layout } from "react-grid-layout";
 import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
-=======
-"use client"
-
-import { CustomizableDashboardLayout, type Widget } from "@/components/customizable-dashboard-layout"
-import { StatsGrid } from "@/components/stats-grid"
-import { TodoList } from "@/components/todo-list"
-import { GoalTracker } from "@/components/goal-tracker"
-import { JournalList } from "@/components/journal-list"
-import { AdvancedStatsGrid } from "@/components/advanced-stats-grid"
-import { PlaceholderInfographics } from "@/components/placeholder-infographics"
-import type { Layout } from "react-grid-layout"
-import { useDashboardSettings } from "@/hooks/use-dashboard-settings"
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 
 // Define available widgets
 const availableWidgets: Widget[] = [
@@ -86,7 +72,6 @@ const availableWidgets: Widget[] = [
       description: "Your productivity patterns over time",
     },
   },
-<<<<<<< HEAD
 ];
 
 export default function DashboardPage() {
@@ -96,17 +81,6 @@ export default function DashboardPage() {
     // Layout changes are handled by the CustomizableDashboardLayout component
     // and saved via the useDashboardSettings hook
   };
-=======
-]
-
-export default function DashboardPage() {
-  const { layout, saveLayout, isLoading } = useDashboardSettings()
-
-  const handleLayoutChange = (newLayout: Layout[]) => {
-    // Layout changes are handled by the CustomizableDashboardLayout component
-    // and saved via the useDashboardSettings hook
-  }
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 
   return (
     <div className="container mx-auto p-6">
@@ -117,5 +91,5 @@ export default function DashboardPage() {
         className="min-h-screen"
       />
     </div>
-  )
+  );
 }

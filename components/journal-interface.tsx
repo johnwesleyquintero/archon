@@ -3,10 +3,8 @@ import { useState, useEffect } from "react";
 import { JournalList } from "@/components/journal-list";
 import { JournalEditorWithAttachments } from "@/components/journal-editor-with-attachments"; // Use the one with attachments
 import { useJournal } from "@/hooks/use-journal";
-import type { Database } from "@/lib/supabase/types";
-import { Skeleton } from "@/components/ui/skeleton";
 
-type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function JournalInterface() {
   const {
@@ -47,17 +45,6 @@ export function JournalInterface() {
     // This might require a slight delay or a more sophisticated way to get the new ID.
     // For now, the optimistic update in useJournal will handle it.
     setHasUnsavedChanges(false);
-  };
-
-  const handleUpdateEntry = (
-    _entryId: string, // Prefix with _ to mark as intentionally unused
-    _updates: Partial<JournalEntry>, // Prefix with _ to mark as intentionally unused
-  ) => {
-    // This function is called frequently as user types.
-    // We'll update local state immediately for responsiveness,
-    // and then trigger a debounced save or save on blur/button click.
-    // The actual update to the `entries` state is handled by the `useJournal` hook.
-    setHasUnsavedChanges(true);
   };
 
   const handleSaveEntry = async () => {
@@ -136,14 +123,10 @@ export function JournalInterface() {
         <div className="flex-1">
           <JournalEditorWithAttachments
             entry={selectedEntry}
-            onUpdateEntry={(id, updates) => {
-              void handleUpdateEntry(id, updates);
-            }}
             onSaveEntry={() => {
               void handleSaveEntry();
             }}
             hasUnsavedChanges={hasUnsavedChanges}
-            isMutating={isMutating}
           />
         </div>
       </div>

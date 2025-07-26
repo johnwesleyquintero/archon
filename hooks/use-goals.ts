@@ -55,6 +55,7 @@ export function useGoals() {
             target_date: newGoalData.target_date || null,
             status: newGoalData.status || "pending",
             attachments: newGoalData.attachments || [],
+            progress: 0, // Initialize progress as 0 for new goals
           };
           setGoals((prev) => [optimisticGoal, ...prev]);
 

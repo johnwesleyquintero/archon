@@ -1,8 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getAuthUser } from "@/lib/supabase/auth";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/auth";
 import type { Database } from "@/lib/supabase/types";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
@@ -10,8 +9,10 @@ type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
 
 export async function getTasks(): Promise<Task[]> {
-  const supabase = await getSupabaseServerClient();
-  const user = await getAuthUser();
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return [];
@@ -31,9 +32,13 @@ export async function getTasks(): Promise<Task[]> {
   return data;
 }
 
-export async function addTask(input: TaskInsert): Promise<Task | null> {
-  const supabase = await getSupabaseServerClient();
-  const user = await getAuthUser();
+export async function addTask(
+  taskData: Omit<TaskInsert, "user_id">,
+): Promise<Task | null> {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     throw new Error("User not authenticated.");
@@ -42,12 +47,12 @@ export async function addTask(input: TaskInsert): Promise<Task | null> {
   const { data, error } = await supabase
     .from("tasks")
     .insert({
-      title: input.title,
+      title: taskData.title,
       user_id: user.id,
-      due_date: input.due_date,
-      priority: input.priority || "medium",
-      category: input.category,
-      tags: input.tags || [],
+      due_date: taskData.due_date,
+      priority: taskData.priority || "medium",
+      category: taskData.category,
+      tags: taskData.tags || [],
     })
     .select()
     .single();
@@ -65,8 +70,10 @@ export async function toggleTask(
   id: string,
   completed: boolean,
 ): Promise<Task | null> {
-  const supabase = await getSupabaseServerClient();
-  const user = await getAuthUser();
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     throw new Error("User not authenticated.");
@@ -74,7 +81,7 @@ export async function toggleTask(
 
   const { data, error } = await supabase
     .from("tasks")
-    .update({ completed } as TaskUpdate)
+    .update({ is_completed: completed } as TaskUpdate)
     .eq("id", id)
     .eq("user_id", user.id) // Ensure user owns the task
     .select()
@@ -90,8 +97,10 @@ export async function toggleTask(
 }
 
 export async function deleteTask(id: string): Promise<void> {
-  const supabase = await getSupabaseServerClient();
-  const user = await getAuthUser();
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     throw new Error("User not authenticated.");

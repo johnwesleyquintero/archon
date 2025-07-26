@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 "use client";
 
 import type React from "react";
@@ -38,65 +37,21 @@ export function LoginForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-=======
-"use client"
-
-import type React from "react"
-
-import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Separator } from "@/components/ui/separator"
-import { createClient } from "@/lib/supabase/client"
-import { ArchonLogoSVG } from "@/components/archon-logo-svg"
-import { Eye, EyeOff, Loader2, Mail, Lock, Github, Chrome } from "lucide-react"
-import { cn } from "@/lib/utils"
-
-export function LoginForm() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [isPending, startTransition] = useTransition()
-
-  const router = useRouter()
-  const supabase = createClient()
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 
     startTransition(async () => {
       try {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
-<<<<<<< HEAD
         });
 
         if (error) {
           setError(error.message);
           return;
-=======
-        })
-
-        if (error) {
-          setError(error.message)
-          return
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
         }
 
         // Store remember me preference
         if (rememberMe) {
-<<<<<<< HEAD
           localStorage.setItem("archon_remember_me", "true");
         }
 
@@ -159,59 +114,6 @@ export function LoginForm() {
       }
     });
   };
-=======
-          localStorage.setItem("archon_remember_me", "true")
-        }
-
-        router.push("/dashboard")
-        router.refresh()
-      } catch (err: any) {
-        setError("An unexpected error occurred. Please try again.")
-        console.error("Login error:", err)
-      }
-    })
-  }
-
-  const handleSocialLogin = async (provider: "github" | "google") => {
-    setError(null)
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-
-      if (error) {
-        setError(error.message)
-      }
-    } catch (err: any) {
-      setError("Failed to sign in with " + provider)
-    }
-  }
-
-  const handleForgotPassword = async () => {
-    if (!email) {
-      setError("Please enter your email address first")
-      return
-    }
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      })
-
-      if (error) {
-        setError(error.message)
-      } else {
-        setError("Password reset email sent! Check your inbox.")
-      }
-    } catch (err: any) {
-      setError("Failed to send reset email")
-    }
-  }
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 
   return (
     <Card className="w-full shadow-xl border-0 bg-white/95 backdrop-blur-sm">
@@ -225,13 +127,9 @@ export function LoginForm() {
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
             Welcome back
           </CardTitle>
-<<<<<<< HEAD
           <CardDescription className="text-gray-600">
             Sign in to your Archon dashboard
           </CardDescription>
-=======
-          <CardDescription className="text-gray-600">Sign in to your Archon dashboard</CardDescription>
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
         </div>
       </CardHeader>
 
@@ -265,27 +163,19 @@ export function LoginForm() {
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-<<<<<<< HEAD
             <span className="bg-white px-2 text-gray-500">
               Or continue with email
             </span>
-=======
-            <span className="bg-white px-2 text-gray-500">Or continue with email</span>
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
           </div>
         </div>
 
         {/* Email/Password Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-<<<<<<< HEAD
             <Label
               htmlFor="email"
               className="text-sm font-medium text-gray-700"
             >
-=======
-            <Label htmlFor="email" className="text-sm font-medium text-gray-700">
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
               Email address
             </Label>
             <div className="relative">
@@ -305,14 +195,10 @@ export function LoginForm() {
           </div>
 
           <div className="space-y-2">
-<<<<<<< HEAD
             <Label
               htmlFor="password"
               className="text-sm font-medium text-gray-700"
             >
-=======
-            <Label htmlFor="password" className="text-sm font-medium text-gray-700">
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
               Password
             </Label>
             <div className="relative">
@@ -355,14 +241,10 @@ export function LoginForm() {
                 onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                 disabled={isPending}
               />
-<<<<<<< HEAD
               <Label
                 htmlFor="remember"
                 className="text-sm text-gray-600 cursor-pointer"
               >
-=======
-              <Label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
                 Remember me
               </Label>
             </div>
@@ -370,11 +252,7 @@ export function LoginForm() {
               type="button"
               variant="link"
               className="px-0 text-sm text-blue-600 hover:text-blue-800"
-<<<<<<< HEAD
               onClick={() => void handleForgotPassword()}
-=======
-              onClick={handleForgotPassword}
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
               disabled={isPending}
             >
               Forgot password?
@@ -382,15 +260,11 @@ export function LoginForm() {
           </div>
 
           {error && (
-<<<<<<< HEAD
             <Alert
               variant={
                 error.includes("reset email sent") ? "default" : "destructive"
               }
             >
-=======
-            <Alert variant={error.includes("reset email sent") ? "default" : "destructive"}>
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
               <AlertDescription className="text-sm">{error}</AlertDescription>
             </Alert>
           )}
@@ -417,24 +291,16 @@ export function LoginForm() {
 
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
-<<<<<<< HEAD
+            Don&apos;t have an account?{" "}
             <Link
               href="/auth/signup"
               className="font-medium text-blue-600 hover:text-blue-800 transition-colors"
             >
-=======
-            <Link href="/auth/signup" className="font-medium text-blue-600 hover:text-blue-800 transition-colors">
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
               Sign up for free
             </Link>
           </p>
         </div>
       </CardContent>
     </Card>
-<<<<<<< HEAD
   );
-=======
-  )
->>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 }

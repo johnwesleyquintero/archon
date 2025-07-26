@@ -34,7 +34,7 @@ import { useToast } from "@/components/ui/use-toast";
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export function ProfileFormWithAvatar() {
-  const { user, profile, updateProfile, isLoading: authLoading } = useAuth();
+  const { user, profile, updateProfile, loading: authLoading } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 

@@ -4,10 +4,12 @@ import { useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TaskInput } from "./task-input";
 import { TaskList } from "./task-list";
-import { useTasks } from "@/hooks/use-tasks"; // Import useTasks to get mutation state
+import { useTasks } from "@/hooks/use-tasks";
+import { useAuth } from "@/contexts/auth-context";
 
 export function TodoList() {
   const { addTask, isMutating } = useTasks();
+  const { user } = useAuth();
   const taskInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddTaskClick = () => {
@@ -23,7 +25,7 @@ export function TodoList() {
         <TaskList onAddTaskClick={handleAddTaskClick} />
         <TaskInput
           ref={taskInputRef}
-          onAddTask={addTask}
+          onAddTask={(input) => addTask({ ...input, user_id: user?.id || "" })}
           disabled={isMutating}
         />
       </CardContent>

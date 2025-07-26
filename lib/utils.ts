@@ -8,13 +8,13 @@ export function cn(...inputs: ClassValue[]) {
 // Define a custom error class for structured error handling
 export class AppError extends Error {
   public readonly code: string;
-  public readonly details?: Record<string, any>;
+  public readonly details?: Record<string, unknown>;
   public readonly httpStatus?: number;
 
   constructor(
     message: string,
     code: string = "GENERIC_ERROR",
-    details?: Record<string, any>,
+    details?: Record<string, unknown>,
     httpStatus?: number,
   ) {
     super(message);

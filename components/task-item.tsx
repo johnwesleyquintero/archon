@@ -27,9 +27,10 @@ type Task = Database["public"]["Tables"]["tasks"]["Row"];
 interface TaskItemProps
   extends Pick<
     Task,
-    "id" | "title" | "completed" | "due_date" | "priority" | "category" | "tags"
+    "id" | "title" | "is_completed" | "due_date" | "priority" | "category"
   > {
-  onToggle: (id: string, completed: boolean) => Promise<void>;
+  tags: string[]; // Explicitly define tags as string[]
+  onToggle: (id: string, is_completed: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   disabled?: boolean;
 }
@@ -37,7 +38,7 @@ interface TaskItemProps
 export function TaskItem({
   id,
   title,
-  completed,
+  is_completed,
   due_date,
   priority,
   category,
@@ -52,7 +53,7 @@ export function TaskItem({
   const handleToggle = async () => {
     setIsToggling(true);
     try {
-      await onToggle(id, !completed);
+      await onToggle(id, !is_completed);
     } catch (error) {
       console.error("Error toggling task:", error);
     } finally {
@@ -83,7 +84,7 @@ export function TaskItem({
       <div className="flex items-center gap-2">
         <Checkbox
           id={`task-${id}`}
-          checked={completed}
+          checked={is_completed}
           disabled={disabled || isToggling}
           onCheckedChange={() => void handleToggle()}
           className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900 dark:border-slate-600 dark:data-[state=checked]:bg-slate-50 dark:data-[state=checked]:border-slate-50"
@@ -92,7 +93,7 @@ export function TaskItem({
           htmlFor={`task-${id}`}
           className={cn(
             "flex-1 text-sm cursor-pointer",
-            completed && "text-slate-400 line-through dark:text-slate-600",
+            is_completed && "text-slate-400 line-through dark:text-slate-600",
           )}
         >
           {title}
@@ -155,15 +156,17 @@ export function TaskItem({
               {category}
             </span>
           )}
-          {tags?.map((tag) => (
-            <Badge
-              key={tag}
-              variant="outline"
-              className="px-1.5 py-0 text-xs border-slate-200 dark:border-slate-700"
-            >
-              {tag}
-            </Badge>
-          ))}
+          {Array.isArray(tags) &&
+            tags.length > 0 &&
+            tags.map((tag: string) => (
+              <Badge
+                key={tag}
+                variant="outline"
+                className="px-1.5 py-0 text-xs border-slate-200 dark:border-slate-700"
+              >
+                {tag}
+              </Badge>
+            ))}
         </div>
       )}
     </div>
