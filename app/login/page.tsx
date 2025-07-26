@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 import { AuthForm } from "@/components/auth/auth-form";
 import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 import Link from "next/link";
+=======
+import { AuthForm } from "@/components/auth/auth-form"
+import { ArchonLogoSVG } from "@/components/archon-logo-svg"
+import Link from "next/link"
+>>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 
 export default function LoginPage() {
   return (
@@ -25,15 +31,23 @@ export default function LoginPage() {
         <div className="text-center mt-6">
           <p className="text-gray-400 text-sm">
             Don't have an account?{" "}
+<<<<<<< HEAD
             <Link
               href="/signup"
               className="text-purple-400 hover:text-purple-300 font-medium"
             >
+=======
+            <Link href="/signup" className="text-purple-400 hover:text-purple-300 font-medium">
+>>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
               Sign up
             </Link>
           </p>
         </div>
       </div>
     </div>
+<<<<<<< HEAD
   );
+=======
+  )
+>>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 }

@@ -1,5 +1,6 @@
-"use client";
+"use client"
 
+<<<<<<< HEAD
 import type React from "react";
 import { useState, useCallback, useMemo } from "react";
 import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
@@ -38,6 +39,38 @@ interface CustomizableDashboardLayoutProps {
   initialLayout?: DashboardLayoutItem[];
   onLayoutChange?: (layout: Layout[]) => void;
   className?: string;
+=======
+import type React from "react"
+import { useState, useCallback, useMemo } from "react"
+import { Responsive, WidthProvider, type Layout } from "react-grid-layout"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Settings, X, GripVertical, Plus, Save, RotateCcw } from "lucide-react"
+import { DashboardWidget } from "./dashboard-widget"
+import { useDashboardSettings } from "@/hooks/use-dashboard-settings"
+
+const ResponsiveGridLayout = WidthProvider(Responsive)
+
+// Widget type definitions
+export interface Widget {
+  id: string
+  type: string
+  title: string
+  component: React.ComponentType<any>
+  defaultProps?: any
+  minW?: number
+  minH?: number
+  maxW?: number
+  maxH?: number
+}
+
+interface CustomizableDashboardLayoutProps {
+  widgets: Widget[]
+  initialLayout?: Layout[]
+  onLayoutChange?: (layout: Layout[]) => void
+  className?: string
+>>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 }
 
 export function CustomizableDashboardLayout({
@@ -46,6 +79,7 @@ export function CustomizableDashboardLayout({
   onLayoutChange,
   className = "",
 }: CustomizableDashboardLayoutProps) {
+<<<<<<< HEAD
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [layouts, setLayouts] = useState<{
     [key: string]: DashboardLayoutItem[];
@@ -61,6 +95,18 @@ export function CustomizableDashboardLayout({
   // Generate default layout if none provided
   const defaultLayout = useMemo(() => {
     if (initialLayout.length > 0) return initialLayout;
+=======
+  const [isCustomizing, setIsCustomizing] = useState(false)
+  const [layouts, setLayouts] = useState<{ [key: string]: Layout[] }>({
+    lg: initialLayout,
+  })
+
+  const { saveLayout, isLoading } = useDashboardSettings()
+
+  // Generate default layout if none provided
+  const defaultLayout = useMemo(() => {
+    if (initialLayout.length > 0) return initialLayout
+>>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 
     return widgets.map((widget, index) => ({
       i: widget.id,
@@ -72,6 +118,7 @@ export function CustomizableDashboardLayout({
       minH: widget.minH || 2,
       maxW: widget.maxW || 12,
       maxH: widget.maxH || 8,
+<<<<<<< HEAD
       isVisible: true,
     }));
   }, [widgets, initialLayout]);
@@ -124,6 +171,39 @@ export function CustomizableDashboardLayout({
   const toggleCustomization = () => {
     setIsCustomizing(!isCustomizing);
   };
+=======
+    }))
+  }, [widgets, initialLayout])
+
+  const currentLayout = layouts.lg?.length > 0 ? layouts.lg : defaultLayout
+
+  const handleLayoutChange = useCallback(
+    (layout: Layout[], allLayouts: { [key: string]: Layout[] }) => {
+      setLayouts(allLayouts)
+      onLayoutChange?.(layout)
+    },
+    [onLayoutChange],
+  )
+
+  const handleSaveLayout = async () => {
+    try {
+      await saveLayout(currentLayout)
+      setIsCustomizing(false)
+    } catch (error) {
+      console.error("Failed to save layout:", error)
+    }
+  }
+
+  const handleResetLayout = () => {
+    const resetLayouts = { lg: defaultLayout }
+    setLayouts(resetLayouts)
+    onLayoutChange?.(defaultLayout)
+  }
+
+  const toggleCustomization = () => {
+    setIsCustomizing(!isCustomizing)
+  }
+>>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -159,12 +239,16 @@ export function CustomizableDashboardLayout({
                 <X className="h-4 w-4" />
                 <span>Cancel</span>
               </Button>
+<<<<<<< HEAD
               <Button
                 size="sm"
                 onClick={handleSaveLayout}
                 disabled={isLoading}
                 className="flex items-center space-x-1"
               >
+=======
+              <Button size="sm" onClick={handleSaveLayout} disabled={isLoading} className="flex items-center space-x-1">
+>>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
                 <Save className="h-4 w-4" />
                 <span>{isLoading ? "Saving..." : "Save"}</span>
               </Button>
@@ -190,12 +274,18 @@ export function CustomizableDashboardLayout({
             <div className="flex items-start space-x-2">
               <GripVertical className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
+<<<<<<< HEAD
                 <p className="text-sm text-blue-800 font-medium">
                   Customization Mode Active
                 </p>
                 <p className="text-sm text-blue-600">
                   Drag widgets to rearrange them, resize by dragging corners, or
                   use the controls in each widget header.
+=======
+                <p className="text-sm text-blue-800 font-medium">Customization Mode Active</p>
+                <p className="text-sm text-blue-600">
+                  Drag widgets to rearrange them, resize by dragging corners, or use the controls in each widget header.
+>>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
                 </p>
               </div>
             </div>
@@ -220,7 +310,11 @@ export function CustomizableDashboardLayout({
         preventCollision={false}
       >
         {widgets.map((widget) => {
+<<<<<<< HEAD
           const WidgetComponent = widget.component;
+=======
+          const WidgetComponent = widget.component
+>>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
           return (
             <div key={widget.id} className="widget-container">
               <DashboardWidget
@@ -228,13 +322,21 @@ export function CustomizableDashboardLayout({
                 isCustomizing={isCustomizing}
                 onRemove={() => {
                   // Handle widget removal if needed
+<<<<<<< HEAD
                   console.log(`Remove widget: ${widget.id}`);
+=======
+                  console.log(`Remove widget: ${widget.id}`)
+>>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
                 }}
               >
                 <WidgetComponent {...(widget.defaultProps || {})} />
               </DashboardWidget>
             </div>
+<<<<<<< HEAD
           );
+=======
+          )
+>>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
         })}
       </ResponsiveGridLayout>
 
@@ -242,10 +344,14 @@ export function CustomizableDashboardLayout({
       {isCustomizing && (
         <Card className="border-dashed border-2 border-gray-300 hover:border-gray-400 transition-colors">
           <CardContent className="flex items-center justify-center py-8">
+<<<<<<< HEAD
             <Button
               variant="ghost"
               className="flex items-center space-x-2 text-gray-600"
             >
+=======
+            <Button variant="ghost" className="flex items-center space-x-2 text-gray-600">
+>>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
               <Plus className="h-5 w-5" />
               <span>Add Widget</span>
             </Button>
@@ -253,7 +359,7 @@ export function CustomizableDashboardLayout({
         </Card>
       )}
     </div>
-  );
+  )
 }
 
 // CSS for react-grid-layout (add to your global CSS)
@@ -339,4 +445,8 @@ export const gridLayoutStyles = `
 .widget-container {
   height: 100%;
 }
+<<<<<<< HEAD
 `;
+=======
+`
+>>>>>>> bf82e287a63e13247ad4b38263d2068fda55c2b9
