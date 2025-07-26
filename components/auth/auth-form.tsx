@@ -19,6 +19,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/auth-context";
 
 export function AuthForm() {
@@ -36,7 +37,7 @@ export function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
-  const { signIn, resetPassword } = useAuth();
+  const supabase = createClient();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -58,11 +59,44 @@ export function AuthForm() {
       setError(new Error("Password is required"));
       return false;
     }
-    if (formData.password.length < 6) {
-      setError(new Error("Password must be at least 6 characters"));
+    if (formData.password.length < 8) {
+      setError(new Error("Password must be at least 8 characters"));
+      return false;
+    }
+    if (!/[A-Z]/.test(formData.password)) {
+      setError(new Error("Password must contain an uppercase letter"));
+      return false;
+    }
+    if (!/[a-z]/.test(formData.password)) {
+      setError(new Error("Password must contain a lowercase letter"));
+      return false;
+    }
+    if (!/\d/.test(formData.password)) {
+      setError(new Error("Password must contain a number"));
       return false;
     }
     return true;
+  };
+
+  const handleSocialSignIn = async (provider: "github" | "google") => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${location.origin}/auth/callback`,
+        },
+      });
+      if (error) {
+        setError(error);
+      }
+    } catch (err) {
+      setError(new Error("An unexpected error occurred. Please try again."));
+      console.error("Social sign in error:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -73,10 +107,10 @@ export function AuthForm() {
     setError(null);
 
     try {
-      const { error: signInError } = await signIn(
-        formData.email,
-        formData.password,
-      );
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
 
       if (signInError) {
         const errorMessage = signInError.message;
@@ -99,8 +133,7 @@ export function AuthForm() {
         return;
       }
 
-      // Success - redirect will happen automatically via auth state change
-      router.push(redirectTo);
+      // Success - redirect will be handled by the middleware
       router.refresh();
     } catch (err) {
       setError(new Error("An unexpected error occurred. Please try again."));
@@ -121,7 +154,12 @@ export function AuthForm() {
     setError(null);
 
     try {
-      const { error: resetError } = await resetPassword(formData.email);
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        formData.email,
+        {
+          redirectTo: `${window.location.origin}/auth/reset-password`,
+        },
+      );
 
       if (resetError) {
         setError(resetError);
@@ -223,6 +261,7 @@ export function AuthForm() {
           variant="outline"
           className="w-full bg-transparent border-white/20 text-white hover:bg-white/10"
           disabled={isLoading}
+          onClick={() => handleSocialSignIn("github")}
         >
           <Github className="mr-2 h-4 w-4" />
           Continue with GitHub
@@ -232,6 +271,7 @@ export function AuthForm() {
           variant="outline"
           className="w-full bg-transparent border-white/20 text-white hover:bg-white/10"
           disabled={isLoading}
+          onClick={() => handleSocialSignIn("google")}
         >
           <Chrome className="mr-2 h-4 w-4" />
           Continue with Google
@@ -312,19 +352,7 @@ export function AuthForm() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="remember"
-              checked={rememberMe}
-              onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-              disabled={isLoading}
-              className="border-white/20"
-            />
-            <Label htmlFor="remember" className="text-sm text-gray-300">
-              Remember me
-            </Label>
-          </div>
+        <div className="flex items-center justify-end">
           <button
             type="button"
             onClick={() => void setShowForgotPassword(true)}

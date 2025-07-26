@@ -175,15 +175,17 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
               render={({ field }) => (
                 <FormItem className="flex-none">
                   <Select
-                    onValueChange={field.onChange}
-                    value={field.value || ""}
+                    onValueChange={(value) =>
+                      field.onChange(value === "__none__" ? null : value)
+                    }
+                    value={field.value || "__none__"}
                     disabled={disabled || isAdding}
                   >
                     <SelectTrigger className="h-9 w-[120px]">
                       <SelectValue placeholder="Category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No Category</SelectItem>
+                      <SelectItem value="__none__">No Category</SelectItem>
                       <SelectItem value="work">Work</SelectItem>
                       <SelectItem value="personal">Personal</SelectItem>
                       <SelectItem value="shopping">Shopping</SelectItem>

@@ -19,18 +19,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   error: SupabaseAuthError | null; // Use SupabaseAuthError type
-  signIn: (
-    email: string,
-    password: string,
-  ) => Promise<{ error: SupabaseAuthError | null }>;
-  signUp: (
-    email: string,
-    password: string,
-  ) => Promise<{ error: SupabaseAuthError | null }>;
-  resetPassword: (
-    email: string,
-  ) => Promise<{ error: SupabaseAuthError | null }>;
-  signOut: () => Promise<void>;
+  signOut: () => Promise<{ error: SupabaseAuthError | null }>;
   refreshProfile: () => Promise<void>;
   updateProfile: (
     profileData: Partial<Omit<Profile, "id" | "updated_at">>,
@@ -109,54 +98,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signIn = async (
-    email: string,
-    password: string,
-  ): Promise<{ error: SupabaseAuthError | null }> => {
-    setError(null); // Clear previous errors
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) setError(error);
-    return { error };
-  };
 
-  const signUp = async (
-    email: string,
-    password: string,
-  ): Promise<{ error: SupabaseAuthError | null }> => {
+  const signOut = async (): Promise<{ error: SupabaseAuthError | null }> => {
     setError(null); // Clear previous errors
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    if (error) setError(error);
-    return { error };
-  };
-
-  const resetPassword = async (
-    email: string,
-  ): Promise<{ error: SupabaseAuthError | null }> => {
-    setError(null); // Clear previous errors
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    });
-    if (error) setError(error);
-    return { error };
-  };
-
-  const signOut = async () => {
-    setError(null); // Clear previous errors
-    try {
-      await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Error signing out:", error);
+      setError(error);
+    } else {
       setUser(null);
       setProfile(null);
       setSession(null);
-    } catch (error) {
-      console.error("Error signing out:", error);
-      setError(error as SupabaseAuthError); // Cast to SupabaseAuthError
     }
+    return { error };
   };
 
   const updateProfile = async (
@@ -184,54 +138,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
-
-        if (error) {
-          console.error("Error getting session:", error);
-        } else {
-          setSession(session);
-          setUser(session?.user ?? null);
-
-          if (session?.user) {
-            const profileData = await fetchProfile(session.user.id);
-            setProfile(profileData);
-          }
-        }
-      } catch (error) {
-        console.error("Error getting initial session:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      async (event: AuthChangeEvent, session: Session | null) => {
-        console.log("Auth state changed:", event, session?.user?.email);
-
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          const profileData = await fetchProfile(session.user.id);
-          setProfile(profileData);
-        } else {
-          setProfile(null);
-        }
-
-        setLoading(false);
-      },
-    );
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        fetchProfile(currentUser.id).then(setProfile);
+      } else {
+        setProfile(null);
+      }
+      setLoading(false);
+    });
 
     return () => {
       subscription.unsubscribe();
@@ -244,9 +163,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     loading,
     error, // Include error in the context value
-    signIn,
-    signUp,
-    resetPassword,
     signOut,
     refreshProfile,
     updateProfile,

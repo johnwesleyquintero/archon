@@ -10,7 +10,7 @@ export async function getDashboardSettings(
     .from("dashboard_settings")
     .select("layout")
     .eq("user_id", userId)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("Error fetching dashboard settings:", error);

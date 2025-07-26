@@ -1,11 +1,11 @@
 "use client";
 
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useRouter } from "next/navigation";
+import { createClient } from "./client";
 import type { Database } from "./types";
 
 export function createSupabaseClient() {
-  return createClientComponentClient<Database>();
+  return createClient();
 }
 
 export async function getUser() {
@@ -61,20 +61,6 @@ export async function getProfile(userId: string) {
   }
 }
 
-export function useRequireAuth() {
-  const router = useRouter();
-
-  const checkAuth = async () => {
-    const { user } = await getUser();
-    if (!user) {
-      router.push("/login");
-      return null;
-    }
-    return user;
-  };
-
-  return checkAuth;
-}
 
 export function useSignOut() {
   const router = useRouter();

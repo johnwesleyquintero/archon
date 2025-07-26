@@ -39,7 +39,7 @@ async function getServerUser() {
 
 export default async function JournalPage() {
   const user = await getServerUser();
-  const journalEntries = await getJournalEntries(user?.id || "");
+  const journalEntries = user ? await getJournalEntries(user.id) : [];
 
   return (
     <SidebarProvider>

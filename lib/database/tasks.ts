@@ -1,15 +1,46 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server-auth";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import type { Database } from "@/lib/supabase/types";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
 
+async function createClient() {
+  const cookieStore = cookies();
+
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch (error) {
+            // The `set` method was called from a Server Component.
+          }
+        },
+        remove(name: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value: "", ...options });
+          } catch (error) {
+            // The `delete` method was called from a Server Component.
+          }
+        },
+      },
+    },
+  );
+}
+
 export async function getTasks(): Promise<Task[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -35,7 +66,7 @@ export async function getTasks(): Promise<Task[]> {
 export async function addTask(
   taskData: Omit<TaskInsert, "user_id">,
 ): Promise<Task | null> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -70,7 +101,7 @@ export async function toggleTask(
   id: string,
   completed: boolean,
 ): Promise<Task | null> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -97,7 +128,7 @@ export async function toggleTask(
 }
 
 export async function deleteTask(id: string): Promise<void> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
