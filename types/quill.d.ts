@@ -1,5 +1,5 @@
 import type { RangeStatic, Quill as QuillType } from "quill";
-import type ReactQuill from "react-quill";
+declare module "react-quill";
 
 export interface QuillEditorRef {
   getEditor(): QuillType;

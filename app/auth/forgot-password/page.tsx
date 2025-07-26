@@ -26,7 +26,7 @@ export default function ForgotPasswordPage({ searchParams }: PageProps) {
 
     if (error) {
       return redirect(
-        "/auth/forgot-password?message=Could not authenticate user",
+        `/auth/forgot-password?message=${(error as Error).message}`,
       );
     }
 
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage({ searchParams }: PageProps) {
         </SubmitButton>
         {searchParams?.message && (
           <p className="mt-4 p-4 bg-foreground/10 text-foreground text-center">
-            {searchParams.message}
+            {searchParams.message as string}
           </p>
         )}
       </form>

@@ -6,8 +6,7 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import "react-quill/dist/quill.snow.css";
-import type ReactQuill from "react-quill";
-import type { StringMap } from "quill";
+import type { StringMap, Quill } from "quill";
 import type { QuillEditorRef } from "@/types/quill";
 
 const ReactQuillComponent = dynamic(
@@ -17,7 +16,7 @@ const ReactQuillComponent = dynamic(
       forwardedRef,
       ...props
     }: {
-      forwardedRef: React.Ref<ReactQuill>;
+      forwardedRef: React.Ref<any>;
       [key: string]: unknown;
     }) => <RQ ref={forwardedRef} {...props} />;
     QuillComponent.displayName = "QuillComponent";
@@ -40,15 +39,13 @@ const QuillEditorBase: ForwardRefRenderFunction<
   QuillEditorRef,
   QuillEditorProps
 > = (props, ref) => {
-  const quillRef = useRef<ReactQuill | null>(null);
+  const quillRef = useRef<any | null>(null);
 
   useImperativeHandle(
     ref,
     () => ({
-      getEditor: () => {
-        const editor = quillRef.current?.getEditor();
-        if (!editor) throw new Error("Editor not initialized");
-        return editor;
+      getEditor: (): Quill => {
+        return quillRef.current!.getEditor();
       },
       getSelection: () => {
         return quillRef.current?.getEditor()?.getSelection() || null;

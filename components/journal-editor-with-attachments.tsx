@@ -165,10 +165,12 @@ export function JournalEditorWithAttachments({
 
         return { success: false };
       } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         console.error("Error uploading file:", error);
         return {
           success: false,
-          error: error instanceof Error ? error : new Error(String(error)),
+          error: new Error(errorMessage),
         };
       }
     },

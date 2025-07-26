@@ -19,18 +19,21 @@ export async function getUser() {
     if (error) {
       console.log(
         "Auth error (expected for unauthenticated users):",
-        error.message,
+        (error as Error).message,
       );
-      return { user: null, error };
+      return { user: null, error: error as Error };
     }
 
     return { user, error: null };
-  } catch (error) {
+  } catch (error: unknown) {
     console.log(
       "Error getting user (expected for unauthenticated users):",
       error,
     );
-    return { user: null, error };
+    return {
+      user: null,
+      error: error instanceof Error ? error : new Error(String(error)),
+    };
   }
 }
 
@@ -44,14 +47,17 @@ export async function getProfile(userId: string) {
       .single();
 
     if (error) {
-      console.log("Profile error:", error.message);
-      return { profile: null, error };
+      console.log("Profile error:", (error as Error).message);
+      return { profile: null, error: error as Error };
     }
 
     return { profile, error: null };
-  } catch (error) {
+  } catch (error: unknown) {
     console.log("Error getting profile:", error);
-    return { profile: null, error };
+    return {
+      profile: null,
+      error: error instanceof Error ? error : new Error(String(error)),
+    };
   }
 }
 
