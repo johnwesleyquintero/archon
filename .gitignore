@@ -41,7 +41,9 @@ next-env.d.ts
 
 # IDE
 .idea/
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 *.sublime-workspace
 *.sublime-project
 
