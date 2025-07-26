@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import {
   Card,
   CardContent,
@@ -8,31 +9,30 @@ import {
 import Link from "next/link";
 import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 
-interface AuthCodeErrorPageProps {
-  searchParams: { message: string };
-}
+import { PageProps } from "@/app/types";
 
-export default function AuthCodeErrorPage({
-  searchParams,
-}: AuthCodeErrorPageProps) {
+export const metadata: Metadata = {
+  title: "Error - Authorization Code",
+  description: "Authorization code error page",
+};
+export default function AuthCodeErrorPage({ searchParams }: PageProps) {
+  const message = searchParams?.message ?? "No error message provided";
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <ArchonLogoSVG className="h-12 w-12 text-slate-900" />
+        <CardHeader>
+          <div className="flex justify-center">
+            <ArchonLogoSVG className="mb-4 h-12 w-12" />
           </div>
-          <CardTitle className="text-2xl">Authentication Status</CardTitle>
+          <CardTitle>Authentication Error</CardTitle>
           <CardDescription>
-            {searchParams.message || "An authentication event occurred."}
+            {message || "An authentication event occurred."}
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
-          <Link
-            href="/login"
-            className="underline text-slate-600 hover:text-slate-900"
-          >
-            Go to Login
+          <Link href="/auth/signin" className="text-blue-600 hover:underline">
+            Return to Sign In
           </Link>
         </CardContent>
       </Card>

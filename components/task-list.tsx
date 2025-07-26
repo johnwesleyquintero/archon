@@ -1,13 +1,3 @@
-"uimport { TaskItem } from "./task-item";
-import { TaskFilterBar } from "./task-filter-bar";
-import { TaskSort } from "./task-sort";
-import { EmptyState } from "./empty-state";
-import { useTasks } from "@/hooks/use-tasks";
-import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ListTodo, Filter } from "lucide-react";
-import type { Task, TaskItemProps } from '@/lib/types/task';;
-
 import { TaskItem } from "./task-item";
 import { TaskFilterBar } from "./task-filter-bar";
 import { TaskSort } from "./task-sort";
@@ -16,8 +6,7 @@ import { useTasks } from "@/hooks/use-tasks";
 import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ListTodo, Filter } from "lucide-react";
-import type { Task } from "@/types/task";
-import type { TaskItemProps } from "./task-item";
+import type { Task } from "@/lib/types/task";
 
 interface TaskListProps {
   onAddTaskClick: () => void;

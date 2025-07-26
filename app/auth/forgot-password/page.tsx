@@ -3,14 +3,16 @@ import { headers } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { Metadata } from "next";
 
-interface ForgotPasswordPageProps {
-  searchParams: { message?: string };
-}
+export const metadata: Metadata = {
+  title: "Forgot Password",
+  description: "Reset your password",
+};
 
-export default function ForgotPasswordPage({
-  searchParams,
-}: ForgotPasswordPageProps) {
+import { PageProps } from "@/app/types";
+
+export default function ForgotPasswordPage({ searchParams }: PageProps) {
   const forgotPassword = async (formData: FormData) => {
     "use server";
 

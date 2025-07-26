@@ -131,8 +131,8 @@ export function JournalEditorWithAttachments({
 
           // Insert image directly into Quill editor if it's an image
           if (fileType === "image" && quillRef.current) {
-            const editor = (quillRef.current as any).getEditor(); // Cast to any to access getEditor
-            const range = editor.getSelection();
+            const editor = quillRef.current.getEditor();
+            const range = quillRef.current.getSelection();
             if (range) {
               editor.insertEmbed(range.index, "image", result.url);
             } else {
@@ -140,13 +140,13 @@ export function JournalEditorWithAttachments({
             }
           } else if (quillRef.current) {
             // For other file types, insert a link
-            const editor = (quillRef.current as any).getEditor(); // Cast to any to access getEditor
-            const range = editor.getSelection();
+            const editor = quillRef.current.getEditor();
+            const range = quillRef.current.getSelection();
             const linkText = newAttachment.filename;
             const linkUrl = newAttachment.url;
             if (range) {
               editor.insertText(range.index, linkText, { link: linkUrl });
-              editor.setSelection(range.index + linkText.length);
+              quillRef.current.setSelection(range.index + linkText.length, 0);
             } else {
               editor.insertText(editor.getLength(), linkText, {
                 link: linkUrl,
@@ -417,10 +417,8 @@ export function JournalEditorWithAttachments({
                             className="object-cover rounded"
                             onClick={() => {
                               if (quillRef.current) {
-                                const editor = (
-                                  quillRef.current as any
-                                ).getEditor(); // Cast to any
-                                const range = editor.getSelection();
+                                const editor = quillRef.current.getEditor();
+                                const range = quillRef.current.getSelection();
                                 if (range) {
                                   editor.insertEmbed(
                                     range.index,
@@ -443,10 +441,8 @@ export function JournalEditorWithAttachments({
                               size="sm"
                               onClick={() => {
                                 if (quillRef.current) {
-                                  const editor = (
-                                    quillRef.current as any
-                                  ).getEditor(); // Cast to any
-                                  const range = editor.getSelection();
+                                  const editor = quillRef.current.getEditor();
+                                  const range = quillRef.current.getSelection();
                                   if (range) {
                                     editor.insertEmbed(
                                       range.index,
