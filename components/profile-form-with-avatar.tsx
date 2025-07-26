@@ -184,7 +184,7 @@ export function ProfileFormWithAvatar() {
             <div className="flex items-center gap-6">
               <Avatar className="h-24 w-24">
                 <AvatarImage
-                  src={form.watch("avatar") || "/placeholder-user.png"}
+                  src={form.watch("avatar") || "/placeholder-user.jpg"}
                   alt={form.watch("fullName") || "User Avatar"}
                 />
                 <AvatarFallback>
