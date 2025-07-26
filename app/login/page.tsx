@@ -1,6 +1,7 @@
 import { AuthForm } from "@/components/auth/auth-form";
 import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 import Link from "next/link";
+import { Suspense } from "react";
 
 export default function LoginPage() {
   return (
@@ -18,7 +19,9 @@ export default function LoginPage() {
 
         {/* Auth Form */}
         <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-6">
-          <AuthForm />
+          <Suspense fallback={<div className="text-white">Loading...</div>}>
+            <AuthForm />
+          </Suspense>
         </div>
 
         {/* Footer */}

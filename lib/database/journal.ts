@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from "@/lib/supabase/auth";
+import { createSupabaseServerClient } from "@/lib/supabase/server-auth";
 import type { Database } from "../supabase/types";
 
 type JournalRow = Database["public"]["Tables"]["journal_entries"]["Row"];

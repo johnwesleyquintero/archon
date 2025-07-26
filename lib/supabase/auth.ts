@@ -1,39 +1,17 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+"use client";
+
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import type { Database } from "./types";
 
-export async function createSupabaseServerClient() {
-  const cookieStore = await cookies();
-
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    },
-  );
+export function createSupabaseClient() {
+  return createClientComponentClient<Database>();
 }
 
 export async function getUser() {
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = createSupabaseClient();
     const {
       data: { user },
       error,
@@ -59,7 +37,7 @@ export async function getUser() {
 
 export async function getProfile(userId: string) {
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = createSupabaseClient();
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
@@ -78,18 +56,27 @@ export async function getProfile(userId: string) {
   }
 }
 
-export async function requireAuth(): Promise<User> {
-  const { user } = await getUser();
+export function useRequireAuth() {
+  const router = useRouter();
 
-  if (!user) {
-    redirect("/login");
-  }
+  const checkAuth = async () => {
+    const { user } = await getUser();
+    if (!user) {
+      router.push("/login");
+      return null;
+    }
+    return user;
+  };
 
-  return user;
+  return checkAuth;
 }
 
-export async function signOut() {
-  const supabase = await createSupabaseServerClient();
-  await supabase.auth.signOut();
-  redirect("/login");
+export function useSignOut() {
+  const router = useRouter();
+  const supabase = createSupabaseClient();
+
+  return async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 }

@@ -24,15 +24,16 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-interface AppSidebarProps {
-  isCollapsed: boolean;
-}
-
-export function AppSidebar({ isCollapsed }: AppSidebarProps) {
+export function AppSidebar() {
   const pathname = usePathname();
   const { signOut } = useAuth();
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+  };
 
   const navItems = [
     { href: "/dashboard", icon: Home, label: "Dashboard" },

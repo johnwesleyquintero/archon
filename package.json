@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "npx cross-env NODE_ENV=production next build",
     "check": "node scripts/code-checker.mjs",
     "dev": "next dev",
     "format": "prettier --write .",
@@ -41,6 +41,7 @@
     "@radix-ui/react-toggle": "latest",
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "@vercel/blob": "latest",

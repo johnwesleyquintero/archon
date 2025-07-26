@@ -8,6 +8,7 @@ import {
 import { AuthForm } from "@/components/auth/auth-form";
 import Link from "next/link";
 import Logo from "@/components/logo";
+import { Suspense } from "react";
 
 export default function SignUpPage() {
   return (
@@ -18,10 +19,14 @@ export default function SignUpPage() {
             <Logo className="h-12 w-12 text-slate-900" />
           </div>
           <CardTitle className="text-2xl">Sign Up</CardTitle>
-          <CardDescription>Create an account to get started.</CardDescription>
+          <CardDescription>
+            Create a new account to get started.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <AuthForm />
+          <Suspense fallback={<div>Loading...</div>}>
+            <AuthForm />
+          </Suspense>
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
             <Link

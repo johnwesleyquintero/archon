@@ -1,27 +1,49 @@
 "use client";
 import { useState, useEffect } from "react";
 import { JournalList } from "@/components/journal-list";
-import { JournalEditorWithAttachments } from "@/components/journal-editor-with-attachments"; // Use the one with attachments
-import { useJournal } from "@/hooks/use-journal";
-
+import { JournalEditorWithAttachments } from "@/components/journal-editor-with-attachments";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Database } from "@/lib/supabase/types";
 
-export function JournalInterface() {
-  const {
-    entries,
-    isLoading,
-    error,
-    isMutating,
-    addEntry,
-    updateEntry,
-    deleteEntry,
-  } = useJournal();
+type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
+type JournalInsert = Database["public"]["Tables"]["journal_entries"]["Insert"];
+type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];
+
+interface JournalInterfaceProps {
+  initialJournalEntries: JournalEntry[];
+  addEntry: (entry: JournalInsert) => Promise<JournalEntry | null>;
+  updateEntry: (
+    id: string,
+    patch: JournalUpdate,
+  ) => Promise<JournalEntry | null>;
+  deleteEntry: (id: string) => Promise<void>;
+  userId: string; // Add userId prop
+  isLoading?: boolean;
+  isMutating?: boolean;
+  error?: Error | null;
+}
+
+export function JournalInterface({
+  initialJournalEntries,
+  addEntry,
+  updateEntry,
+  deleteEntry,
+  userId, // Destructure userId
+  isLoading = false,
+  isMutating = false,
+  error = null,
+}: JournalInterfaceProps) {
+  const [entries, setEntries] = useState<JournalEntry[]>(initialJournalEntries);
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
+    setEntries(initialJournalEntries);
+  }, [initialJournalEntries]);
+
+  useEffect(() => {
     if (!selectedEntryId && entries.length > 0) {
-      setSelectedEntryId(entries[0].id); // Select the first entry by default if none selected
+      setSelectedEntryId(entries[0].id);
     }
   }, [entries, selectedEntryId]);
 
@@ -34,23 +56,35 @@ export function JournalInterface() {
   };
 
   const handleCreateEntry = async () => {
-    const newEntryData = {
+    const newEntryData: JournalInsert = {
       title: "New Entry",
       content: "",
       attachments: [],
+      user_id: userId, // Add user_id here
     };
-    await addEntry(newEntryData);
-    // The useJournal hook will update the state and revalidate,
-    // so we just need to ensure the new entry is selected.
-    // This might require a slight delay or a more sophisticated way to get the new ID.
-    // For now, the optimistic update in useJournal will handle it.
+    const newEntry = await addEntry(newEntryData);
+    if (newEntry) {
+      setEntries((prev) => [newEntry, ...prev]);
+      setSelectedEntryId(newEntry.id);
+    }
     setHasUnsavedChanges(false);
   };
 
   const handleSaveEntry = async () => {
     if (selectedEntry && hasUnsavedChanges) {
       const { id, title, content, attachments } = selectedEntry;
-      await updateEntry(id, { title, content, attachments });
+      const updatedEntry = await updateEntry(id, {
+        title,
+        content,
+        attachments,
+      });
+      if (updatedEntry) {
+        setEntries((prev) =>
+          prev.map((entry) =>
+            entry.id === updatedEntry.id ? updatedEntry : entry,
+          ),
+        );
+      }
       setHasUnsavedChanges(false);
     }
   };
@@ -58,8 +92,9 @@ export function JournalInterface() {
   const handleDeleteEntry = async (entryId: string) => {
     if (window.confirm("Are you sure you want to delete this journal entry?")) {
       await deleteEntry(entryId);
+      setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
       if (selectedEntryId === entryId) {
-        setSelectedEntryId(null); // Deselect if the current entry is deleted
+        setSelectedEntryId(null);
       }
     }
   };
@@ -127,6 +162,8 @@ export function JournalInterface() {
               void handleSaveEntry();
             }}
             hasUnsavedChanges={hasUnsavedChanges}
+            updateEntry={updateEntry}
+            isMutating={isMutating}
           />
         </div>
       </div>

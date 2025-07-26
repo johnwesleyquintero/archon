@@ -24,7 +24,6 @@ import type { Database } from "@/lib/supabase/types";
 import Image from "next/image";
 import { Spinner } from "@/components/ui/spinner";
 import { useDebounce } from "@/hooks/use-debounce";
-import { useJournal } from "@/hooks/use-journal"; // Import useJournal hook
 import { QuillEditor } from "./quill-editor";
 import type { QuillEditorRef } from "@/types/quill";
 
@@ -35,11 +34,17 @@ type Attachment = {
 };
 
 type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
+type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];
 
 interface JournalEditorProps {
   entry: JournalEntry | null;
   onSaveEntry: () => void;
   hasUnsavedChanges: boolean;
+  updateEntry: (
+    id: string,
+    patch: JournalUpdate,
+  ) => Promise<JournalEntry | null>;
+  isMutating?: boolean;
 }
 
 type JournalFormValues = z.infer<typeof journalEntrySchema>;
@@ -48,19 +53,20 @@ export function JournalEditorWithAttachments({
   entry,
   onSaveEntry,
   hasUnsavedChanges,
+  updateEntry,
+  isMutating = false,
 }: JournalEditorProps) {
   const quillRef = useRef<QuillEditorRef>(null);
-  const [showAttachmentUpload, setShowAttachmentUpload] = useState(false); // Keep for paperclip button
-  const { updateEntry, isMutating } = useJournal(); // Use useJournal hook
+  const [showAttachmentUpload, setShowAttachmentUpload] = useState(false);
 
   const debouncedOnUpdateEntryContent = useDebounce(
     useCallback(
       (entryId: string, content: string) => {
-        void updateEntry(entryId, { content: content }); // Save HTML content directly
+        void updateEntry(entryId, { content: content });
       },
       [updateEntry],
     ),
-    500, // Debounce delay of 500ms
+    500,
   );
 
   const debouncedOnUpdateEntryTitle = useDebounce(

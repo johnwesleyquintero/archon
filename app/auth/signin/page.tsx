@@ -9,6 +9,8 @@ import { AuthForm } from "@/components/auth/auth-form";
 import Link from "next/link";
 import Logo from "@/components/logo";
 
+import { Suspense } from "react";
+
 export default function SignInPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
@@ -23,7 +25,9 @@ export default function SignInPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <AuthForm />
+          <Suspense fallback={<div>Loading...</div>}>
+            <AuthForm />
+          </Suspense>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
             <Link

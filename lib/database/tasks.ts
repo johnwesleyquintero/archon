@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/auth";
+import { createSupabaseServerClient } from "@/lib/supabase/server-auth";
 import type { Database } from "@/lib/supabase/types";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
