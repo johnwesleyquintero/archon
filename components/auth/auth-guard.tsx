@@ -6,8 +6,6 @@ import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Spinner } from "@/components/ui/spinner";
-import { AuthSessionMissingError } from "@supabase/supabase-js"; // Import AuthSessionMissingError
-
 interface AuthGuardProps {
   children: React.ReactNode;
 }
@@ -17,15 +15,13 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter();
 
   useEffect(() => {
-    // If not loading, no user, and either no error or a specific AuthSessionMissingError, redirect to login
-    if (
-      !loading &&
-      !user &&
-      (!error || error instanceof AuthSessionMissingError)
-    ) {
+    // If not loading and no user, redirect to login.
+    // The AuthContext handles setting user to null and clearing errors on sign-out.
+    // Any error that results in no user should lead to login.
+    if (!loading && !user) {
       router.push("/login");
     }
-  }, [user, loading, error, router]);
+  }, [user, loading, router]);
 
   if (loading) {
     return (
@@ -35,8 +31,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  if (error && !(error instanceof AuthSessionMissingError)) {
-    // Only render a generic error message for non-AuthSessionMissingError errors
+  if (error) {
+    // Display a generic error message for any authentication error
     return (
       <div className="flex items-center justify-center min-h-screen bg-red-50 text-red-700 p-4">
         <p>Authentication Error: {error.message}</p>

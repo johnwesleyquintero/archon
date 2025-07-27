@@ -4,6 +4,7 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Metadata } from "next";
+import { AuthError as SupabaseAuthError } from "@supabase/supabase-js"; // Import SupabaseAuthError
 
 export const metadata: Metadata = {
   title: "Forgot Password",
@@ -27,12 +28,17 @@ export default function ForgotPasswordPage({ searchParams }: ForgotPasswordPageP
     });
 
     if (error) {
+      // Provide a more user-friendly error message
+      const userFriendlyMessage =
+        error instanceof SupabaseAuthError
+          ? error.message
+          : "Failed to send password reset email. Please check your email address and try again.";
       return redirect(
-        `/auth/forgot-password?message=${(error as Error).message}`,
+        `/auth/forgot-password?message=${encodeURIComponent(userFriendlyMessage)}`,
       );
     }
 
-    return redirect("/auth/forgot-password?message=Password reset email sent.");
+    return redirect("/auth/forgot-password?message=Password reset email sent. Please check your inbox."); // More explicit success message
   };
 
   return (

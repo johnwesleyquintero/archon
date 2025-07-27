@@ -19,7 +19,7 @@ interface AuthCodeErrorPageProps {
 }
 
 export default function AuthCodeErrorPage({ searchParams }: AuthCodeErrorPageProps) {
-  const message = (searchParams?.message as string) || "No error message provided";
+  const message = (searchParams?.message as string) || "An unexpected authentication error occurred. Please try again."; // More specific default message
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
@@ -30,7 +30,7 @@ export default function AuthCodeErrorPage({ searchParams }: AuthCodeErrorPagePro
           </div>
           <CardTitle>Authentication Error</CardTitle>
           <CardDescription>
-            {message || "An authentication event occurred."}
+            {message} {/* Directly use the message variable */}
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">

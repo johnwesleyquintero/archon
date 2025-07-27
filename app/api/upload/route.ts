@@ -1,10 +1,21 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { nanoid } from "nanoid";
-import { apiErrorResponse, AppError } from "@/lib/utils"; // Import AppError and apiErrorResponse
+import { apiErrorResponse, AppError } from "@/lib/utils";
+import { serverEnv } from "@/lib/env.server"; // Import serverEnv
 
 export async function POST(request: NextRequest) {
   try {
+    // Validate BLOB_READ_WRITE_TOKEN
+    if (!serverEnv.BLOB_READ_WRITE_TOKEN) {
+      throw new AppError(
+        "BLOB_READ_WRITE_TOKEN is not set.",
+        "MISSING_BLOB_TOKEN", // Using a more specific error code
+        {},
+        500,
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File;
     const folder = (formData.get("folder") as string) || "general";

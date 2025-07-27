@@ -2,6 +2,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { clientEnv } from "@/lib/env"; // Import clientEnv
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -15,10 +16,10 @@ export async function GET(request: NextRequest) {
   redirectTo.searchParams.delete("type");
 
   if (token_hash && type) {
-    const cookieStore = await cookies(); // Await the cookies() call
+    const cookieStore = await cookies();
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, // Use anon key for OTP verification
+      clientEnv.NEXT_PUBLIC_SUPABASE_URL, // Use clientEnv
+      clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY, // Use clientEnv
       {
         cookies: {
           get(name: string) {

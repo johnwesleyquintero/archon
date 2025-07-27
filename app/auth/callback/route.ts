@@ -1,17 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { cookies } from "next/headers"; // Removed ReadonlyRequestCookies import
+import { cookies } from "next/headers";
 import { type CookieOptions } from "@supabase/ssr";
+import { clientEnv } from "@/lib/env"; // Import clientEnv
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
 
   if (code) {
-    const cookieStore = await cookies(); // Await the cookies() call
+    const cookieStore = await cookies(); // Re-add await here
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, // Use anon key for authentication callbacks
+      clientEnv.NEXT_PUBLIC_SUPABASE_URL, // Use clientEnv
+      clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY, // Use clientEnv
       {
         cookies: {
           get(name: string) {

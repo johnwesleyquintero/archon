@@ -1,33 +1,17 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react"; // Import useEffect
 import { AppSidebar } from "@/components/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { cn } from "@/lib/utils";
+import { useSidebar } from "@/hooks/use-sidebar"; // Import the new hook
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  // Initialize from localStorage or default to false
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('sidebarCollapsed') === 'true';
-    }
-    return false;
-  });
-
-  const toggleSidebar = () => {
-    setIsSidebarCollapsed((prev) => {
-      const newState = !prev;
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('sidebarCollapsed', String(newState));
-      }
-      return newState;
-    });
-  };
+  const { isCollapsed: isSidebarCollapsed, toggleSidebar } = useSidebar(); // Use the hook
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr]">

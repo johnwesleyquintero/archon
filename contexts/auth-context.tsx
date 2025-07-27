@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { createContext, useContext, useEffect, useState } from "react";
-import type {
+import {
   User,
   Session,
   AuthError as SupabaseAuthError,
@@ -101,44 +101,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async (): Promise<{ error: SupabaseAuthError | null }> => {
     setError(null); // Clear previous errors
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Error signing out:", error);
-      setError(error);
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) {
+      console.error("Error signing out:", signOutError);
+      setError(signOutError);
+      return { error: signOutError };
     } else {
       setUser(null);
       setProfile(null);
       setSession(null);
+      return { error: null };
     }
-    return { error };
   };
 
   const updateProfile = async (
     profileData: Partial<Omit<Profile, "id" | "updated_at">>,
   ): Promise<{ error: SupabaseAuthError | null }> => {
-    try {
-      if (!user) {
-        console.error("Cannot update profile: No user logged in.");
-        return { error: { name: "AuthError", message: "No user logged in." } as SupabaseAuthError };
-      }
+    if (!user) {
+      const noUserError = { name: "AuthError", message: "No user logged in." } as SupabaseAuthError;
+      console.error("Cannot update profile:", noUserError.message);
+      setError(noUserError);
+      return { error: noUserError };
+    }
 
-      const { data, error } = await supabase
+    try {
+      const { data, error: updateError } = await supabase
         .from("profiles")
         .update(profileData)
-        .eq("id", user.id) // Use user.id directly after the check
+        .eq("id", user.id)
         .select()
         .single();
 
-      if (error) {
-        throw error;
+      if (updateError) {
+        throw updateError;
       }
 
       setProfile(data);
+      setError(null); // Clear any previous errors on success
       return { error: null };
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      setError(error as SupabaseAuthError); // Set global error state, cast to SupabaseAuthError
-      return { error: error as SupabaseAuthError };
+    } catch (err) {
+      const typedError = err instanceof Error ? err : new Error(String(err));
+      const status = (err as any).status || 500;
+      const code = (err as any).code || "CLIENT_ERROR";
+      // Correctly instantiate SupabaseAuthError
+      const supabaseError = new SupabaseAuthError(typedError.message, status, code);
+      console.error("Error updating profile:", supabaseError);
+      setError(supabaseError);
+      return { error: supabaseError };
     }
   };
 

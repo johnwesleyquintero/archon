@@ -39,8 +39,9 @@ export function AuthForm() {
     register,
     handleSubmit,
     formState: { errors },
-    setError: setFormError, // Rename setError to avoid conflict with component's setError
+    setError: setFormError,
     clearErrors,
+    getValues, // Add getValues to access form values
   } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
   });
@@ -123,7 +124,9 @@ export function AuthForm() {
 
   const handleForgotPassword = async () => {
     // Use react-hook-form for email validation for forgot password
-    const emailValidationResult = loginSchema.pick({ email: true }).safeParse({ email: errors.email?.message || "" });
+    const email = getValues("email"); // Get email from the form
+    const emailValidationResult = loginSchema.pick({ email: true }).safeParse({ email });
+
     if (!emailValidationResult.success) {
       setFormError("email", {
         type: "manual",
@@ -175,7 +178,7 @@ export function AuthForm() {
         <div className="text-center mb-4">
           <h3 className="text-lg font-semibold text-white">Reset Password</h3>
           <p className="text-sm text-gray-300">
-            Enter your email address and we&apos;ll send you a reset link
+            Enter your email address and we'll send you a reset link
           </p>
         </div>
 
