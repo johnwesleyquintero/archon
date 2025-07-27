@@ -8,23 +8,38 @@ import dynamic from "next/dynamic";
 import "react-quill/dist/quill.snow.css";
 import type { StringMap, Quill as QuillType } from "quill";
 import type { QuillEditorRef } from "@/types/quill";
+import type { Component } from "react";
 
-interface ReactQuillInstance {
+// Define an interface for the ReactQuill component instance
+interface IReactQuill extends Component {
   getEditor(): QuillType;
 }
 
-const ReactQuillComponent = dynamic(
+// Define the props for the dynamically imported component
+interface DynamicQuillComponentProps {
+  forwardedRef: React.Ref<IReactQuill | null>;
+  theme: string;
+  value: string;
+  onChange: (newContent: string) => void;
+  modules: StringMap;
+  formats: string[];
+  placeholder: string;
+  className: string;
+}
+
+const ReactQuillComponent = dynamic<DynamicQuillComponentProps>( // Specify the props type here
   async () => {
-    const { default: RQ } = await import("react-quill");
+    const {
+      default: RQ,
+    }: { default: (typeof import("react-quill"))["default"] } = await import(
+      "react-quill"
+    );
     const QuillComponent = ({
       forwardedRef,
       ...props
-    }: {
-      forwardedRef: React.Ref<any>;
-      [key: string]: unknown;
-    }) => <RQ ref={forwardedRef} {...props} />;
+    }: DynamicQuillComponentProps) => <RQ ref={forwardedRef} {...props} />;
     QuillComponent.displayName = "QuillComponent";
-    return QuillComponent;
+    return QuillComponent; // No cast needed here
   },
   { ssr: false },
 );
@@ -43,7 +58,7 @@ const QuillEditorBase: ForwardRefRenderFunction<
   QuillEditorRef,
   QuillEditorProps
 > = (props, ref) => {
-  const quillRef = useRef<ReactQuillInstance | null>(null);
+  const quillRef = useRef<IReactQuill | null>(null); // Use IReactQuill directly
 
   useImperativeHandle(
     ref,
@@ -88,6 +103,7 @@ const QuillEditorBase: ForwardRefRenderFunction<
         modules={props.modules}
         formats={props.formats}
         placeholder={props.placeholder}
+        className={props.className} // Add className prop
       />
     </div>
   );

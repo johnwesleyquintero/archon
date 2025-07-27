@@ -78,9 +78,9 @@ export function JournalInterface({
           <JournalList
             entries={entries}
             selectedEntryId={selectedEntryId}
-            onSelectEntry={handleSelectEntry}
-            onCreateEntry={handleCreateEntry}
-            onDeleteEntry={handleDeleteEntry}
+            onSelectEntry={(id) => handleSelectEntry(id)}
+            onCreateEntry={() => handleCreateEntry()}
+            onDeleteEntry={(id) => handleDeleteEntry(id)}
             isMutating={isMutating}
           />
         </div>
