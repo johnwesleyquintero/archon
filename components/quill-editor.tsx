@@ -29,11 +29,7 @@ interface DynamicQuillComponentProps {
 
 const ReactQuillComponent = dynamic<DynamicQuillComponentProps>( // Specify the props type here
   async () => {
-    const {
-      default: RQ,
-    }: { default: (typeof import("react-quill"))["default"] } = await import(
-      "react-quill"
-    );
+    const { default: RQ } = await import("react-quill");
     const QuillComponent = ({
       forwardedRef,
       ...props
