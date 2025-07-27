@@ -1,109 +1,87 @@
+"use client";
+
 import {
   forwardRef,
-  useRef,
   useImperativeHandle,
   type ForwardRefRenderFunction,
 } from "react";
-import dynamic from "next/dynamic";
-import "react-quill/dist/quill.snow.css";
-import type { StringMap, Quill as QuillType } from "quill";
-import type { QuillEditorRef } from "@/types/quill";
-import type { Component } from "react";
+import { useEditor, EditorContent, Editor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link"; // Common extension for rich text
+import Placeholder from "@tiptap/extension-placeholder"; // For placeholder text
+import { cn } from "@/lib/utils"; // Assuming this utility for tailwind-merge
 
-// Define an interface for the ReactQuill component instance
-interface IReactQuill extends Component {
-  getEditor(): QuillType;
+// Define a ref interface for the TipTap editor, exposing common methods
+export interface TipTapEditorRef {
+  getHTML: () => string;
+  getText: () => string;
+  isEmpty: () => boolean;
+  focus: () => void;
+  commands: Editor["commands"];
+  editor: Editor | null; // Expose the full editor instance
 }
 
-// Define the props for the dynamically imported component
-interface DynamicQuillComponentProps {
-  forwardedRef: React.Ref<IReactQuill | null>;
-  theme: string;
+interface TipTapEditorProps {
   value: string;
   onChange: (newContent: string) => void;
-  modules: StringMap;
-  formats: string[];
-  placeholder: string;
-  className: string;
+  placeholder?: string;
+  className?: string;
+  editable?: boolean;
 }
 
-const ReactQuillComponent = dynamic<DynamicQuillComponentProps>( // Specify the props type here
-  async () => {
-    const { default: RQ } = await import("react-quill");
-    const QuillComponent = ({
-      forwardedRef,
-      ...props
-    }: DynamicQuillComponentProps) => <RQ ref={forwardedRef} {...props} />;
-    QuillComponent.displayName = "QuillComponent";
-    return QuillComponent; // No cast needed here
-  },
-  { ssr: false },
-);
-
-interface QuillEditorProps {
-  theme: string;
-  value: string;
-  onChange: (newContent: string) => void;
-  modules: StringMap;
-  formats: string[];
-  placeholder: string;
-  className: string;
-}
-
-const QuillEditorBase: ForwardRefRenderFunction<
-  QuillEditorRef,
-  QuillEditorProps
+const TipTapEditorBase: ForwardRefRenderFunction<
+  TipTapEditorRef,
+  TipTapEditorProps
 > = (props, ref) => {
-  const quillRef = useRef<IReactQuill | null>(null); // Use IReactQuill directly
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+      }),
+      Placeholder.configure({
+        placeholder: props.placeholder || "Write something...",
+      }),
+    ],
+    content: props.value,
+    onUpdate: ({ editor }) => {
+      props.onChange(editor.getHTML());
+    },
+    editorProps: {
+      attributes: {
+        class: cn(
+          "prose dark:prose-invert max-w-none focus:outline-none",
+          props.className,
+        ),
+      },
+    },
+    editable: props.editable !== false, // Default to true if not explicitly false
+  });
 
+  // Store the editor instance in a ref for imperative access
   useImperativeHandle(
     ref,
     () => ({
-      getEditor: (): QuillType => {
-        if (!quillRef.current) throw new Error("Editor not initialized");
-        return quillRef.current.getEditor();
-      },
-      getSelection: () => {
-        return quillRef.current?.getEditor()?.getSelection() || null;
-      },
-      setSelection: (index: number, length: number) => {
-        const editor = quillRef.current?.getEditor();
-        if (editor) editor.setSelection(index, length);
-      },
-      insertEmbed: (
-        index: number,
-        type: string,
-        value: string | { src: string },
-      ) => {
-        const editor = quillRef.current?.getEditor();
-        if (editor) editor.insertEmbed(index, type, value);
-      },
-      insertText: (index: number, text: string) => {
-        const editor = quillRef.current?.getEditor();
-        if (editor) editor.insertText(index, text);
-      },
-      getLength: () => {
-        return quillRef.current?.getEditor()?.getLength() || 0;
-      },
+      getHTML: () => editor?.getHTML() || "",
+      getText: () => editor?.getText() || "",
+      isEmpty: () => editor?.isEmpty || true,
+      focus: () => editor?.commands.focus(),
+      commands: editor?.commands,
+      editor: editor, // Expose the full editor instance
     }),
-    [quillRef],
+    [editor],
   );
 
-  return (
-    <div className={props.className}>
-      <ReactQuillComponent
-        forwardedRef={quillRef}
-        theme={props.theme}
-        value={props.value}
-        onChange={props.onChange}
-        modules={props.modules}
-        formats={props.formats}
-        placeholder={props.placeholder}
-        className={props.className} // Add className prop
-      />
-    </div>
-  );
+  // Update editor content when value prop changes, but only if it's different
+  // Update editor content when value prop changes, but only if it's different
+  // This prevents infinite loops and ensures external changes are reflected
+  if (editor && editor.getHTML() !== props.value && !editor.isFocused) {
+    editor.commands.setContent(props.value, { emitUpdate: false }); // false to prevent dispatching update event
+  }
+
+  return <EditorContent editor={editor} />;
 };
 
-export const QuillEditor = forwardRef(QuillEditorBase);
-QuillEditor.displayName = "QuillEditor";
+export const TipTapEditor = forwardRef(TipTapEditorBase);
+TipTapEditor.displayName = "TipTapEditor";

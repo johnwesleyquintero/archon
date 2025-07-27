@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import "react-quill/dist/quill.snow.css"; // Import Quill styles
 import {
   Form,
   FormControl,
@@ -24,8 +23,7 @@ import type { Database } from "@/lib/supabase/types";
 import Image from "next/image";
 import { Spinner } from "@/components/ui/spinner";
 import { useDebounce } from "@/hooks/use-debounce";
-import { QuillEditor } from "./quill-editor";
-import type { QuillEditorRef } from "@/types/quill";
+import { TipTapEditor, type TipTapEditorRef } from "./quill-editor"; // Renamed and updated import
 
 type Attachment = {
   url: string;
@@ -56,7 +54,7 @@ export function JournalEditorWithAttachments({
   updateEntry,
   isMutating = false,
 }: JournalEditorProps) {
-  const quillRef = useRef<QuillEditorRef>(null);
+  const editorRef = useRef<TipTapEditorRef>(null); // Changed to editorRef and TipTapEditorRef
   const [showAttachmentUpload, setShowAttachmentUpload] = useState(false);
 
   const debouncedOnUpdateEntryContent = useDebounce(
@@ -135,29 +133,16 @@ export function JournalEditorWithAttachments({
             attachments: updatedAttachments.map((att) => att.url),
           });
 
-          // Insert image directly into Quill editor if it's an image
-          if (fileType === "image" && quillRef.current) {
-            const editor = quillRef.current.getEditor();
-            const range = quillRef.current.getSelection();
-            if (range) {
-              editor.insertEmbed(range.index, "image", result.url);
-            } else {
-              editor.insertEmbed(editor.getLength(), "image", result.url);
-            }
-          } else if (quillRef.current) {
+          // Insert image directly into TipTap editor if it's an image
+          if (fileType === "image" && editorRef.current) {
+            editorRef.current.commands.insertContent(
+              `<img src="${result.url}" alt="${newAttachment.filename}" />`,
+            );
+          } else if (editorRef.current) {
             // For other file types, insert a link
-            const editor = quillRef.current.getEditor();
-            const range = quillRef.current.getSelection();
-            const linkText = newAttachment.filename;
-            const linkUrl = newAttachment.url;
-            if (range) {
-              editor.insertText(range.index, linkText, { link: linkUrl });
-              quillRef.current.setSelection(range.index + linkText.length, 0);
-            } else {
-              editor.insertText(editor.getLength(), linkText, {
-                link: linkUrl,
-              });
-            }
+            editorRef.current.commands.insertContent(
+              `<a href="${newAttachment.url}" target="_blank" rel="noopener noreferrer">${newAttachment.filename}</a>`,
+            );
           }
 
           return { url: result.url, success: true };
@@ -174,60 +159,8 @@ export function JournalEditorWithAttachments({
         };
       }
     },
-    [entry, form, updateEntry, quillRef],
+    [entry, form, updateEntry, editorRef],
   ); // Add dependencies for useCallback
-
-  // Custom image handler for Quill (triggered by Quill's image button)
-  const imageHandler = useCallback(() => {
-    const input = document.createElement("input");
-    input.setAttribute("type", "file");
-    input.setAttribute("accept", "image/*");
-    input.click();
-
-    input.onchange = async () => {
-      const file = input.files?.[0];
-      if (file) {
-        await handleFileUpload(file);
-      }
-    };
-  }, [handleFileUpload]);
-
-  // Quill modules for toolbar and formatting options
-  const modules = useMemo(
-    () => ({
-      toolbar: {
-        container: [
-          [{ header: [1, 2, 3, 4, 5, 6, false] }],
-          ["bold", "italic", "underline", "strike"],
-          [{ list: "ordered" }, { list: "bullet" }],
-          [{ align: [] }],
-          ["link", "image"],
-          ["clean"],
-        ],
-        handlers: {
-          image: imageHandler, // Use custom image handler
-        },
-      },
-      clipboard: {
-        matchVisual: false,
-      },
-    }),
-    [imageHandler],
-  );
-
-  // Quill formats
-  const formats = [
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "list",
-    "bullet",
-    "align",
-    "link",
-    "image",
-  ];
 
   useEffect(() => {
     if (entry) {
@@ -368,10 +301,70 @@ export function JournalEditorWithAttachments({
             </div>
           </div>
 
-          {/* Toolbar */}
+          {/* Toolbar for TipTap */}
           <div className="flex items-center gap-1">
-            {/* Quill's toolbar will be rendered here */}
-            {/* The custom image handler will be triggered by Quill's image button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => editorRef.current?.commands.toggleBold()}
+              className={cn(
+                "h-8 w-8 p-0",
+                editorRef.current?.editor?.isActive("bold") && "bg-slate-100",
+              )}
+              disabled={isMutating}
+            >
+              <span className="font-bold">B</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => editorRef.current?.commands.toggleItalic()}
+              className={cn(
+                "h-8 w-8 p-0",
+                editorRef.current?.editor?.isActive("italic") && "bg-slate-100",
+              )}
+              disabled={isMutating}
+            >
+              <span className="italic">I</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => editorRef.current?.commands.toggleStrike()}
+              className={cn(
+                "h-8 w-8 p-0",
+                editorRef.current?.editor?.isActive("strike") && "bg-slate-100",
+              )}
+              disabled={isMutating}
+            >
+              <span className="line-through">S</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => editorRef.current?.commands.toggleBulletList()}
+              className={cn(
+                "h-8 w-8 p-0",
+                editorRef.current?.editor?.isActive("bulletList") &&
+                  "bg-slate-100",
+              )}
+              disabled={isMutating}
+            >
+              <span className="text-sm">UL</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => editorRef.current?.commands.toggleOrderedList()}
+              className={cn(
+                "h-8 w-8 p-0",
+                editorRef.current?.editor?.isActive("orderedList") &&
+                  "bg-slate-100",
+              )}
+              disabled={isMutating}
+            >
+              <span className="text-sm">OL</span>
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -424,22 +417,10 @@ export function JournalEditorWithAttachments({
                             fill
                             className="object-cover rounded"
                             onClick={() => {
-                              if (quillRef.current) {
-                                const editor = quillRef.current.getEditor();
-                                const range = quillRef.current.getSelection();
-                                if (range) {
-                                  editor.insertEmbed(
-                                    range.index,
-                                    "image",
-                                    attachment.url,
-                                  );
-                                } else {
-                                  editor.insertEmbed(
-                                    editor.getLength(),
-                                    "image",
-                                    attachment.url,
-                                  );
-                                }
+                              if (editorRef.current) {
+                                editorRef.current.commands.insertContent(
+                                  `<img src="${attachment.url}" alt="${attachment.filename}" />`,
+                                );
                               }
                             }}
                           />
@@ -448,22 +429,10 @@ export function JournalEditorWithAttachments({
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                if (quillRef.current) {
-                                  const editor = quillRef.current.getEditor();
-                                  const range = quillRef.current.getSelection();
-                                  if (range) {
-                                    editor.insertEmbed(
-                                      range.index,
-                                      "image",
-                                      attachment.url,
-                                    );
-                                  } else {
-                                    editor.insertEmbed(
-                                      editor.getLength(),
-                                      "image",
-                                      attachment.url,
-                                    );
-                                  }
+                                if (editorRef.current) {
+                                  editorRef.current.commands.insertContent(
+                                    `<img src="${attachment.url}" alt="${attachment.filename}" />`,
+                                  );
                                 }
                               }}
                               className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 bg-white/80 hover:bg-white"
@@ -507,15 +476,12 @@ export function JournalEditorWithAttachments({
             render={({ field }) => (
               <FormItem className="flex-1 flex flex-col">
                 <FormControl>
-                  <QuillEditor
-                    ref={quillRef}
-                    theme="snow"
+                  <TipTapEditor
+                    ref={editorRef}
                     value={field.value || ""}
                     onChange={handleQuillChange}
-                    modules={modules}
-                    formats={formats}
                     placeholder="Start writing your thoughts..."
-                    className="flex-1 flex flex-col quill-editor-container"
+                    className="flex-1 flex flex-col"
                   />
                 </FormControl>
                 <FormMessage />

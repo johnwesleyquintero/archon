@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import Quill editor styles */
-@import "../styles/quill-editor.css";
-
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
