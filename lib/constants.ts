@@ -1,4 +1,12 @@
-import { Home, Target, ListTodo, BookOpen, Settings, LucideIcon, User } from "lucide-react";
+import {
+  Home,
+  Target,
+  ListTodo,
+  BookOpen,
+  Settings,
+  LucideIcon,
+  User,
+} from "lucide-react";
 
 interface NavItem {
   href: string;

@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { headers } from "next/headers";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Metadata } from "next";
-import { AuthError as SupabaseAuthError } from "@supabase/supabase-js"; // Import SupabaseAuthError
+import { AuthError } from "@supabase/supabase-js";
 
 export const metadata: Metadata = {
   title: "Forgot Password",
@@ -15,30 +15,30 @@ interface ForgotPasswordPageProps {
   searchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export default function ForgotPasswordPage({ searchParams }: ForgotPasswordPageProps) {
+export default function ForgotPasswordPage({
+  searchParams,
+}: ForgotPasswordPageProps) {
   const forgotPassword = async (formData: FormData) => {
     "use server";
 
     const origin = (await headers()).get("origin");
     const email = formData.get("email") as string;
-    const supabase = await getSupabaseServerClient();
+    const supabase = await createServerSupabaseClient();
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${origin}/auth/update-password`,
-    });
+    const { error }: { error: AuthError | null } =
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${origin}/auth/update-password`,
+      });
 
     if (error) {
-      // Provide a more user-friendly error message
-      const userFriendlyMessage =
-        error instanceof SupabaseAuthError
-          ? error.message
-          : "Failed to send password reset email. Please check your email address and try again.";
       return redirect(
-        `/auth/forgot-password?message=${encodeURIComponent(userFriendlyMessage)}`,
+        `/auth/forgot-password?message=${encodeURIComponent(error.message)}`,
       );
     }
 
-    return redirect("/auth/forgot-password?message=Password reset email sent. Please check your inbox."); // More explicit success message
+    return redirect(
+      "/auth/forgot-password?message=Password reset email sent. Please check your inbox.",
+    ); // More explicit success message
   };
 
   return (

@@ -13,7 +13,7 @@ export interface WidgetLayout extends Layout {
   isVisible: boolean;
 }
 
-const DEFAULT_LAYOUT: WidgetLayout[] = [
+export const DEFAULT_LAYOUT: WidgetLayout[] = [
   { i: "stats-grid", x: 0, y: 0, w: 4, h: 2, isVisible: true },
   { i: "goal-tracker", x: 4, y: 0, w: 4, h: 3, isVisible: true },
   { i: "task-list", x: 8, y: 0, w: 4, h: 3, isVisible: true },

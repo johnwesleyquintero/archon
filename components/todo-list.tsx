@@ -6,9 +6,16 @@ import { TaskInput } from "./task-input";
 import { TaskList } from "./task-list";
 import { useTasks } from "@/hooks/use-tasks";
 import { useAuth } from "@/contexts/auth-context";
+import type { Database } from "@/lib/supabase/types";
 
-export function TodoList() {
-  const { addTask, isMutating } = useTasks();
+type Task = Database["public"]["Tables"]["tasks"]["Row"];
+
+interface TodoListProps {
+  initialTasks?: Task[];
+}
+
+export function TodoList({ initialTasks }: TodoListProps) {
+  const { addTask, isMutating } = useTasks(initialTasks);
   const { user } = useAuth();
   const taskInputRef = useRef<HTMLInputElement>(null);
 

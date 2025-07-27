@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Logo from "@/components/logo";
@@ -102,7 +101,9 @@ export function AppSidebar({ isCollapsed = false }: AppSidebarProps) {
             </Link>
           </TooltipTrigger>
           {isCollapsed && (
-            <TooltipContent side="right">{PROFILE_NAV_ITEM.label}</TooltipContent>
+            <TooltipContent side="right">
+              {PROFILE_NAV_ITEM.label}
+            </TooltipContent>
           )}
         </Tooltip>
         <Tooltip>

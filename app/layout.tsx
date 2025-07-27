@@ -34,7 +34,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <TooltipProvider> {/* Wrap children with TooltipProvider */}
+            <TooltipProvider>
+              {" "}
+              {/* Wrap children with TooltipProvider */}
               {children}
             </TooltipProvider>
             <Toaster />

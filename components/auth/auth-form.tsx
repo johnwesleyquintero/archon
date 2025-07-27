@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -125,7 +125,9 @@ export function AuthForm() {
   const handleForgotPassword = async () => {
     // Use react-hook-form for email validation for forgot password
     const email = getValues("email"); // Get email from the form
-    const emailValidationResult = loginSchema.pick({ email: true }).safeParse({ email });
+    const emailValidationResult = loginSchema
+      .pick({ email: true })
+      .safeParse({ email });
 
     if (!emailValidationResult.success) {
       setFormError("email", {
@@ -283,7 +285,10 @@ export function AuthForm() {
       </div>
 
       {/* Email Sign In Form */}
-      <form onSubmit={(event) => void handleSubmit(handleSignIn)(event)} className="space-y-4">
+      <form
+        onSubmit={(event) => void handleSubmit(handleSignIn)(event)}
+        className="space-y-4"
+      >
         {error && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />

@@ -60,7 +60,6 @@ export async function getProfile(userId: string) {
   }
 }
 
-
 export function useSignOut() {
   const router = useRouter();
   const supabase = createSupabaseClient();

@@ -1,24 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { JournalList } from "@/components/journal-list";
 import { JournalEditorWithAttachments } from "@/components/journal-editor-with-attachments";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Database } from "@/lib/supabase/types";
-import {
-  addJournalEntry,
-  updateJournalEntry,
-  deleteJournalEntry,
-} from "@/app/journal/actions";
+import { useJournal } from "@/hooks/use-journal";
+import { updateJournalEntry } from "@/app/journal/actions";
 
 type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
-type JournalInsert = Database["public"]["Tables"]["journal_entries"]["Insert"];
 
 interface JournalInterfaceProps {
   initialJournalEntries: JournalEntry[];
   userId: string;
   isLoading?: boolean;
-  isMutating?: boolean;
   error?: Error | null;
 }
 
@@ -26,80 +20,19 @@ export function JournalInterface({
   initialJournalEntries,
   userId,
   isLoading = false,
-  isMutating = false,
   error = null,
 }: JournalInterfaceProps) {
-  const [entries, setEntries] = useState<JournalEntry[]>(initialJournalEntries);
-  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-  useEffect(() => {
-    setEntries(initialJournalEntries);
-  }, [initialJournalEntries]);
-
-  useEffect(() => {
-    if (!selectedEntryId && entries.length > 0) {
-      setSelectedEntryId(entries[0].id);
-    }
-  }, [entries, selectedEntryId]);
-
-  const selectedEntry =
-    entries.find((entry) => entry.id === selectedEntryId) || null;
-
-  const handleSelectEntry = (entryId: string) => {
-    setSelectedEntryId(entryId);
-    setHasUnsavedChanges(false);
-  };
-
-  const handleCreateEntry = async () => {
-    const newEntryData: JournalInsert = {
-      title: "New Entry",
-      content: "",
-      attachments: [],
-      user_id: userId,
-    };
-    const newEntry = await addJournalEntry(newEntryData);
-    if (newEntry) {
-      setEntries((prev) => [newEntry, ...prev]);
-      setSelectedEntryId(newEntry.id);
-    } else {
-      // Handle error case if newEntry is null, e.g., show a toast
-      console.error("Failed to create new journal entry.");
-    }
-    setHasUnsavedChanges(false);
-  };
-
-  const handleSaveEntry = async () => {
-    if (selectedEntry && hasUnsavedChanges) {
-      const { id, title, content, attachments } = selectedEntry;
-      const updatedEntry = await updateJournalEntry(id, {
-        title,
-        content,
-        attachments,
-      });
-      if (updatedEntry) {
-        setEntries((prev) =>
-          prev.map((entry) =>
-            entry.id === updatedEntry.id ? updatedEntry : entry,
-          ),
-        );
-      } else {
-        // Handle error case if updatedEntry is null, e.g., show a toast
-        console.error(`Failed to update journal entry with ID: ${id}`);
-      }
-      setHasUnsavedChanges(false);
-    }
-  };
-
-  const handleDeleteEntry = async (entryId: string) => {
-    if (window.confirm("Are you sure you want to delete this journal entry?")) {
-      await deleteJournalEntry(entryId);
-      setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
-      if (selectedEntryId === entryId) {
-        setSelectedEntryId(null);
-      }
-    }
-  };
+  const {
+    entries,
+    selectedEntry,
+    selectedEntryId,
+    hasUnsavedChanges,
+    isMutating,
+    handleSelectEntry,
+    handleCreateEntry,
+    handleSaveEntry,
+    handleDeleteEntry,
+  } = useJournal(initialJournalEntries, userId);
 
   if (isLoading) {
     return (
@@ -146,12 +79,8 @@ export function JournalInterface({
             entries={entries}
             selectedEntryId={selectedEntryId}
             onSelectEntry={handleSelectEntry}
-            onCreateEntry={() => {
-              void handleCreateEntry();
-            }}
-            onDeleteEntry={(id) => {
-              void handleDeleteEntry(id);
-            }}
+            onCreateEntry={handleCreateEntry}
+            onDeleteEntry={handleDeleteEntry}
             isMutating={isMutating}
           />
         </div>
@@ -160,9 +89,7 @@ export function JournalInterface({
         <div className="flex-1">
           <JournalEditorWithAttachments
             entry={selectedEntry}
-            onSaveEntry={() => {
-              void handleSaveEntry();
-            }}
+            onSaveEntry={handleSaveEntry}
             hasUnsavedChanges={hasUnsavedChanges}
             updateEntry={updateJournalEntry}
             isMutating={isMutating}

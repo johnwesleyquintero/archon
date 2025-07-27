@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/client";
 import { DashboardSettingsRow, Json } from "@/lib/supabase/types";
-import { Layout } from "react-grid-layout";
+import { WidgetLayout } from "@/hooks/use-dashboard-settings";
 
 export async function getDashboardSettings(
   userId: string,
-): Promise<Layout[] | null> {
+): Promise<WidgetLayout[] | null> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("dashboard_settings")
@@ -17,13 +17,13 @@ export async function getDashboardSettings(
     return null;
   }
 
-  // Cast the layout from Json to Layout[]
-  return (data?.layout as Layout[] | null) || null;
+  // Cast the layout from Json to WidgetLayout[]
+  return (data?.layout as WidgetLayout[] | null) || null;
 }
 
 export async function updateDashboardSettings(
   userId: string,
-  settings: Layout[],
+  settings: WidgetLayout[],
 ): Promise<DashboardSettingsRow | null> {
   const supabase = createClient();
   const { data, error } = await supabase

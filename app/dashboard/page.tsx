@@ -1,5 +1,3 @@
-"use client";
-
 import {
   CustomizableDashboardLayout,
   type Widget,
@@ -10,7 +8,9 @@ import { GoalTracker } from "@/components/goal-tracker";
 import { JournalList } from "@/components/journal-list";
 import { AdvancedStatsGrid } from "@/components/advanced-stats-grid";
 import { PlaceholderInfographics } from "@/components/placeholder-infographics";
-import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getDashboardSettings } from "@/lib/database/dashboard-settings";
+import { DEFAULT_LAYOUT } from "@/hooks/use-dashboard-settings";
 
 // Define available widgets
 const availableWidgets: Widget[] = [
@@ -73,14 +73,36 @@ const availableWidgets: Widget[] = [
   },
 ];
 
-export default function DashboardPage() {
-  const { layout } = useDashboardSettings();
+export default async function DashboardPage() {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let initialLayout = DEFAULT_LAYOUT;
+  if (user) {
+    const storedLayout = await getDashboardSettings(user.id);
+    if (storedLayout) {
+      initialLayout = DEFAULT_LAYOUT.map((defaultWidget) => {
+        const storedWidget = storedLayout.find(
+          (sl) => sl.i === defaultWidget.i,
+        );
+        return {
+          ...defaultWidget,
+          ...storedWidget,
+          isVisible: storedWidget
+            ? storedWidget.isVisible
+            : defaultWidget.isVisible,
+        };
+      });
+    }
+  }
 
   return (
     <div className="container mx-auto p-6">
       <CustomizableDashboardLayout
         widgets={availableWidgets}
-        initialLayout={layout}
+        initialLayout={initialLayout}
         className="min-h-screen"
       />
     </div>

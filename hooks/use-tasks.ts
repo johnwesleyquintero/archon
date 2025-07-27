@@ -7,6 +7,7 @@ import {
   toggleTask,
   deleteTask,
 } from "@/lib/database/tasks";
+import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/use-toast";
@@ -14,10 +15,10 @@ import { useToast } from "@/components/ui/use-toast";
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 
-export function useTasks() {
+export function useTasks(initialTasks: Task[] = []) {
   const { user } = useAuth();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
@@ -48,8 +49,46 @@ export function useTasks() {
   }, [user, toast]);
 
   useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+    // If initialTasks are not provided, fetch them.
+    if (initialTasks.length === 0) {
+      fetchTasks();
+    }
+
+    const client = createClient();
+    const channel = client
+      .channel("realtime-tasks")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tasks",
+          filter: `user_id=eq.${user?.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            setTasks((prev) => [...prev, payload.new as Task]);
+          }
+          if (payload.eventType === "UPDATE") {
+            setTasks((prev) =>
+              prev.map((task) =>
+                task.id === payload.new.id ? (payload.new as Task) : task,
+              ),
+            );
+          }
+          if (payload.eventType === "DELETE") {
+            setTasks((prev) =>
+              prev.filter((task) => task.id !== payload.old.id),
+            );
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      client.removeChannel(channel);
+    };
+  }, [fetchTasks, initialTasks, user?.id]);
 
   const handleAddTask = useCallback(
     async (input: TaskInsert) => {
@@ -63,10 +102,10 @@ export function useTasks() {
         return;
       }
       setError(null);
+      const tempId = `temp-${Date.now()}`;
       startTransition(async () => {
         try {
           // Optimistic update
-          const tempId = `temp-${Date.now()}`;
           const newTask: Task = {
             id: tempId,
             title: input.title,
@@ -109,9 +148,7 @@ export function useTasks() {
             variant: "destructive",
           });
           // Revert optimistic update on error
-          setTasks((prev) =>
-            prev.filter((task) => task.id !== `temp-${Date.now()}`),
-          );
+          setTasks((prev) => prev.filter((task) => task.id !== tempId));
         }
       });
     },

@@ -1,6 +1,4 @@
-import { PageProps as NextPageProps } from "next";
-
-export type PageProps = NextPageProps & {
+export type PageProps = {
   params?: { [key: string]: string };
   searchParams?: { [key: string]: string | string[] | undefined };
 };

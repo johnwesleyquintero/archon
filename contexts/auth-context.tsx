@@ -69,7 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const newProfile = {
         id: userId,
         full_name: userData.user.user_metadata?.full_name || "", // Provide empty string default
-        avatar_url: userData.user.user_metadata?.avatar_url || "/placeholder-user.jpg", // Provide a default avatar
+        avatar_url:
+          userData.user.user_metadata?.avatar_url || "/placeholder-user.jpg", // Provide a default avatar
         username: null, // Will be set later if user wants to customize
       };
 
@@ -98,7 +99,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-
   const signOut = async (): Promise<{ error: SupabaseAuthError | null }> => {
     setError(null); // Clear previous errors
     const { error: signOutError } = await supabase.auth.signOut();
@@ -118,7 +118,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profileData: Partial<Omit<Profile, "id" | "updated_at">>,
   ): Promise<{ error: SupabaseAuthError | null }> => {
     if (!user) {
-      const noUserError = { name: "AuthError", message: "No user logged in." } as SupabaseAuthError;
+      const noUserError = {
+        name: "AuthError",
+        message: "No user logged in.",
+      } as SupabaseAuthError;
       console.error("Cannot update profile:", noUserError.message);
       setError(noUserError);
       return { error: noUserError };
@@ -144,7 +147,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const status = (err as any).status || 500;
       const code = (err as any).code || "CLIENT_ERROR";
       // Correctly instantiate SupabaseAuthError
-      const supabaseError = new SupabaseAuthError(typedError.message, status, code);
+      const supabaseError = new SupabaseAuthError(
+        typedError.message,
+        status,
+        code,
+      );
       console.error("Error updating profile:", supabaseError);
       setError(supabaseError);
       return { error: supabaseError };

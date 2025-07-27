@@ -7,15 +7,18 @@ import {
   updateGoal,
   deleteGoal,
 } from "@/lib/database/goals";
+import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
+import { useAuth } from "@/contexts/auth-context";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 type GoalInsert = Database["public"]["Tables"]["goals"]["Insert"];
 type GoalUpdate = Database["public"]["Tables"]["goals"]["Update"];
 
-export function useGoals() {
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export function useGoals(initialGoals: Goal[] = []) {
+  const { user } = useAuth();
+  const [goals, setGoals] = useState<Goal[]>(initialGoals);
+  const [isLoading, setIsLoading] = useState(initialGoals.length === 0);
   const [error, setError] = useState<Error | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -35,8 +38,45 @@ export function useGoals() {
   }, []);
 
   useEffect(() => {
-    fetchGoals();
-  }, [fetchGoals]);
+    if (initialGoals.length === 0) {
+      fetchGoals();
+    }
+
+    const client = createClient();
+    const channel = client
+      .channel("realtime-goals")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "goals",
+          filter: `user_id=eq.${user?.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            setGoals((prev) => [...prev, payload.new as Goal]);
+          }
+          if (payload.eventType === "UPDATE") {
+            setGoals((prev) =>
+              prev.map((goal) =>
+                goal.id === payload.new.id ? (payload.new as Goal) : goal,
+              ),
+            );
+          }
+          if (payload.eventType === "DELETE") {
+            setGoals((prev) =>
+              prev.filter((goal) => goal.id !== payload.old.id),
+            );
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      client.removeChannel(channel);
+    };
+  }, [fetchGoals, initialGoals, user?.id]);
 
   const addGoalMutation = useCallback(
     async (newGoalData: Omit<GoalInsert, "user_id">) => {

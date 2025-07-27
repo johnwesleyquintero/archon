@@ -18,8 +18,12 @@ interface AuthCodeErrorPageProps {
   searchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export default function AuthCodeErrorPage({ searchParams }: AuthCodeErrorPageProps) {
-  const message = (searchParams?.message as string) || "An unexpected authentication error occurred. Please try again."; // More specific default message
+export default function AuthCodeErrorPage({
+  searchParams,
+}: AuthCodeErrorPageProps) {
+  const message =
+    (searchParams?.message as string) ||
+    "An unexpected authentication error occurred. Please try again."; // More specific default message
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">

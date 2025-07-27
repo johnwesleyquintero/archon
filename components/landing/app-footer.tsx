@@ -17,10 +17,7 @@ export function AppFooter() {
             >
               Privacy
             </Link>
-            <Link
-              href="/terms"
-              className="hover:text-white transition-colors"
-            >
+            <Link href="/terms" className="hover:text-white transition-colors">
               Terms
             </Link>
             <Link

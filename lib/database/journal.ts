@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Database } from "../supabase/types";
 
 type JournalRow = Database["public"]["Tables"]["journal_entries"]["Row"];
@@ -10,7 +10,7 @@ type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];
    CRUD – Journal entries
    ───────────────────────── */
 export async function getJournalEntries(userId: string) {
-  const supabase = await getSupabaseServerClient();
+  const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("journal_entries")
     .select("*")
@@ -22,7 +22,7 @@ export async function getJournalEntries(userId: string) {
 }
 
 export async function addJournalEntry(entry: JournalInsert) {
-  const supabase = await getSupabaseServerClient();
+  const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("journal_entries")
     .insert(entry)
@@ -33,7 +33,7 @@ export async function addJournalEntry(entry: JournalInsert) {
 }
 
 export async function updateJournalEntry(id: string, patch: JournalUpdate) {
-  const supabase = await getSupabaseServerClient();
+  const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("journal_entries")
     .update(patch)
@@ -45,7 +45,7 @@ export async function updateJournalEntry(id: string, patch: JournalUpdate) {
 }
 
 export async function deleteJournalEntry(id: string) {
-  const supabase = await getSupabaseServerClient();
+  const supabase = await createServerSupabaseClient();
   const { error } = await supabase
     .from("journal_entries")
     .delete()

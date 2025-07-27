@@ -16,10 +16,10 @@ import {
 } from "@/components/ui/breadcrumb";
 import { redirect } from "next/navigation";
 import { getJournalEntries } from "@/lib/database/journal";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function JournalPage() {
-  const supabase = await getSupabaseServerClient();
+  const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

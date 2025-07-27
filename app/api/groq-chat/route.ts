@@ -17,7 +17,8 @@ export async function POST(req: Request) {
       messages: Array<{ role: string; content: string }>;
     };
 
-    if (!serverEnv.GROQ_API_KEY) { // Use serverEnv.GROQ_API_KEY for the check
+    if (!serverEnv.GROQ_API_KEY) {
+      // Use serverEnv.GROQ_API_KEY for the check
       throw new AppError(
         "GROQ_API_KEY is not set.",
         "MISSING_API_KEY",

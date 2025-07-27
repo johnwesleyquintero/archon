@@ -15,6 +15,13 @@ import type { z } from "zod";
 import type { goalSchema } from "@/lib/validators";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import type { Database } from "@/lib/supabase/types";
+
+type Goal = Database["public"]["Tables"]["goals"]["Row"];
+
+interface GoalTrackerProps {
+  initialGoals?: Goal[];
+}
 
 type Attachment = {
   url: string;
@@ -37,7 +44,7 @@ const statusConfig = {
   },
 };
 
-export function GoalTrackerWithAttachments() {
+export function GoalTrackerWithAttachments({ initialGoals }: GoalTrackerProps) {
   const {
     goals,
     isLoading,
@@ -46,7 +53,7 @@ export function GoalTrackerWithAttachments() {
     addGoal,
     updateGoal,
     deleteGoal,
-  } = useGoals();
+  } = useGoals(initialGoals);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showUploadFor, setShowUploadFor] = useState<string | null>(null);

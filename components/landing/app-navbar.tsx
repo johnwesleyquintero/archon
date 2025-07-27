@@ -13,10 +13,7 @@ export function AppNavbar() {
           </div>
           <div className="flex items-center space-x-4">
             <Link href="/login">
-              <Button
-                variant="ghost"
-                className="text-white hover:bg-white/10"
-              >
+              <Button variant="ghost" className="text-white hover:bg-white/10">
                 Sign In
               </Button>
             </Link>

@@ -1,4 +1,4 @@
-import { getSupabaseServerClient } from "../supabase/server";
+import { createServerSupabaseClient } from "../supabase/server";
 import type { Database } from "../supabase/types";
 
 export type ProfilesRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -8,7 +8,7 @@ type ProfilesUpdate = Database["public"]["Tables"]["profiles"]["Update"];
    Read
    ────────────────────────────────────────────────────────── */
 export async function getProfile(id: string) {
-  const supabase = await getSupabaseServerClient();
+  const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
@@ -38,7 +38,7 @@ export async function getProfile(id: string) {
    Update / Upsert
    ────────────────────────────────────────────────────────── */
 export async function updateProfile(id: string, patch: ProfilesUpdate) {
-  const supabase = await getSupabaseServerClient();
+  const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("profiles")
     .update(patch)
