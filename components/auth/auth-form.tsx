@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Eye,
   EyeOff,
@@ -20,63 +19,31 @@ import {
   Loader2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useAuth } from "@/contexts/auth-context";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "@/lib/validators";
+import { z } from "zod";
+
+type LoginFormInputs = z.infer<typeof loginSchema>;
 
 export function AuthForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/dashboard";
   const supabase = createClient();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear errors when user starts typing
-    if (error) setError(null);
-  };
-
-  const validateForm = () => {
-    if (!formData.email) {
-      setError(new Error("Email is required"));
-      return false;
-    }
-    if (!formData.email.includes("@")) {
-      setError(new Error("Please enter a valid email address"));
-      return false;
-    }
-    if (!formData.password) {
-      setError(new Error("Password is required"));
-      return false;
-    }
-    if (formData.password.length < 8) {
-      setError(new Error("Password must be at least 8 characters"));
-      return false;
-    }
-    if (!/[A-Z]/.test(formData.password)) {
-      setError(new Error("Password must contain an uppercase letter"));
-      return false;
-    }
-    if (!/[a-z]/.test(formData.password)) {
-      setError(new Error("Password must contain a lowercase letter"));
-      return false;
-    }
-    if (!/\d/.test(formData.password)) {
-      setError(new Error("Password must contain a number"));
-      return false;
-    }
-    return true;
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError: setFormError, // Rename setError to avoid conflict with component's setError
+    clearErrors,
+  } = useForm<LoginFormInputs>({
+    resolver: zodResolver(loginSchema),
+  });
 
   const handleSocialSignIn = async (provider: "github" | "google") => {
     setIsLoading(true);
@@ -99,29 +66,40 @@ export function AuthForm() {
     }
   };
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
+  const handleSignIn = async (data: LoginFormInputs) => {
     setIsLoading(true);
     setError(null);
+    clearErrors(); // Clear react-hook-form errors
 
     try {
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
+        email: data.email,
+        password: data.password,
       });
 
       if (signInError) {
         const errorMessage = signInError.message;
 
         if (errorMessage.includes("Invalid login credentials")) {
+          setFormError("email", {
+            type: "manual",
+            message: "Invalid email or password.",
+          });
+          setFormError("password", {
+            type: "manual",
+            message: "Invalid email or password.",
+          });
           setError(
             new Error(
               "Invalid email or password. Please check your credentials and try again.",
             ),
           );
         } else if (errorMessage.includes("Email not confirmed")) {
+          setFormError("email", {
+            type: "manual",
+            message:
+              "Please check your email and click the confirmation link before signing in.",
+          });
           setError(
             new Error(
               "Please check your email and click the confirmation link before signing in.",
@@ -143,19 +121,25 @@ export function AuthForm() {
     }
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.email) {
-      setError(new Error("Please enter your email address"));
+  const handleForgotPassword = async () => {
+    // Use react-hook-form for email validation for forgot password
+    const emailValidationResult = loginSchema.pick({ email: true }).safeParse({ email: errors.email?.message || "" });
+    if (!emailValidationResult.success) {
+      setFormError("email", {
+        type: "manual",
+        message: emailValidationResult.error.errors[0].message,
+      });
+      setError(new Error(emailValidationResult.error.errors[0].message));
       return;
     }
 
     setIsLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-        formData.email,
+        emailValidationResult.data.email,
         {
           redirectTo: `${window.location.origin}/auth/reset-password`,
         },
@@ -163,6 +147,10 @@ export function AuthForm() {
 
       if (resetError) {
         setError(resetError);
+        setFormError("email", {
+          type: "manual",
+          message: resetError.message,
+        });
         return;
       }
 
@@ -181,7 +169,7 @@ export function AuthForm() {
   if (showForgotPassword) {
     return (
       <form
-        onSubmit={(e) => void handleForgotPassword(e)}
+        onSubmit={(event) => void handleSubmit(handleForgotPassword)(event)}
         className="space-y-4"
       >
         <div className="text-center mb-4">
@@ -213,16 +201,17 @@ export function AuthForm() {
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               id="reset-email"
-              name="email"
               type="email"
               placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleInputChange}
+              {...register("email")}
               className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
               required
               disabled={isLoading}
             />
           </div>
+          {errors.email && (
+            <p className="text-red-400 text-sm">{errors.email.message}</p>
+          )}
         </div>
 
         <div className="flex space-x-2">
@@ -241,6 +230,7 @@ export function AuthForm() {
               setShowForgotPassword(false);
               setError(null);
               setSuccess(null);
+              clearErrors(); // Clear react-hook-form errors
             }}
             disabled={isLoading}
             className="border-white/20 text-white hover:bg-white/10"
@@ -261,7 +251,7 @@ export function AuthForm() {
           variant="outline"
           className="w-full bg-transparent border-white/20 text-white hover:bg-white/10"
           disabled={isLoading}
-          onClick={() => handleSocialSignIn("github")}
+          onClick={() => void handleSocialSignIn("github")}
         >
           <Github className="mr-2 h-4 w-4" />
           Continue with GitHub
@@ -271,7 +261,7 @@ export function AuthForm() {
           variant="outline"
           className="w-full bg-transparent border-white/20 text-white hover:bg-white/10"
           disabled={isLoading}
-          onClick={() => handleSocialSignIn("google")}
+          onClick={() => void handleSocialSignIn("google")}
         >
           <Chrome className="mr-2 h-4 w-4" />
           Continue with Google
@@ -290,7 +280,7 @@ export function AuthForm() {
       </div>
 
       {/* Email Sign In Form */}
-      <form onSubmit={(e) => void handleSignIn(e)} className="space-y-4">
+      <form onSubmit={(event) => void handleSubmit(handleSignIn)(event)} className="space-y-4">
         {error && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -306,17 +296,18 @@ export function AuthForm() {
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               id="email"
-              name="email"
               type="email"
               placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleInputChange}
+              {...register("email")}
               className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
               required
               disabled={isLoading}
               autoComplete="email"
             />
           </div>
+          {errors.email && (
+            <p className="text-red-400 text-sm">{errors.email.message}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -327,11 +318,9 @@ export function AuthForm() {
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               id="password"
-              name="password"
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleInputChange}
+              {...register("password")}
               className="pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
               required
               disabled={isLoading}
@@ -350,6 +339,9 @@ export function AuthForm() {
               )}
             </button>
           </div>
+          {errors.password && (
+            <p className="text-red-400 text-sm">{errors.password.message}</p>
+          )}
         </div>
 
         <div className="flex items-center justify-end">

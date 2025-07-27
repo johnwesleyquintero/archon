@@ -10,7 +10,6 @@ import { GoalTracker } from "@/components/goal-tracker";
 import { JournalList } from "@/components/journal-list";
 import { AdvancedStatsGrid } from "@/components/advanced-stats-grid";
 import { PlaceholderInfographics } from "@/components/placeholder-infographics";
-import type { Layout } from "react-grid-layout";
 import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
 
 // Define available widgets
@@ -77,17 +76,11 @@ const availableWidgets: Widget[] = [
 export default function DashboardPage() {
   const { layout } = useDashboardSettings();
 
-  const handleLayoutChange = (_newLayout: Layout[]) => {
-    // Layout changes are handled by the CustomizableDashboardLayout component
-    // and saved via the useDashboardSettings hook
-  };
-
   return (
     <div className="container mx-auto p-6">
       <CustomizableDashboardLayout
         widgets={availableWidgets}
         initialLayout={layout}
-        onLayoutChange={handleLayoutChange}
         className="min-h-screen"
       />
     </div>

@@ -10,9 +10,11 @@ export const metadata: Metadata = {
   description: "Reset your password",
 };
 
-import { PageProps } from "@/app/types";
+interface ForgotPasswordPageProps {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
 
-export default function ForgotPasswordPage({ searchParams }: PageProps) {
+export default function ForgotPasswordPage({ searchParams }: ForgotPasswordPageProps) {
   const forgotPassword = async (formData: FormData) => {
     "use server";
 

@@ -68,8 +68,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Create profile with only the columns that exist in the database
       const newProfile = {
         id: userId,
-        full_name: userData.user.user_metadata?.full_name || null,
-        avatar_url: userData.user.user_metadata?.avatar_url || null,
+        full_name: userData.user.user_metadata?.full_name || "", // Provide empty string default
+        avatar_url: userData.user.user_metadata?.avatar_url || "/placeholder-user.jpg", // Provide a default avatar
         username: null, // Will be set later if user wants to customize
       };
 
@@ -117,10 +117,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profileData: Partial<Omit<Profile, "id" | "updated_at">>,
   ): Promise<{ error: SupabaseAuthError | null }> => {
     try {
+      if (!user) {
+        console.error("Cannot update profile: No user logged in.");
+        return { error: { name: "AuthError", message: "No user logged in." } as SupabaseAuthError };
+      }
+
       const { data, error } = await supabase
         .from("profiles")
         .update(profileData)
-        .eq("id", user?.id!)
+        .eq("id", user.id) // Use user.id directly after the check
         .select()
         .single();
 

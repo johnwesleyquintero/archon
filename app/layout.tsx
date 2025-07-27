@@ -1,10 +1,11 @@
-import type React from "react";
+import React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip"; // Import TooltipProvider
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,7 +34,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            {children}
+            <TooltipProvider> {/* Wrap children with TooltipProvider */}
+              {children}
+            </TooltipProvider>
             <Toaster />
           </AuthProvider>
         </ThemeProvider>

@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { createClient } from "./client";
-import type { Database } from "./types";
 
 export function createSupabaseClient() {
   return createClient();

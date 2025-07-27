@@ -13,7 +13,6 @@ import {
 
 type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
 type JournalInsert = Database["public"]["Tables"]["journal_entries"]["Insert"];
-type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];
 
 interface JournalInterfaceProps {
   initialJournalEntries: JournalEntry[];
@@ -63,6 +62,9 @@ export function JournalInterface({
     if (newEntry) {
       setEntries((prev) => [newEntry, ...prev]);
       setSelectedEntryId(newEntry.id);
+    } else {
+      // Handle error case if newEntry is null, e.g., show a toast
+      console.error("Failed to create new journal entry.");
     }
     setHasUnsavedChanges(false);
   };
@@ -81,6 +83,9 @@ export function JournalInterface({
             entry.id === updatedEntry.id ? updatedEntry : entry,
           ),
         );
+      } else {
+        // Handle error case if updatedEntry is null, e.g., show a toast
+        console.error(`Failed to update journal entry with ID: ${id}`);
       }
       setHasUnsavedChanges(false);
     }

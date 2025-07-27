@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server-auth";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { User } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
 
@@ -10,13 +10,13 @@ type GoalInsert = Database["public"]["Tables"]["goals"]["Insert"];
 type GoalUpdate = Database["public"]["Tables"]["goals"]["Update"];
 
 async function getUser(): Promise<User | null> {
-  const client = await createSupabaseServerClient();
+  const client = await getSupabaseServerClient();
   const authResponse = await client.auth.getUser();
   return authResponse.data.user;
 }
 
 export async function getGoals(): Promise<Goal[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getUser();
 
   if (!user) {
@@ -46,7 +46,7 @@ export async function getGoals(): Promise<Goal[]> {
 export async function addGoal(
   goalData: Omit<GoalInsert, "user_id">,
 ): Promise<Goal | null> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getUser();
 
   if (!user) {
@@ -84,7 +84,7 @@ export async function updateGoal(
   id: string,
   goalData: GoalUpdate,
 ): Promise<Goal | null> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getUser();
 
   if (!user) {
@@ -112,7 +112,7 @@ export async function updateGoal(
 }
 
 export async function deleteGoal(id: string): Promise<void> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const user = await getUser();
 
   if (!user) {
