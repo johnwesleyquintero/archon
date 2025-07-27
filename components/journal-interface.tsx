@@ -1,9 +1,15 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { JournalList } from "@/components/journal-list";
 import { JournalEditorWithAttachments } from "@/components/journal-editor-with-attachments";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Database } from "@/lib/supabase/types";
+import {
+  addJournalEntry,
+  updateJournalEntry,
+  deleteJournalEntry,
+} from "@/app/journal/actions";
 
 type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
 type JournalInsert = Database["public"]["Tables"]["journal_entries"]["Insert"];
@@ -11,13 +17,7 @@ type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];
 
 interface JournalInterfaceProps {
   initialJournalEntries: JournalEntry[];
-  addEntry: (entry: JournalInsert) => Promise<JournalEntry | null>;
-  updateEntry: (
-    id: string,
-    patch: JournalUpdate,
-  ) => Promise<JournalEntry | null>;
-  deleteEntry: (id: string) => Promise<void>;
-  userId: string; // Add userId prop
+  userId: string;
   isLoading?: boolean;
   isMutating?: boolean;
   error?: Error | null;
@@ -25,10 +25,7 @@ interface JournalInterfaceProps {
 
 export function JournalInterface({
   initialJournalEntries,
-  addEntry,
-  updateEntry,
-  deleteEntry,
-  userId, // Destructure userId
+  userId,
   isLoading = false,
   isMutating = false,
   error = null,
@@ -60,9 +57,9 @@ export function JournalInterface({
       title: "New Entry",
       content: "",
       attachments: [],
-      user_id: userId, // Add user_id here
+      user_id: userId,
     };
-    const newEntry = await addEntry(newEntryData);
+    const newEntry = await addJournalEntry(newEntryData);
     if (newEntry) {
       setEntries((prev) => [newEntry, ...prev]);
       setSelectedEntryId(newEntry.id);
@@ -73,7 +70,7 @@ export function JournalInterface({
   const handleSaveEntry = async () => {
     if (selectedEntry && hasUnsavedChanges) {
       const { id, title, content, attachments } = selectedEntry;
-      const updatedEntry = await updateEntry(id, {
+      const updatedEntry = await updateJournalEntry(id, {
         title,
         content,
         attachments,
@@ -91,7 +88,7 @@ export function JournalInterface({
 
   const handleDeleteEntry = async (entryId: string) => {
     if (window.confirm("Are you sure you want to delete this journal entry?")) {
-      await deleteEntry(entryId);
+      await deleteJournalEntry(entryId);
       setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
       if (selectedEntryId === entryId) {
         setSelectedEntryId(null);
@@ -162,7 +159,7 @@ export function JournalInterface({
               void handleSaveEntry();
             }}
             hasUnsavedChanges={hasUnsavedChanges}
-            updateEntry={updateEntry}
+            updateEntry={updateJournalEntry}
             isMutating={isMutating}
           />
         </div>
