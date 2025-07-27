@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "A modern, customizable dashboard for productivity and goal tracking",
   generator: "v0.dev",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/favicon.ico",
   },
 };
 
