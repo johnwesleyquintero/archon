@@ -30,7 +30,7 @@ interface DashboardWidgetProps {
   isCustomizing?: boolean;
   onRemove?: () => void;
   onRefresh?: () => Promise<void>; // Changed to return Promise<void>
-  onToggleVisibility?: () => void;
+  onToggleVisibility?: (isVisible: boolean) => void; // Updated to pass visibility state
   isVisible?: boolean;
   className?: string;
 }
@@ -47,6 +47,12 @@ export function DashboardWidget({
 }: DashboardWidgetProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleToggleVisibility = () => {
+    if (onToggleVisibility) {
+      onToggleVisibility(!isVisible); // Pass the new visibility state
+    }
+  };
 
   const handleRefresh = async () => {
     if (onRefresh) {
@@ -124,7 +130,7 @@ export function DashboardWidget({
               </DropdownMenuItem>
 
               {onToggleVisibility && (
-                <DropdownMenuItem onClick={onToggleVisibility}>
+                <DropdownMenuItem onClick={handleToggleVisibility}>
                   {isVisible ? (
                     <>
                       <EyeOff className="mr-2 h-4 w-4" />

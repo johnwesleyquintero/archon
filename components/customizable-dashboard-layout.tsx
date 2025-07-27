@@ -56,7 +56,8 @@ export function CustomizableDashboardLayout({
     })),
   });
 
-  const { saveLayout, isLoading } = useDashboardSettings();
+  const { saveLayout, isLoading, toggleWidgetVisibility } =
+    useDashboardSettings();
 
   // Generate default layout if none provided
   const defaultLayout = useMemo(() => {
@@ -124,6 +125,25 @@ export function CustomizableDashboardLayout({
   const toggleCustomization = () => {
     setIsCustomizing(!isCustomizing);
   };
+
+  const handleToggleWidgetVisibility = useCallback(
+    (id: string) => {
+      const widgetToToggle = currentLayout.find((item) => item.i === id);
+      if (widgetToToggle) {
+        const newVisibility = !widgetToToggle.isVisible;
+        const updatedLayout = currentLayout.map((item) =>
+          item.i === id ? { ...item, isVisible: newVisibility } : item,
+        );
+        setLayouts({ lg: updatedLayout });
+        toggleWidgetVisibility(id, newVisibility); // Call the hook's function
+      }
+    },
+    [currentLayout, toggleWidgetVisibility],
+  );
+
+  const visibleWidgets = useMemo(() => {
+    return currentLayout.filter((item) => item.isVisible || isCustomizing);
+  }, [currentLayout, isCustomizing]);
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -219,7 +239,10 @@ export function CustomizableDashboardLayout({
         compactType="vertical"
         preventCollision={false}
       >
-        {widgets.map((widget) => {
+        {visibleWidgets.map((layoutItem) => {
+          const widget = widgets.find((w) => w.id === layoutItem.i);
+          if (!widget) return null;
+
           const WidgetComponent = widget.component;
           return (
             <div key={widget.id} className="widget-container">
@@ -230,6 +253,10 @@ export function CustomizableDashboardLayout({
                   // Handle widget removal if needed
                   console.log(`Remove widget: ${widget.id}`);
                 }}
+                onToggleVisibility={() =>
+                  handleToggleWidgetVisibility(widget.id)
+                }
+                isVisible={layoutItem.isVisible}
               >
                 <WidgetComponent {...(widget.defaultProps || {})} />
               </DashboardWidget>
@@ -255,88 +282,3 @@ export function CustomizableDashboardLayout({
     </div>
   );
 }
-
-// CSS for react-grid-layout (add to your global CSS)
-export const gridLayoutStyles = `
-.react-grid-layout {
-  position: relative;
-}
-
-.react-grid-item {
-  transition: all 200ms ease;
-  transition-property: left, top;
-}
-
-.react-grid-item img {
-  pointer-events: none;
-  user-select: none;
-}
-
-.react-grid-item.cssTransforms {
-  transition-property: transform;
-}
-
-.react-grid-item.resizing {
-  transition: none;
-  z-index: 1;
-  will-change: width, height;
-}
-
-.react-grid-item.react-draggable-dragging {
-  transition: none;
-  z-index: 3;
-  will-change: transform;
-}
-
-.react-grid-item.dropping {
-  visibility: hidden;
-}
-
-.react-grid-item.react-grid-placeholder {
-  background: rgb(59 130 246 / 0.15);
-  opacity: 0.2;
-  transition-duration: 100ms;
-  z-index: 2;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -o-user-select: none;
-  user-select: none;
-  border: 2px dashed rgb(59 130 246 / 0.4);
-  border-radius: 8px;
-}
-
-.react-grid-item.react-grid-placeholder.placeholder-active {
-  opacity: 0.3;
-}
-
-.react-resizable-handle {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  bottom: 0;
-  right: 0;
-  background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNiIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgNiA2IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZG90cyBmaWxsPSIjOTk5IiBkPSJtMTUgMTJjMCAuNTUyLS40NDggMS0xIDFzLTEtLjQ0OC0xLTEgLjQ0OC0xIDEtMSAxIC40NDggMSAxem0wIDRjMCAuNTUyLS40NDggMS0xIDFzLTEtLjQ0OC0xLTEgLjQ0OC0xIDEtMSAxIC40NDggMSAxem0wIDRjMCAuNTUyLS40NDggMS0xIDFzLTEgLjQ0OCAxIDEtLjQ0OCAxLTEgMS0xLS40NDgtMS0xeiIvPgo8L3N2Zz4K');
-  background-position: bottom right;
-  padding: 0 3px 3px 0;
-  background-repeat: no-repeat;
-  background-origin: content-box;
-  box-sizing: border-box;
-  cursor: se-resize;
-}
-
-.react-resizable-handle::after {
-  content: '';
-  position: absolute;
-  right: 3px;
-  bottom: 3px;
-  width: 5px;
-  height: 5px;
-  border-right: 2px solid rgba(0, 0, 0, 0.4);
-  border-bottom: 2px solid rgba(0, 0, 0, 0.4);
-}
-
-.widget-container {
-  height: 100%;
-}
-`;
