@@ -1,4 +1,6 @@
 import { AdvancedStatsGrid } from "@/components/advanced-stats-grid";
+import * as Sentry from "@sentry/nextjs";
+import { EmptyState } from "@/components/empty-state";
 import {
   CustomizableDashboardLayout,
   type Widget,
@@ -80,22 +82,35 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   let initialLayout = DEFAULT_LAYOUT;
-  if (user) {
-    const storedLayout = await getDashboardSettings(user.id);
-    if (storedLayout) {
-      initialLayout = DEFAULT_LAYOUT.map((defaultWidget) => {
-        const storedWidget = storedLayout.find(
-          (sl) => sl.i === defaultWidget.i,
-        );
-        return {
-          ...defaultWidget,
-          ...storedWidget,
-          isVisible: storedWidget
-            ? storedWidget.isVisible
-            : defaultWidget.isVisible,
-        };
-      });
+  try {
+    if (user) {
+      const storedLayout = await getDashboardSettings(user.id);
+      if (storedLayout) {
+        initialLayout = DEFAULT_LAYOUT.map((defaultWidget) => {
+          const storedWidget = storedLayout.find(
+            (sl) => sl.i === defaultWidget.i,
+          );
+          return {
+            ...defaultWidget,
+            ...storedWidget,
+            isVisible: storedWidget
+              ? storedWidget.isVisible
+              : defaultWidget.isVisible,
+          };
+        });
+      }
     }
+  } catch (error: unknown) {
+    console.error("Failed to load dashboard settings:", error);
+    Sentry.captureException(error);
+    return (
+      <div className="container mx-auto p-6">
+        <EmptyState
+          title="Failed to Load Dashboard"
+          description="There was an error loading your dashboard settings. Please try again later."
+        />
+      </div>
+    );
   }
 
   return (
