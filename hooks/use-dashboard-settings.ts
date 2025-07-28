@@ -8,6 +8,7 @@ import {
 } from "@/lib/database/dashboard-settings";
 import { useAuth } from "@/contexts/auth-context";
 import { useDebounce } from "@/hooks/use-debounce";
+import * as Sentry from "@sentry/nextjs";
 
 export interface WidgetLayout extends Layout {
   isVisible: boolean;
@@ -31,6 +32,7 @@ export function useDashboardSettings() {
           await updateDashboardSettings(user.id, currentLayout);
         } catch (error) {
           console.error("Failed to save dashboard settings:", error);
+          Sentry.captureException(error);
         }
       }
     },
@@ -59,6 +61,7 @@ export function useDashboardSettings() {
           }
         } catch (error) {
           console.error("Failed to fetch dashboard settings:", error);
+          Sentry.captureException(error);
           setLayout(DEFAULT_LAYOUT); // Fallback to default on error
         } finally {
           setIsLoading(false);

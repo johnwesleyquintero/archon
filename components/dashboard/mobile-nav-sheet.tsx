@@ -19,7 +19,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/auth-context";
 
 export function MobileNavSheet() {
-  const { signOut, loading } = useAuth();
+  const { signOut, isSigningOut } = useAuth();
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -86,11 +86,11 @@ export function MobileNavSheet() {
           <Button
             variant="ghost"
             className="flex items-center gap-4 px-2.5 text-slate-600 hover:text-slate-900 justify-start"
-            onClick={void handleSignOut()}
-            disabled={loading}
+            onClick={() => void handleSignOut()}
+            disabled={isSigningOut}
           >
             <LogOut className="h-5 w-5" />
-            {loading ? "Signing out..." : "Sign Out"}
+            {isSigningOut ? "Signing out..." : "Sign Out"}
           </Button>
         </nav>
       </SheetContent>

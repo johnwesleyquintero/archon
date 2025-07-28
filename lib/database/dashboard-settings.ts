@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { DashboardSettingsRow, Json } from "@/lib/supabase/types";
+import * as Sentry from "@sentry/nextjs";
 
 import { WidgetLayout } from "@/hooks/use-dashboard-settings";
 import { revalidatePath } from "next/cache";
@@ -16,6 +17,7 @@ export async function getDashboardSettings(
 
   if (error) {
     console.error("Error fetching dashboard settings:", error);
+    Sentry.captureException(error);
     return null;
   }
 
@@ -43,6 +45,7 @@ export async function updateDashboardSettings(
 
   if (error) {
     console.error("Error updating dashboard settings:", error);
+    Sentry.captureException(error);
     return null;
   }
 
