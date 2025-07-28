@@ -1,13 +1,14 @@
 "use client";
 
 import type React from "react";
-
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { Chrome, Eye, EyeOff, Github, Loader2, Lock, Mail } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { ArchonLogoSVG } from "@/components/archon-logo-svg";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -15,12 +16,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { createClient } from "@/lib/supabase/client";
-import { ArchonLogoSVG } from "@/components/archon-logo-svg";
-import { Eye, EyeOff, Loader2, Mail, Lock, Github, Chrome } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function LoginForm() {

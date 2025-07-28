@@ -1,5 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
+import { useTheme } from "next-themes";
+
 import {
   Card,
   CardContent,
@@ -9,8 +13,6 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 
 export function AppearanceSettings() {
   const { theme, setTheme } = useTheme();

@@ -1,10 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import type React from "react";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Eye,
+  EyeOff,
+  Maximize2,
+  Minimize2,
+  MoreHorizontal,
+  RefreshCw,
+  Settings,
+  Trash2,
+} from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,17 +24,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import {
-  MoreHorizontal,
-  Eye,
-  EyeOff,
-  Settings,
-  Trash2,
-  RefreshCw,
-  Maximize2,
-  Minimize2,
-} from "lucide-react";
 
 interface DashboardWidgetProps {
   title: string;

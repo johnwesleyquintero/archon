@@ -1,7 +1,8 @@
 "use client";
 
+import { AppearanceSettings } from "@/components/appearance-settings";
+import { ProfileFormWithAvatar } from "@/components/profile-form-with-avatar";
 import { Button } from "@/components/ui/button";
-
 import {
   Card,
   CardContent,
@@ -10,8 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProfileFormWithAvatar } from "@/components/profile-form-with-avatar";
-import { AppearanceSettings } from "@/components/appearance-settings";
 import { useAuth } from "@/contexts/auth-context";
 
 export function AccountSettings() {

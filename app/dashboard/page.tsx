@@ -1,16 +1,16 @@
+import { AdvancedStatsGrid } from "@/components/advanced-stats-grid";
 import {
   CustomizableDashboardLayout,
   type Widget,
 } from "@/components/customizable-dashboard-layout";
-import { StatsGrid } from "@/components/stats-grid";
-import { TodoList } from "@/components/todo-list";
 import { GoalTracker } from "@/components/goal-tracker";
 import { JournalList } from "@/components/journal-list";
-import { AdvancedStatsGrid } from "@/components/advanced-stats-grid";
 import { PlaceholderInfographics } from "@/components/placeholder-infographics";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getDashboardSettings } from "@/lib/database/dashboard-settings";
+import { StatsGrid } from "@/components/stats-grid";
+import { TodoList } from "@/components/todo-list";
 import { DEFAULT_LAYOUT } from "@/hooks/use-dashboard-settings";
+import { getDashboardSettings } from "@/lib/database/dashboard-settings";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 // Define available widgets
 const availableWidgets: Widget[] = [

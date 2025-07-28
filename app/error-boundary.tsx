@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
+
+import { Copy, RefreshCw, Terminal } from "lucide-react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // For a nicer dev UI
-import { Terminal, Copy, RefreshCw } from "lucide-react"; // Optional: for nice icons
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;

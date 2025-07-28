@@ -1,4 +1,7 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import Link from "next/link";
+
+import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 import {
   Card,
   CardContent,
@@ -6,8 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Link from "next/link";
-import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 
 export const metadata: Metadata = {
   title: "Error - Authorization Code",

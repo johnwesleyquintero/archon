@@ -1,10 +1,11 @@
-import Link from "next/link";
+import type { AuthError } from "@supabase/supabase-js";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+
 import { SubmitButton } from "@/components/ui/submit-button";
-import { Metadata } from "next";
-import { AuthError } from "@supabase/supabase-js";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Forgot Password",

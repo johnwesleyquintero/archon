@@ -1,8 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import React from "react";
+
+import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
   title: string;

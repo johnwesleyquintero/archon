@@ -1,25 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react"; // Only LogOut is needed here
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import Logo from "@/components/logo";
-import { useAuth } from "@/contexts/auth-context";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+
+import { LogOut } from "lucide-react";
+
+import { useAuth } from "@/contexts/auth-context";
 import {
   NAV_ITEMS,
-  PROFILE_NAV_ITEM, // Use PROFILE_NAV_ITEM
+  PROFILE_NAV_ITEM,
   SIGN_OUT_LABEL,
   SIGNING_OUT_LABEL,
 } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+
+import Logo from "./logo";
+import { Button } from "./ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 interface AppSidebarProps {
   isCollapsed?: boolean;

@@ -1,10 +1,12 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/button";
+
 import { Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { createClient } from "@/lib/supabase/client";
 
 interface SocialSignInButtonsProps {
   isLoading: boolean;

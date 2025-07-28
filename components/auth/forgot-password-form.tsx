@@ -1,17 +1,18 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle, Loader2, Mail } from "lucide-react";
 import React from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Mail, AlertCircle, Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema } from "@/lib/validators";
-import { z } from "zod";
 import { useToast } from "@/components/ui/use-toast";
+import { createClient } from "@/lib/supabase/client";
+import { loginSchema } from "@/lib/validators";
 
 type LoginFormInputs = z.infer<typeof loginSchema>;
 

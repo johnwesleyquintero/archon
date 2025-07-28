@@ -1,6 +1,6 @@
 import { TodoList } from "@/components/todo-list";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getTasks } from "@/lib/database/tasks";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function TasksPage() {
   const supabase = await createServerSupabaseClient();

@@ -2,8 +2,9 @@
 
 import type React from "react";
 
+import { CheckCircle, Clock, Target, TrendingUp, Zap } from "lucide-react";
+
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Target, Zap, TrendingUp, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AdvancedStatCardProps {

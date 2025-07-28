@@ -1,8 +1,9 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { type CookieOptions } from "@supabase/ssr";
-import { clientEnv } from "@/lib/env"; // Import clientEnv
+import { type NextRequest, NextResponse } from "next/server";
+
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+
+import { clientEnv } from "@/lib/env";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);

@@ -1,8 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
+
 import { put } from "@vercel/blob";
 import { nanoid } from "nanoid";
+
+import { serverEnv } from "@/lib/env.server";
 import { apiErrorResponse, AppError } from "@/lib/utils";
-import { serverEnv } from "@/lib/env.server"; // Import serverEnv
 
 export async function POST(request: NextRequest) {
   try {

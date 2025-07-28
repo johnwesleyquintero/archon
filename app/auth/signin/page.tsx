@@ -1,3 +1,8 @@
+import Link from "next/link";
+import { Suspense } from "react";
+
+import { AuthForm } from "@/components/auth/auth-form";
+import Logo from "@/components/logo";
 import {
   Card,
   CardContent,
@@ -5,11 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AuthForm } from "@/components/auth/auth-form";
-import Link from "next/link";
-import Logo from "@/components/logo";
-
-import { Suspense } from "react";
 
 export default function SignInPage() {
   return (

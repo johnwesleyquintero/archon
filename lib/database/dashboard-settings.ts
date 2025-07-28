@@ -1,11 +1,13 @@
-import { createClient } from "@/lib/supabase/client";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { DashboardSettingsRow, Json } from "@/lib/supabase/types";
+
 import { WidgetLayout } from "@/hooks/use-dashboard-settings";
+import { revalidatePath } from "next/cache";
 
 export async function getDashboardSettings(
   userId: string,
 ): Promise<WidgetLayout[] | null> {
-  const supabase = createClient();
+  const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("dashboard_settings")
     .select("layout")
@@ -25,7 +27,7 @@ export async function updateDashboardSettings(
   userId: string,
   settings: WidgetLayout[],
 ): Promise<DashboardSettingsRow | null> {
-  const supabase = createClient();
+  const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("dashboard_settings")
     .upsert(
@@ -34,6 +36,10 @@ export async function updateDashboardSettings(
     )
     .select()
     .single();
+
+  if (!error) {
+    revalidatePath("/dashboard"); // Revalidate the dashboard page to show updated settings
+  }
 
   if (error) {
     console.error("Error updating dashboard settings:", error);

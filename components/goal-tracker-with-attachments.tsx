@@ -1,21 +1,31 @@
 "use client";
 
+import Image from "next/image";
+import {
+  Calendar,
+  Edit3,
+  FileText,
+  Paperclip,
+  Plus,
+  Target,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
+import type { z } from "zod";
+
+import { CreateGoalModal } from "@/components/create-goal-modal";
+import { EmptyState } from "@/components/empty-state";
+import { FileUpload } from "@/components/file-upload";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Edit3, Calendar, Target, Paperclip, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { EmptyState } from "@/components/empty-state";
-import { CreateGoalModal } from "@/components/create-goal-modal";
-import { FileUpload } from "@/components/file-upload";
-import { uploadFile } from "@/lib/blob";
-import { useGoals } from "@/hooks/use-goals";
-import type { z } from "zod";
-import type { goalSchema } from "@/lib/validators";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import { useGoals } from "@/hooks/use-goals";
+import { uploadFile } from "@/lib/blob";
 import type { Database } from "@/lib/supabase/types";
+import { cn } from "@/lib/utils";
+import type { goalSchema } from "@/lib/validators";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 
@@ -299,7 +309,23 @@ export function GoalTrackerWithAttachments({ initialGoals }: GoalTrackerProps) {
                                 .map((url: string, index: number) => {
                                   const attachment =
                                     createAttachmentFromUrl(url);
-                                  return (
+                                  return attachment.type === "image" ? (
+                                    <a
+                                      key={index}
+                                      href={attachment.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="relative h-16 w-16 overflow-hidden rounded-md border border-slate-200"
+                                    >
+                                      <Image
+                                        src={attachment.url}
+                                        alt={attachment.filename}
+                                        fill
+                                        className="object-cover"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                      />
+                                    </a>
+                                  ) : (
                                     <a
                                       key={index}
                                       href={attachment.url}
@@ -307,6 +333,7 @@ export function GoalTrackerWithAttachments({ initialGoals }: GoalTrackerProps) {
                                       rel="noopener noreferrer"
                                       className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded flex items-center gap-1"
                                     >
+                                      <FileText className="h-3 w-3" />
                                       <span className="truncate max-w-[100px]">
                                         {attachment.filename}
                                       </span>

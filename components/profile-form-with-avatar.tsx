@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import Image from "next/image";
 import {
   Form,
   FormControl,
@@ -183,9 +184,12 @@ export function ProfileFormWithAvatar() {
           >
             <div className="flex items-center gap-6">
               <Avatar className="h-24 w-24">
-                <AvatarImage
+                <Image
                   src={form.watch("avatar") || "/placeholder-user.jpg"}
                   alt={form.watch("fullName") || "User Avatar"}
+                  width={96} // Corresponds to h-24 w-24 (96px)
+                  height={96}
+                  className="rounded-full object-cover"
                 />
                 <AvatarFallback>
                   {form.watch("fullName") ? (

@@ -1,6 +1,17 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import type { z } from "zod";
+
+import { cn } from "@/lib/utils";
+import { goalSchema } from "@/lib/validators";
+
+import { Button } from "./ui/button";
+import { Calendar } from "./ui/calendar";
 import {
   Form,
   FormControl,
@@ -8,25 +19,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Modal } from "@/components/ui/modal";
-import { Spinner } from "@/components/ui/spinner";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { goalSchema } from "@/lib/validators";
-import type { z } from "zod";
-import { CalendarIcon } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+} from "./ui/form";
+import { Input } from "./ui/input";
+import { Modal } from "./ui/modal";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Spinner } from "./ui/spinner";
+import { Textarea } from "./ui/textarea";
 
 interface CreateGoalModalProps {
   isOpen: boolean;

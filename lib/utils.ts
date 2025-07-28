@@ -50,8 +50,21 @@ export const handleError = (
     appError.details || "",
   );
 
-  // In a real application, you might send this to a logging service like Sentry, Datadog, etc.
-  // Example: Sentry.captureException(appError);
+  // Integrate Sentry for production error logging
+  if (process.env.NODE_ENV === "production") {
+    // Only capture exceptions in production to avoid noise during development
+    // Sentry automatically captures unhandled exceptions, but this allows explicit capture
+    // and ensures custom AppError details are sent.
+    void import("@sentry/nextjs").then((Sentry) => {
+      Sentry.captureException(appError, {
+        extra: {
+          context: context,
+          details: appError.details,
+          httpStatus: appError.httpStatus,
+        },
+      });
+    });
+  }
 
   return appError;
 };

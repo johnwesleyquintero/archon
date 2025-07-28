@@ -1,6 +1,6 @@
 import { GoalTrackerWithAttachments } from "@/components/goal-tracker-with-attachments";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getGoals } from "@/lib/database/goals";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function GoalsPage() {
   const supabase = await createServerSupabaseClient();

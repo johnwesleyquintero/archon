@@ -1,10 +1,11 @@
 "use client";
 
-import { useAuth } from "@/contexts/auth-context";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function DebugPage() {
   const { user, profile, loading, error, refreshProfile } = useAuth(); // Changed isLoading to loading, and refetchProfile to refreshProfile

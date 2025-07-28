@@ -1,7 +1,8 @@
-import { AuthForm } from "@/components/auth/auth-form";
-import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 import Link from "next/link";
 import { Suspense } from "react";
+
+import { ArchonLogoSVG } from "@/components/archon-logo-svg";
+import { AuthForm } from "@/components/auth/auth-form";
 
 export default function LoginPage() {
   return (

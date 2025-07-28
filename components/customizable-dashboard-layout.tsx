@@ -1,17 +1,19 @@
 "use client";
 
+import { GripVertical, Plus, RotateCcw, Save, Settings, X } from "lucide-react";
 import type React from "react";
-import { useState, useCallback, useMemo } from "react";
-import { Responsive, WidthProvider, type Layout } from "react-grid-layout";
+import { useCallback, useMemo, useState } from "react";
+import { Responsive, type Layout, WidthProvider } from "react-grid-layout";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Settings, X, GripVertical, Plus, Save, RotateCcw } from "lucide-react";
-import { DashboardWidget } from "./dashboard-widget";
 import {
   useDashboardSettings,
   type WidgetLayout,
 } from "@/hooks/use-dashboard-settings";
+
+import { DashboardWidget } from "./dashboard-widget";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -166,6 +168,7 @@ export function CustomizableDashboardLayout({
                 size="sm"
                 onClick={handleResetLayout}
                 className="flex items-center space-x-1 bg-transparent"
+                aria-label="Reset Dashboard Layout"
               >
                 <RotateCcw className="h-4 w-4" />
                 <span>Reset</span>
@@ -175,6 +178,7 @@ export function CustomizableDashboardLayout({
                 size="sm"
                 onClick={() => setIsCustomizing(false)}
                 className="flex items-center space-x-1"
+                aria-label="Cancel Customization"
               >
                 <X className="h-4 w-4" />
                 <span>Cancel</span>
@@ -184,6 +188,7 @@ export function CustomizableDashboardLayout({
                 onClick={() => void handleSaveLayout()}
                 disabled={isLoading}
                 className="flex items-center space-x-1"
+                aria-label={isLoading ? "Saving Layout" : "Save Layout"}
               >
                 <Save className="h-4 w-4" />
                 <span>{isLoading ? "Saving..." : "Save"}</span>
@@ -195,6 +200,7 @@ export function CustomizableDashboardLayout({
               size="sm"
               onClick={toggleCustomization}
               className="flex items-center space-x-1 bg-transparent"
+              aria-label="Customize Dashboard Layout"
             >
               <Settings className="h-4 w-4" />
               <span>Customize</span>

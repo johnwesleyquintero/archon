@@ -1,10 +1,11 @@
 "use client";
 
 import type React from "react";
+
 import { AppSidebar } from "@/components/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard-header";
+import { useSidebar } from "@/hooks/use-sidebar";
 import { cn } from "@/lib/utils";
-import { useSidebar } from "@/hooks/use-sidebar"; // Import the new hook
 
 interface DashboardLayoutProps {
   children: React.ReactNode;

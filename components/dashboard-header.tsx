@@ -1,11 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+
 import { MobileNavSheet } from "@/components/dashboard/mobile-nav-sheet";
-import { SearchBar } from "@/components/dashboard/search-bar";
 import { NotificationsButton } from "@/components/dashboard/notifications-button";
+import { SearchBar } from "@/components/dashboard/search-bar";
 import { UserMenu } from "@/components/dashboard/user-menu";
+import { Button } from "@/components/ui/button";
 
 interface DashboardHeaderProps {
   onToggleSidebar: () => void;

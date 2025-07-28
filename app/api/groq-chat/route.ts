@@ -1,7 +1,8 @@
-import { Message, streamText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
-import { apiErrorResponse, AppError } from "@/lib/utils";
+import { Message, streamText } from "ai";
+
 import { serverEnv } from "@/lib/env.server"; // Import serverEnv
+import { apiErrorResponse, AppError } from "@/lib/utils";
 
 // IMPORTANT! Set the runtime to edge
 export const runtime = "edge";
