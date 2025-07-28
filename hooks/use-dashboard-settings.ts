@@ -9,10 +9,7 @@ import {
 import { useAuth } from "@/contexts/auth-context";
 import { useDebounce } from "@/hooks/use-debounce";
 import * as Sentry from "@sentry/nextjs";
-
-export interface WidgetLayout extends Layout {
-  isVisible: boolean;
-}
+import { WidgetLayout } from "@/app/types";
 
 export const DEFAULT_LAYOUT: WidgetLayout[] = [
   { i: "stats-overview", x: 0, y: 0, w: 4, h: 2, isVisible: true },
@@ -20,10 +17,12 @@ export const DEFAULT_LAYOUT: WidgetLayout[] = [
   { i: "todo-list", x: 8, y: 0, w: 4, h: 3, isVisible: true },
 ];
 
-export function useDashboardSettings() {
+export function useDashboardSettings(
+  initialLayout: WidgetLayout[] = DEFAULT_LAYOUT,
+) {
   const { user } = useAuth();
-  const [layout, setLayout] = useState<WidgetLayout[]>(DEFAULT_LAYOUT);
-  const [isLoading, setIsLoading] = useState(true);
+  const [layout, setLayout] = useState<WidgetLayout[]>(initialLayout);
+  const [isLoading, setIsLoading] = useState(false); // No longer loading initially, as we have initialLayout
 
   const saveLayoutToDb = useCallback(
     async (currentLayout: WidgetLayout[]) => {
@@ -42,34 +41,9 @@ export function useDashboardSettings() {
   const debouncedSaveLayout = useDebounce(saveLayoutToDb, 1000);
 
   useEffect(() => {
-    if (user?.id) {
-      const fetchSettings = async () => {
-        setIsLoading(true);
-        try {
-          const storedLayout = await getDashboardSettings(user.id);
-          if (storedLayout) {
-            // Merge stored layout with default to ensure all widgets are present
-            const mergedLayout = DEFAULT_LAYOUT.map((defaultWidget) => {
-              const storedWidget = storedLayout.find(
-                (sl) => sl.i === defaultWidget.i,
-              );
-              return { ...defaultWidget, ...storedWidget };
-            });
-            setLayout(mergedLayout);
-          } else {
-            setLayout(DEFAULT_LAYOUT);
-          }
-        } catch (error) {
-          console.error("Failed to fetch dashboard settings:", error);
-          Sentry.captureException(error);
-          setLayout(DEFAULT_LAYOUT); // Fallback to default on error
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      void fetchSettings();
-    }
-  }, [user?.id]);
+    // Set the initial layout when the component mounts or initialLayout changes
+    setLayout(initialLayout);
+  }, [initialLayout]);
 
   useEffect(() => {
     // Only save if layout is different from default and not during initial load

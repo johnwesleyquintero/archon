@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
+import Image from "next/image";
 import { AuthForm } from "@/components/auth/auth-form";
-import Logo from "@/components/logo";
 import {
   Card,
   CardContent,
@@ -13,11 +13,19 @@ import {
 
 export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
+    // Changed 'bg-slate-100' to 'bg-background' to utilize the theme's background color,
+    // which is typically white in light mode and a dark gray in dark mode,
+    // ensuring full dark mode compatibility without manual switching.
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Logo className="h-12 w-12 text-slate-900" />
+            <Image
+              src="/favicon.ico"
+              alt="Archon Logo"
+              width={48}
+              height={48}
+            />
           </div>
           <CardTitle className="text-2xl">Sign Up</CardTitle>
           <CardDescription>
@@ -26,13 +34,16 @@ export default function SignUpPage() {
         </CardHeader>
         <CardContent>
           <Suspense fallback={<div>Loading...</div>}>
-            <AuthForm />
+            <AuthForm mode="signUp" />
           </Suspense>
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
             <Link
               href="/auth/signin"
-              className="underline text-slate-600 hover:text-slate-900"
+              // Changed link colors to use 'text-primary' for theme compatibility,
+              // which automatically adjusts for light and dark modes, providing good contrast.
+              // Added a subtle hover effect using 'text-primary/80'.
+              className="underline text-primary hover:text-primary/80"
             >
               Sign in
             </Link>

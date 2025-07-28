@@ -67,25 +67,41 @@ export function GoalTrackerWithAttachments({ initialGoals }: GoalTrackerProps) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showUploadFor, setShowUploadFor] = useState<string | null>(null);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
-  const handleEditGoal = (goalId: string) => {
-    // TODO: In a real app, you would open an edit modal here
-    console.log(`Editing goal: ${goalId}`);
-  };
-
-  const handleAddGoal = () => {
+  const handleEditGoal = (goal: Goal) => {
+    setEditingGoal(goal);
     setIsModalOpen(true);
   };
 
-  const handleSaveGoal = async (goalData: z.infer<typeof goalSchema>) => {
-    await addGoal({
-      title: goalData.title,
-      description: goalData.description || null,
-      target_date: goalData.target_date || null,
-      status: goalData.status || "pending",
-      attachments: [],
-    });
+  const handleAddGoal = () => {
+    setEditingGoal(null); // Ensure no old data when adding new
+    setIsModalOpen(true);
+  };
+
+  const handleSaveOrUpdateGoal = async (
+    goalData: z.infer<typeof goalSchema>,
+    goalId?: string,
+  ) => {
+    if (goalId) {
+      await updateGoal(goalId, {
+        title: goalData.title,
+        description: goalData.description || null,
+        target_date: goalData.target_date || null,
+        status: goalData.status || "pending",
+        // Attachments are handled separately
+      });
+    } else {
+      await addGoal({
+        title: goalData.title,
+        description: goalData.description || null,
+        target_date: goalData.target_date || null,
+        status: goalData.status || "pending",
+        attachments: [],
+      });
+    }
     setIsModalOpen(false);
+    setEditingGoal(null);
   };
 
   // Helper function to convert a URL string to an Attachment object
@@ -362,7 +378,7 @@ export function GoalTrackerWithAttachments({ initialGoals }: GoalTrackerProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleEditGoal(goal.id)}
+                        onClick={() => handleEditGoal(goal)}
                         className="h-8 w-8 p-0 text-slate-400 hover:text-slate-600 hover:bg-slate-100 shrink-0"
                         disabled={isMutating}
                       >
@@ -428,9 +444,13 @@ export function GoalTrackerWithAttachments({ initialGoals }: GoalTrackerProps) {
 
       <CreateGoalModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveGoal}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingGoal(null);
+        }}
+        onSaveOrUpdate={handleSaveOrUpdateGoal}
         isSaving={isMutating}
+        initialData={editingGoal}
       />
     </>
   );

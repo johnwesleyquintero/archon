@@ -4,7 +4,6 @@ import type { Database } from "../supabase/types";
 type JournalRow = Database["public"]["Tables"]["journal_entries"]["Row"];
 type JournalInsert = Database["public"]["Tables"]["journal_entries"]["Insert"];
 type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];
-// TODO: Add journal templates table to database
 
 /* ─────────────────────────
    CRUD – Journal entries

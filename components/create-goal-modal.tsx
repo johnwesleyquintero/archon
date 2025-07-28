@@ -26,11 +26,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Spinner } from "./ui/spinner";
 import { Textarea } from "./ui/textarea";
 
+import type { Database } from "@/lib/supabase/types";
+
 interface CreateGoalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (goalData: z.infer<typeof goalSchema>) => Promise<void>;
+  onSaveOrUpdate: (
+    goalData: z.infer<typeof goalSchema>,
+    goalId?: string,
+  ) => Promise<void>;
   isSaving: boolean;
+  initialData?: Database["public"]["Tables"]["goals"]["Row"] | null;
 }
 
 type GoalFormValues = z.infer<typeof goalSchema>;
@@ -38,8 +44,9 @@ type GoalFormValues = z.infer<typeof goalSchema>;
 export function CreateGoalModal({
   isOpen,
   onClose,
-  onSave,
+  onSaveOrUpdate,
   isSaving,
+  initialData,
 }: CreateGoalModalProps) {
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalSchema),
@@ -55,12 +62,31 @@ export function CreateGoalModal({
 
   useEffect(() => {
     if (isOpen) {
-      form.reset(); // Reset form when modal opens
+      if (initialData) {
+        form.reset({
+          title: initialData.title,
+          description: initialData.description || "",
+          target_date: initialData.target_date
+            ? new Date(initialData.target_date).toISOString()
+            : undefined,
+          status: (initialData.status || "pending") as
+            | "pending"
+            | "in_progress"
+            | "completed",
+          attachments: Array.isArray(initialData.attachments)
+            ? initialData.attachments.filter(
+                (att): att is string => typeof att === "string",
+              )
+            : [],
+        });
+      } else {
+        form.reset(); // Reset form for new goal
+      }
     }
-  }, [isOpen, form]);
+  }, [isOpen, form, initialData]);
 
   const handleSave = form.handleSubmit(async (data) => {
-    await onSave(data);
+    await onSaveOrUpdate(data, initialData?.id);
   });
 
   const handleCancel = () => {
@@ -72,7 +98,7 @@ export function CreateGoalModal({
     <Modal
       isOpen={isOpen}
       onClose={handleCancel}
-      title="Create New Goal"
+      title={initialData ? "Edit Goal" : "Create New Goal"}
       footer={
         <div className="flex justify-end gap-3 w-full">
           <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
@@ -87,6 +113,8 @@ export function CreateGoalModal({
               <span className="flex items-center">
                 <Spinner className="mr-2 h-4 w-4" /> Saving...
               </span>
+            ) : initialData ? (
+              "Update Goal"
             ) : (
               "Save Goal"
             )}

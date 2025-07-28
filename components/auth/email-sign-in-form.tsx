@@ -13,22 +13,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { createClient } from "@/lib/supabase/client";
-import { loginSchema } from "@/lib/validators";
+import { loginSchema, signupSchema } from "@/lib/validators";
 
-type LoginFormInputs = z.infer<typeof loginSchema>;
+type FormInputs = z.infer<typeof loginSchema> | z.infer<typeof signupSchema>;
 
 interface EmailSignInFormProps {
+  mode?: "signIn" | "signUp";
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   onForgotPasswordClick: () => void;
 }
 
 export function EmailSignInForm({
+  mode = "signIn",
   isLoading,
   setIsLoading,
   onForgotPasswordClick,
 }: EmailSignInFormProps) {
   const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const router = useRouter();
   const supabase = createClient();
   const { toast } = useToast();
@@ -39,68 +42,40 @@ export function EmailSignInForm({
     formState: { errors },
     setError: setFormError,
     clearErrors,
-  } = useForm<LoginFormInputs>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<FormInputs>({
+    resolver: zodResolver(mode === "signIn" ? loginSchema : signupSchema),
   });
 
-  const handleSignIn = async (data: LoginFormInputs) => {
+  const handleAuthAction = async (data: FormInputs) => {
     setIsLoading(true);
     clearErrors();
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      });
-
-      if (signInError) {
-        const errorMessage = signInError.message;
-
-        if (errorMessage.includes("Invalid login credentials")) {
-          setFormError("email", {
-            type: "manual",
-            message: "Invalid email or password.",
-          });
-          setFormError("password", {
-            type: "manual",
-            message: "Invalid email or password.",
-          });
-          toast({
-            variant: "destructive",
-            title: "Sign In Error",
-            description:
-              "Invalid email or password. Please check your credentials and try again.",
-          });
-        } else if (errorMessage.includes("Email not confirmed")) {
-          setFormError("email", {
-            type: "manual",
-            message:
-              "Please check your email and click the confirmation link before signing in.",
-          });
-          toast({
-            variant: "destructive",
-            title: "Sign In Error",
-            description:
-              "Please check your email and click the confirmation link before signing in.",
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Sign In Error",
-            description: signInError.message,
-          });
-        }
-        return;
+      if (mode === "signIn") {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        });
+        if (error) throw error;
+        router.push("/dashboard");
+      } else {
+        const { email, password } = data as z.infer<typeof signupSchema>;
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        toast({
+          title: "Success!",
+          description: "Please check your email to confirm your account.",
+        });
+        router.refresh();
       }
-
-      router.refresh();
-    } catch (err) {
-      console.error("Sign in error:", err);
+    } catch (error: any) {
+      console.error("Authentication error:", error);
       toast({
         variant: "destructive",
-        title: "Sign In Error",
-        description: "An unexpected error occurred. Please try again.",
+        title: "Authentication Error",
+        description: error.message || "An unexpected error occurred.",
       });
+      setFormError("root", { message: error.message });
     } finally {
       setIsLoading(false);
     }
@@ -108,7 +83,7 @@ export function EmailSignInForm({
 
   return (
     <form
-      onSubmit={(event) => void handleSubmit(handleSignIn)(event)}
+      onSubmit={(event) => void handleSubmit(handleAuthAction)(event)}
       className="space-y-4"
     >
       {errors.root && (
@@ -119,17 +94,15 @@ export function EmailSignInForm({
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="email" className="text-white">
-          Email
-        </Label>
+        <Label htmlFor="email">Email</Label>
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             id="email"
             type="email"
             placeholder="Enter your email"
             {...register("email")}
-            className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+            className="pl-10"
             required
             disabled={isLoading}
             autoComplete="email"
@@ -141,17 +114,15 @@ export function EmailSignInForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password" className="text-white">
-          Password
-        </Label>
+        <Label htmlFor="password">Password</Label>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             id="password"
             type={showPassword ? "text" : "password"}
             placeholder="Enter your password"
             {...register("password")}
-            className="pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+            className="pl-10 pr-10"
             required
             disabled={isLoading}
             autoComplete="current-password"
@@ -174,24 +145,56 @@ export function EmailSignInForm({
         )}
       </div>
 
+      {mode === "signUp" && (
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              id="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm your password"
+              {...register("confirmPassword")}
+              className="pl-10 pr-10"
+              required
+              disabled={isLoading}
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+              disabled={isLoading}
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+          {(errors as any).confirmPassword && (
+            <p className="text-red-400 text-sm">
+              {(errors as any).confirmPassword.message}
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="flex items-center justify-end">
         <button
           type="button"
           onClick={onForgotPasswordClick}
-          className="text-sm text-purple-400 hover:text-purple-300 font-medium"
+          className="text-sm text-primary hover:underline font-medium"
           disabled={isLoading}
         >
           Forgot password?
         </button>
       </div>
 
-      <Button
-        type="submit"
-        className="w-full bg-purple-600 hover:bg-purple-700"
-        disabled={isLoading}
-      >
+      <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Sign In
+        {mode === "signIn" ? "Sign In" : "Sign Up"}
       </Button>
     </form>
   );

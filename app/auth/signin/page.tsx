@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
+import Image from "next/image";
 import { AuthForm } from "@/components/auth/auth-form";
-import Logo from "@/components/logo";
 import {
   Card,
   CardContent,
@@ -13,11 +13,16 @@ import {
 
 export default function SignInPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Logo className="h-12 w-12 text-slate-900" />
+            <Image
+              src="/favicon.ico"
+              alt="Archon Logo"
+              width={48}
+              height={48}
+            />
           </div>
           <CardTitle className="text-2xl">Sign In</CardTitle>
           <CardDescription>
@@ -32,7 +37,7 @@ export default function SignInPage() {
             Don&apos;t have an account?{" "}
             <Link
               href="/auth/signup"
-              className="underline text-slate-600 hover:text-slate-900"
+              className="underline text-muted-foreground hover:text-foreground"
             >
               Sign up
             </Link>
@@ -40,7 +45,7 @@ export default function SignInPage() {
           <div className="mt-2 text-center text-sm">
             <Link
               href="/auth/forgot-password"
-              className="underline text-slate-600 hover:text-slate-900"
+              className="underline text-muted-foreground hover:text-foreground"
             >
               Forgot password?
             </Link>

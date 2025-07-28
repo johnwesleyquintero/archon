@@ -1,8 +1,10 @@
+"use server";
+
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { DashboardSettingsRow, Json } from "@/lib/supabase/types";
 import * as Sentry from "@sentry/nextjs";
 
-import { WidgetLayout } from "@/hooks/use-dashboard-settings";
+import { WidgetLayout } from "@/app/types";
 import { revalidatePath } from "next/cache";
 
 export async function getDashboardSettings(

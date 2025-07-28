@@ -79,7 +79,7 @@ export function useGoals(initialGoals: Goal[] = []) {
   }, [fetchGoals, initialGoals, user?.id]);
 
   const addGoalMutation = useCallback(
-    async (newGoalData: Omit<GoalInsert, "user_id">) => {
+    async (newGoalData: Omit<GoalInsert, "user_id" | "id">) => {
       startTransition(async () => {
         setError(null);
         try {

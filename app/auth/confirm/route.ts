@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies();
     const supabase = createServerClient(
       clientEnv.NEXT_PUBLIC_SUPABASE_URL, // Use clientEnv
-      clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY, // Use clientEnv
+      clientEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY, // Use clientEnv
       {
         cookies: {
           get(name: string) {

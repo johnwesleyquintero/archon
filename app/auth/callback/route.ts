@@ -10,10 +10,10 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get("code");
 
   if (code) {
-    const cookieStore = await cookies(); // Re-add await here
+    const cookieStore = await cookies();
     const supabase = createServerClient(
-      clientEnv.NEXT_PUBLIC_SUPABASE_URL, // Use clientEnv
-      clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY, // Use clientEnv
+      clientEnv.NEXT_PUBLIC_SUPABASE_URL,
+      clientEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
       {
         cookies: {
           get(name: string) {

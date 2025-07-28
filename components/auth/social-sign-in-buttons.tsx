@@ -53,7 +53,7 @@ export function SocialSignInButtons({
       <Button
         type="button"
         variant="outline"
-        className="w-full bg-transparent border-white/20 text-white hover:bg-white/10"
+        className="w-full"
         disabled={isLoading}
         onClick={() => void handleSocialSignIn("github")}
       >
@@ -63,7 +63,7 @@ export function SocialSignInButtons({
       <Button
         type="button"
         variant="outline"
-        className="w-full bg-transparent border-white/20 text-white hover:bg-white/10"
+        className="w-full"
         disabled={isLoading}
         onClick={() => void handleSocialSignIn("google")}
       >

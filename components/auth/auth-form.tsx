@@ -8,7 +8,11 @@ import { EmailSignInForm } from "./email-sign-in-form";
 import { ForgotPasswordForm } from "./forgot-password-form";
 import { SocialSignInButtons } from "./social-sign-in-buttons";
 
-export function AuthForm() {
+interface AuthFormProps {
+  mode?: "signIn" | "signUp";
+}
+
+export function AuthForm({ mode = "signIn" }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
@@ -42,6 +46,7 @@ export function AuthForm() {
       </div>
 
       <EmailSignInForm
+        mode={mode}
         isLoading={isLoading}
         setIsLoading={setIsLoading}
         onForgotPasswordClick={() => setShowForgotPassword(true)}

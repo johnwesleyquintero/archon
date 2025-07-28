@@ -1,6 +1,6 @@
 "use server";
 
-import { put } from "@vercel/blob";
+import { put, del } from "@vercel/blob";
 import { customAlphabet } from "nanoid";
 
 const nanoid = customAlphabet(
@@ -42,16 +42,7 @@ export async function deleteFile(
   url: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // This requires the BLOB_READ_WRITE_TOKEN to be available
-    // The delete function is not directly exposed by @vercel/blob in 'use client' context
-    // You would typically call a server action or API route for deletion.
-    // For now, this is a placeholder for future implementation.
-    console.warn(
-      "Delete file from Vercel Blob not fully implemented on client side. URL:",
-      url,
-    );
-    // TODO: Implement actual deletion logic here. For now, simulate success.
-    await Promise.resolve(); // Dummy await to satisfy linter
+    await del(url);
     return { success: true };
   } catch (err) {
     console.error("Vercel Blob delete error:", err);
