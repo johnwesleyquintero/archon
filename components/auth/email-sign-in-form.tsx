@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
-import { useForm } from "react-hook-form";
+import { FieldErrors, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -46,6 +46,9 @@ export function EmailSignInForm({
     resolver: zodResolver(mode === "signIn" ? loginSchema : signupSchema),
   });
 
+  // Explicitly type errors for signup schema when in signUp mode
+  const signUpErrors = errors as FieldErrors<z.infer<typeof signupSchema>>;
+
   const handleAuthAction = async (data: FormInputs) => {
     setIsLoading(true);
     clearErrors();
@@ -68,14 +71,18 @@ export function EmailSignInForm({
         });
         router.refresh();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Authentication error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.";
       toast({
         variant: "destructive",
         title: "Authentication Error",
-        description: error.message || "An unexpected error occurred.",
+        description: errorMessage,
       });
-      setFormError("root", { message: error.message });
+      setFormError("root", { message: errorMessage });
     } finally {
       setIsLoading(false);
     }
@@ -173,9 +180,9 @@ export function EmailSignInForm({
               )}
             </button>
           </div>
-          {(errors as any).confirmPassword && (
+          {signUpErrors.confirmPassword && (
             <p className="text-red-400 text-sm">
-              {(errors as any).confirmPassword.message}
+              {signUpErrors.confirmPassword.message}
             </p>
           )}
         </div>
