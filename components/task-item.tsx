@@ -5,7 +5,8 @@ import { format } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Tag, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Calendar, Tag, Trash2, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -32,6 +33,7 @@ interface TaskItemProps
   tags: string[]; // Explicitly define tags as string[]
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onUpdate: (id: string, newTitle: string) => Promise<void>;
   disabled?: boolean;
 }
 
@@ -45,10 +47,13 @@ export function TaskItem({
   tags = [],
   onToggle,
   onDelete,
+  onUpdate,
   disabled = false,
 }: TaskItemProps) {
   const [isToggling, setIsToggling] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [newTitle, setNewTitle] = React.useState(title);
 
   const handleToggle = async () => {
     setIsToggling(true);
@@ -72,6 +77,16 @@ export function TaskItem({
     }
   };
 
+  const handleUpdate = async () => {
+    if (newTitle.trim() === "") return;
+    setIsEditing(false);
+    try {
+      await onUpdate(id, newTitle);
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  };
+
   const priorityColors = {
     low: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
     medium:
@@ -89,15 +104,32 @@ export function TaskItem({
           onCheckedChange={() => void handleToggle()}
           className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900 dark:border-slate-600 dark:data-[state=checked]:bg-slate-50 dark:data-[state=checked]:border-slate-50"
         />
-        <label
-          htmlFor={`task-${id}`}
-          className={cn(
-            "flex-1 text-sm cursor-pointer",
-            is_completed && "text-slate-400 line-through dark:text-slate-600",
-          )}
-        >
-          {title}
-        </label>
+        {isEditing ? (
+          <Input
+            value={newTitle}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setNewTitle(e.target.value)
+            }
+            onBlur={() => void handleUpdate()}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === "Enter") void handleUpdate();
+              if (e.key === "Escape") setIsEditing(false);
+            }}
+            className="flex-1 text-sm h-8"
+            autoFocus
+          />
+        ) : (
+          <label
+            htmlFor={`task-${id}`}
+            className={cn(
+              "flex-1 text-sm cursor-pointer",
+              is_completed && "text-slate-400 line-through dark:text-slate-600",
+            )}
+            onDoubleClick={() => setIsEditing(true)}
+          >
+            {title}
+          </label>
+        )}
         {due_date && (
           <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
             <Calendar className="h-3 w-3" />
@@ -115,6 +147,16 @@ export function TaskItem({
         {isToggling && (
           <Spinner className="w-4 h-4 text-slate-400 dark:text-slate-600" />
         )}
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => setIsEditing(true)}
+          disabled={disabled}
+        >
+          <Edit className="h-4 w-4" />
+          <span className="sr-only">Edit task</span>
+        </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button

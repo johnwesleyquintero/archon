@@ -22,6 +22,7 @@ interface EmailSignInFormProps {
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   onForgotPasswordClick: () => void;
+  onSignUpSuccess?: () => void;
 }
 
 export function EmailSignInForm({
@@ -29,6 +30,7 @@ export function EmailSignInForm({
   isLoading,
   setIsLoading,
   onForgotPasswordClick,
+  onSignUpSuccess,
 }: EmailSignInFormProps) {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
@@ -65,11 +67,15 @@ export function EmailSignInForm({
         const { email, password } = data as z.infer<typeof signupSchema>;
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        toast({
-          title: "Success!",
-          description: "Please check your email to confirm your account.",
-        });
-        router.refresh();
+        if (onSignUpSuccess) {
+          onSignUpSuccess();
+        } else {
+          toast({
+            title: "Success!",
+            description: "Please check your email to confirm your account.",
+          });
+          router.refresh();
+        }
       }
     } catch (error: unknown) {
       console.error("Authentication error:", error);

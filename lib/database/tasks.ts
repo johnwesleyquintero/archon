@@ -150,3 +150,33 @@ export async function deleteTask(id: string): Promise<void> {
 
   revalidatePath("/dashboard");
 }
+
+export async function updateTask(
+  id: string,
+  newTitle: string,
+): Promise<Task | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("User not authenticated.");
+  }
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({ title: newTitle } as TaskUpdate)
+    .eq("id", id)
+    .eq("user_id", user.id) // Ensure user owns the task
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating task:", error);
+    throw new Error(`Failed to update task: ${error.message}`);
+  }
+
+  revalidatePath("/dashboard");
+  return data;
+}

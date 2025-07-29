@@ -6,6 +6,7 @@ import {
   addTask,
   toggleTask,
   deleteTask,
+  updateTask as updateTaskInDb, // Alias to avoid naming conflict
 } from "@/lib/database/tasks";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
@@ -249,6 +250,49 @@ export function useTasks(initialTasks: Task[] = []) {
     [user, tasks, toast],
   );
 
+  const handleUpdateTask = useCallback(
+    async (id: string, newTitle: string) => {
+      if (!user) {
+        setError("You must be logged in to update tasks.");
+        toast({
+          title: "Error",
+          description: "You must be logged in to update tasks.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setError(null);
+      startTransition(async () => {
+        const originalTasks = tasks;
+        try {
+          // Optimistic update
+          setTasks((prev) =>
+            prev.map((task) =>
+              task.id === id ? { ...task, title: newTitle } : task,
+            ),
+          );
+
+          await updateTaskInDb(id, newTitle);
+          toast({
+            title: "Success!",
+            description: "Task updated successfully.",
+          });
+        } catch (err: any) {
+          console.error("Error updating task:", err);
+          setError(err.message || "Failed to update task.");
+          toast({
+            title: "Error",
+            description: err.message || "Failed to update task.",
+            variant: "destructive",
+          });
+          // Revert optimistic update on error
+          setTasks(originalTasks);
+        }
+      });
+    },
+    [user, tasks, toast],
+  );
+
   return {
     tasks,
     loading,
@@ -257,6 +301,7 @@ export function useTasks(initialTasks: Task[] = []) {
     addTask: handleAddTask,
     toggleTask: handleToggleTask,
     deleteTask: handleDeleteTask,
+    updateTask: handleUpdateTask, // Add updateTask
     refetchTasks: fetchTasks,
   };
 }

@@ -28,10 +28,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${inter.className} transition-none`}
-        suppressHydrationWarning={true}
-      >
+      <body className={`${inter.className} transition-none`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

@@ -32,8 +32,12 @@ export function TodoList({ initialTasks }: TodoListProps) {
         <TaskList onAddTaskClick={handleAddTaskClick} />
         <TaskInput
           ref={taskInputRef}
-          onAddTask={(input) => addTask({ ...input, user_id: user?.id || "" })}
-          disabled={isMutating}
+          onAddTask={async (input) => {
+            if (user) {
+              await addTask({ ...input, user_id: user.id });
+            }
+          }}
+          disabled={isMutating || !user}
         />
       </CardContent>
     </Card>

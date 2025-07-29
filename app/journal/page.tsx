@@ -26,7 +26,7 @@ export default async function JournalPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/auth/signin");
   }
 
   const journalEntries = await getJournalEntries(user.id);

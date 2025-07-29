@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Separator } from "@/components/ui/separator";
 
@@ -15,9 +16,14 @@ interface AuthFormProps {
 export function AuthForm({ mode = "signIn" }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const router = useRouter();
 
   const handleCancelForgotPassword = () => {
     setShowForgotPassword(false);
+  };
+
+  const handleSignUpSuccess = () => {
+    router.push("/auth/verify-email");
   };
 
   if (showForgotPassword) {
@@ -50,6 +56,7 @@ export function AuthForm({ mode = "signIn" }: AuthFormProps) {
         isLoading={isLoading}
         setIsLoading={setIsLoading}
         onForgotPasswordClick={() => setShowForgotPassword(true)}
+        onSignUpSuccess={handleSignUpSuccess}
       />
     </div>
   );

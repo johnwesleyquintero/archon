@@ -21,12 +21,12 @@ type DashboardLayoutItem = Layout & {
 };
 
 // Widget type definitions
-export interface Widget {
+export interface Widget<P = Record<string, unknown>> {
   id: string;
   type: string;
   title: string;
-  component: React.ComponentType<Record<string, unknown>>;
-  defaultProps?: Record<string, unknown>;
+  component: React.ComponentType<P>;
+  defaultProps?: P;
   minW?: number;
   minH?: number;
   maxW?: number;
@@ -51,6 +51,7 @@ export function CustomizableDashboardLayout({
     saveLayout,
     handleLayoutChange,
     toggleWidgetVisibility,
+    resetLayout,
   } = useDashboardSettings(initialLayout);
 
   const handleSaveLayout = async () => {
@@ -65,13 +66,9 @@ export function CustomizableDashboardLayout({
     }
   };
 
-  const handleResetLayout = () => {
-    // This will now be handled by the hook, we just need to trigger it.
-    // The hook should expose a reset function. For now, we can't implement this
-    // without modifying the hook again. Let's leave it disabled for now.
-    console.log(
-      "Reset layout functionality needs to be implemented in the hook.",
-    );
+  const handleResetLayout = async () => {
+    await resetLayout();
+    setIsCustomizing(false); // Exit customization mode after reset
   };
 
   const toggleCustomization = () => {
@@ -101,7 +98,7 @@ export function CustomizableDashboardLayout({
         onToggleCustomization={toggleCustomization}
         onSaveLayout={() => void handleSaveLayout()}
         onCancelCustomization={() => setIsCustomizing(false)}
-        onResetLayout={handleResetLayout}
+        onResetLayout={() => void handleResetLayout()}
       />
 
       {/* Help Text */}

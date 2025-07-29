@@ -90,7 +90,9 @@ export function FileUpload({
           disabled={uploadStatus === "uploading" || disabled}
         />
         <Button
-          onClick={void handleUpload}
+          onClick={() => {
+            void handleUpload();
+          }}
           disabled={!file || uploadStatus === "uploading" || disabled}
           className="shrink-0 bg-slate-900 hover:bg-slate-800"
         >

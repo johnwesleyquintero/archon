@@ -13,7 +13,8 @@ interface TaskListProps {
 }
 
 export function TaskList({ onAddTaskClick }: TaskListProps) {
-  const { tasks, loading, toggleTask, deleteTask, isMutating } = useTasks();
+  const { tasks, loading, toggleTask, deleteTask, updateTask, isMutating } =
+    useTasks();
   const processTaskTags = (task: Task) => {
     return {
       ...task,
@@ -91,6 +92,7 @@ export function TaskList({ onAddTaskClick }: TaskListProps) {
                     {...processedTask}
                     onToggle={toggleTask}
                     onDelete={deleteTask}
+                    onUpdate={updateTask}
                     disabled={isMutating}
                   />
                 </li>

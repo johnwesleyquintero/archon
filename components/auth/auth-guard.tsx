@@ -19,7 +19,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     // The AuthContext handles setting user to null and clearing errors on sign-out.
     // Any error that results in no user should lead to login.
     if (!loading && !user) {
-      router.push("/login");
+      router.push("/auth/signin");
     }
   }, [user, loading, router]);
 
