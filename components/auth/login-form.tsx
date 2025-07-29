@@ -116,18 +116,18 @@ export function LoginForm() {
   };
 
   return (
-    <Card className="w-full shadow-xl border-0 bg-white/95 backdrop-blur-sm">
+    <Card className="w-full shadow-xl border-0 bg-card/95 backdrop-blur-sm">
       <CardHeader className="space-y-4 pb-6">
         <div className="flex justify-center">
           <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg">
-            <ArchonLogoSVG className="h-8 w-8 text-white" />
+            <ArchonLogoSVG className="h-8 w-8 text-primary-foreground" />
           </div>
         </div>
         <div className="text-center space-y-2">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
             Welcome back
           </CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-muted-foreground">
             Sign in to your Archon dashboard
           </CardDescription>
         </div>
@@ -139,7 +139,7 @@ export function LoginForm() {
           <Button
             type="button"
             variant="outline"
-            className="w-full h-11 border-gray-200 hover:bg-gray-50 transition-colors bg-transparent"
+            className="w-full h-11 border-border hover:bg-accent transition-colors bg-transparent"
             onClick={() => handleSocialLogin("google")}
             disabled={isPending}
           >
@@ -149,7 +149,7 @@ export function LoginForm() {
           <Button
             type="button"
             variant="outline"
-            className="w-full h-11 border-gray-200 hover:bg-gray-50 transition-colors bg-transparent"
+            className="w-full h-11 border-border hover:bg-accent transition-colors bg-transparent"
             onClick={() => handleSocialLogin("github")}
             disabled={isPending}
           >
@@ -163,7 +163,7 @@ export function LoginForm() {
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-gray-500">
+            <span className="bg-background px-2 text-muted-foreground">
               Or continue with email
             </span>
           </div>
@@ -174,19 +174,19 @@ export function LoginForm() {
           <div className="space-y-2">
             <Label
               htmlFor="email"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium text-foreground"
             >
               Email address
             </Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="email"
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-10 h-11 border-input focus:border-primary focus:ring-primary"
                 required
                 disabled={isPending}
                 autoComplete="email"
@@ -197,19 +197,19 @@ export function LoginForm() {
           <div className="space-y-2">
             <Label
               htmlFor="password"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium text-foreground"
             >
               Password
             </Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-10 pr-10 h-11 border-input focus:border-primary focus:ring-primary"
                 required
                 disabled={isPending}
                 autoComplete="current-password"
@@ -225,9 +225,9 @@ export function LoginForm() {
                 tabIndex={-1}
               >
                 {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-gray-400" />
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <Eye className="h-4 w-4 text-gray-400" />
+                  <Eye className="h-4 w-4 text-muted-foreground" />
                 )}
               </Button>
             </div>
@@ -243,7 +243,7 @@ export function LoginForm() {
               />
               <Label
                 htmlFor="remember"
-                className="text-sm text-gray-600 cursor-pointer"
+                className="text-sm text-muted-foreground cursor-pointer"
               >
                 Remember me
               </Label>
@@ -251,7 +251,7 @@ export function LoginForm() {
             <Button
               type="button"
               variant="link"
-              className="px-0 text-sm text-blue-600 hover:text-blue-800"
+              className="px-0 text-sm text-primary hover:text-primary/80"
               onClick={() => void handleForgotPassword()}
               disabled={isPending}
             >
@@ -272,8 +272,8 @@ export function LoginForm() {
           <Button
             type="submit"
             className={cn(
-              "w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700",
-              "text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl",
+              "w-full h-11 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-700",
+              "text-primary-foreground font-medium transition-all duration-200 shadow-lg hover:shadow-xl",
               "disabled:opacity-50 disabled:cursor-not-allowed",
             )}
             disabled={isPending}
@@ -290,11 +290,11 @@ export function LoginForm() {
         </form>
 
         <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Don&apos;t have an account?{" "}
+          <p className="text-sm text-muted-foreground">
+            Don't have an account?{" "}
             <Link
               href="/auth/signup"
-              className="font-medium text-blue-600 hover:text-blue-800 transition-colors"
+              className="font-medium text-primary hover:text-primary/80 transition-colors"
             >
               Sign up for free
             </Link>
