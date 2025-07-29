@@ -69,8 +69,9 @@ const availableWidgets: Widget[] = [
     minW: 6,
     minH: 4,
     defaultProps: {
-      title: "Productivity Trends",
-      description: "Your productivity patterns over time",
+      title: "Productivity Insights",
+      description:
+        "Charts and graphs detailing your productivity trends will be available here soon.",
     },
   },
 ];

@@ -1,8 +1,8 @@
 "use client";
 
 import { AppearanceSettings } from "@/components/appearance-settings";
+import { EmptyState } from "@/components/empty-state";
 import { ProfileFormWithAvatar } from "@/components/profile-form-with-avatar";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -63,24 +63,11 @@ export function AccountSettings() {
                   Change your password and manage security preferences.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
-                  <div>
-                    <h4 className="font-medium text-slate-900">
-                      Two-Factor Authentication
-                    </h4>
-                    <p className="text-sm text-slate-600">
-                      Add an extra layer of security to your account
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Enable
-                  </Button>
-                </div>
-                <p className="text-sm text-slate-500">
-                  Password change functionality will be implemented here.
-                </p>
-                {/* Add password change form here */}
+              <CardContent>
+                <EmptyState
+                  title="Security Features Coming Soon"
+                  description="Password change and two-factor authentication options will be available here in a future update."
+                />
               </CardContent>
             </Card>
           </TabsContent>
