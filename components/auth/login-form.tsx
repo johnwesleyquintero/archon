@@ -36,9 +36,8 @@ export function LoginForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-
     startTransition(async () => {
+      setError(null); // Clear errors at the start of the transition
       try {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -56,7 +55,6 @@ export function LoginForm() {
         }
 
         router.push("/dashboard");
-        router.refresh();
       } catch (err: unknown) {
         // Use unknown for caught errors
         setError("An unexpected error occurred. Please try again.");
@@ -99,7 +97,7 @@ export function LoginForm() {
       // Wrap in startTransition
       try {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/auth/reset-password`,
+          redirectTo: `${window.location.origin}/auth/update-password`, // Consistent with server action
         });
 
         if (error) {
@@ -222,7 +220,7 @@ export function LoginForm() {
                 className="absolute right-0 top-0 h-11 px-3 hover:bg-transparent"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isPending}
-                tabIndex={-1}
+                // Removed tabIndex={-1} to improve keyboard accessibility
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -252,7 +250,7 @@ export function LoginForm() {
               type="button"
               variant="link"
               className="px-0 text-sm text-primary hover:text-primary/80"
-              onClick={() => void handleForgotPassword()}
+              onClick={handleForgotPassword}
               disabled={isPending}
             >
               Forgot password?

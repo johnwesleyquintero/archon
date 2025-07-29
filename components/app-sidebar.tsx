@@ -32,7 +32,7 @@ export function AppSidebar({ isCollapsed = false }: AppSidebarProps) {
   const handleSignOut = async () => {
     setIsSigningOut(true);
     await signOut();
-    router.push("/login");
+    router.push("/"); // Redirect to root, let AuthGuard handle further redirection
     setIsSigningOut(false);
   };
 
@@ -115,7 +115,7 @@ export function AppSidebar({ isCollapsed = false }: AppSidebarProps) {
                 "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent mt-2",
                 isCollapsed ? "justify-center" : "",
               )}
-              onClick={() => void handleSignOut()}
+              onClick={() => void handleSignOut()} // Re-added void for no-misused-promises
               disabled={isSigningOut}
               aria-label={SIGN_OUT_LABEL}
             >

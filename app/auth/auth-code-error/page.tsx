@@ -27,7 +27,7 @@ export default function AuthCodeErrorPage({
     "An unexpected authentication error occurred. Please try again."; // More specific default message
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex justify-center">

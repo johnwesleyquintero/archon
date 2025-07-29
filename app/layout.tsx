@@ -28,7 +28,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} transition-none`} suppressHydrationWarning={true}>
+      <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -36,11 +36,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <TooltipProvider>
-              {" "}
-              {/* Wrap children with TooltipProvider */}
-              {children}
-            </TooltipProvider>
+            <TooltipProvider>{children}</TooltipProvider>
             <Toaster />
           </AuthProvider>
         </ThemeProvider>

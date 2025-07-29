@@ -3,9 +3,22 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Mail } from "lucide-react";
 
+import { ArchonLogoSVG } from "@/components/archon-logo-svg";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Forgot Password",
@@ -65,29 +78,76 @@ export default function ForgotPasswordPage({
         Back
       </Link>
 
-      <form className="animate-in flex-1 flex flex-col w-full justify-center gap-2 text-foreground">
-        <label className="text-md" htmlFor="email">
-          Email
-        </label>
-        <input
-          className="rounded-md px-4 py-2 bg-inherit border mb-6"
-          name="email"
-          placeholder="you@example.com"
-          required
-        />
-        <SubmitButton
-          formAction={forgotPassword}
-          className="bg-green-700 rounded-md px-4 py-2 text-foreground mb-2"
-          pendingText="Sending..."
-        >
-          Send Reset Email
-        </SubmitButton>
-        {searchParams?.message && (
-          <p className="mt-4 p-4 bg-foreground/10 text-foreground text-center">
-            {String(searchParams.message)}
-          </p>
-        )}
-      </form>
+      <Card className="w-full shadow-xl border-0 bg-card/95 backdrop-blur-sm">
+        <CardHeader className="space-y-4 pb-6">
+          <div className="flex justify-center">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg">
+              <ArchonLogoSVG className="h-8 w-8 text-primary-foreground" />
+            </div>
+          </div>
+          <div className="text-center space-y-2">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+              Forgot Password
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Enter your email to receive a password reset link
+            </CardDescription>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          <form className="space-y-4">
+            <div className="space-y-2">
+              <Label
+                htmlFor="email"
+                className="text-sm font-medium text-foreground"
+              >
+                Email address
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  className="pl-10 h-11 border-input focus:border-primary focus:ring-primary"
+                  required
+                  autoComplete="email"
+                />
+              </div>
+            </div>
+
+            {searchParams?.message && (
+              <Alert
+                variant={
+                  String(searchParams.message).includes(
+                    "Password reset email sent",
+                  )
+                    ? "default"
+                    : "destructive"
+                }
+              >
+                <AlertDescription className="text-sm">
+                  {String(searchParams.message)}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <SubmitButton
+              formAction={forgotPassword}
+              className={cn(
+                "w-full h-11 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-700",
+                "text-primary-foreground font-medium transition-all duration-200 shadow-lg hover:shadow-xl",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+              )}
+              pendingText="Sending..."
+            >
+              Send Reset Email
+            </SubmitButton>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
