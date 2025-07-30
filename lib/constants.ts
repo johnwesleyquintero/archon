@@ -30,16 +30,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/goals", label: "Goals", icon: Target },
   { href: "/tasks", label: "Tasks", icon: ListTodo },
   { href: "/journal", label: "Journal", icon: BookOpen },
-  { href: "/settings", label: "Settings", icon: Settings },
-  { href: "/settings/profile", label: "Profile", icon: User }, // Added dedicated profile link
 ];
-
-export const PROFILE_NAV_ITEM: NavItem = {
-  // Deprecated, but keeping for now to avoid immediate errors
-  href: "/settings/profile",
-  label: "Profile",
-  icon: User,
-};
 
 export const SIGN_OUT_LABEL = "Sign Out";
 export const SIGNING_OUT_LABEL = "Signing out...";

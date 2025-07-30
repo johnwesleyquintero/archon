@@ -1,9 +1,16 @@
+import Image from "next/image";
 import React from "react";
 
-const Logo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" {...props}>
-    <path fill="#1f2022ff" d="M10 90 L50 10 L90 90 L75 90 L50 40 L25 90 Z" />
-  </svg>
+interface LogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {}
+
+const Logo: React.FC<LogoProps> = ({ width = 24, height = 24, ...props }) => (
+  <Image
+    src="/favicon.ico"
+    alt="Archon Logo"
+    width={width as number}
+    height={height as number}
+    {...props}
+  />
 );
 
 export default Logo;

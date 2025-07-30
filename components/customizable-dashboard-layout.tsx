@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AddWidgetDialog } from "./add-widget-dialog";
 
 import { DashboardWidget } from "./dashboard-widget";
 import { DashboardControlBar } from "./dashboard/dashboard-control-bar";
@@ -89,6 +90,42 @@ export function CustomizableDashboardLayout({
     return currentLayout.filter((item) => item.isVisible || isCustomizing);
   }, [currentLayout, isCustomizing]);
 
+  const handleAddWidget = useCallback(
+    (widgetId: string) => {
+      const widgetToAdd = widgets.find((w) => w.id === widgetId);
+      if (widgetToAdd) {
+        // Check if the widget is already in the layout
+        const isAlreadyAdded = currentLayout.some(
+          (item) => item.i === widgetId,
+        );
+
+        if (!isAlreadyAdded) {
+          // Find a suitable position for the new widget
+          // For simplicity, let's place it at a default position or find an empty spot
+          const newLayoutItem: DashboardLayoutItem = {
+            i: widgetToAdd.id,
+            x: 0, // You might want to implement more sophisticated placement logic
+            y: Infinity, // Puts it at the bottom
+            w: widgetToAdd.minW || 4,
+            h: widgetToAdd.minH || 2,
+            isVisible: true,
+          };
+          const updatedLayout = [...currentLayout, newLayoutItem];
+          handleLayoutChange(updatedLayout);
+        } else {
+          // If already added, make it visible if it's hidden
+          const existingWidget = currentLayout.find(
+            (item) => item.i === widgetId,
+          );
+          if (existingWidget && !existingWidget.isVisible) {
+            toggleWidgetVisibility(widgetId, true);
+          }
+        }
+      }
+    },
+    [currentLayout, widgets, handleLayoutChange, toggleWidgetVisibility],
+  );
+
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Control Bar */}
@@ -150,13 +187,10 @@ export function CustomizableDashboardLayout({
       {isCustomizing && (
         <Card className="border-dashed border-2 border-gray-300 hover:border-gray-400 transition-colors">
           <CardContent className="flex items-center justify-center py-8">
-            <Button
-              variant="ghost"
-              className="flex items-center space-x-2 text-gray-600"
-            >
-              <Plus className="h-5 w-5" />
-              <span>Add Widget</span>
-            </Button>
+            <AddWidgetDialog
+              availableWidgets={widgets}
+              onAddWidget={handleAddWidget}
+            />
           </CardContent>
         </Card>
       )}

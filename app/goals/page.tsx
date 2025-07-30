@@ -1,4 +1,5 @@
 import { GoalTrackerWithAttachments } from "@/components/goal-tracker-with-attachments";
+import { DashboardLayout } from "@/components/dashboard-layout";
 import { getGoals } from "@/lib/database/goals";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -11,9 +12,11 @@ export default async function GoalsPage() {
   const initialGoals = user ? await getGoals() : [];
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold text-slate-900">Goals</h1>
-      <GoalTrackerWithAttachments initialGoals={initialGoals} />
-    </div>
+    <DashboardLayout>
+      <div className="flex flex-col gap-6">
+        <h1 className="text-2xl font-bold text-slate-900">Goals</h1>
+        <GoalTrackerWithAttachments initialGoals={initialGoals} />
+      </div>
+    </DashboardLayout>
   );
 }
