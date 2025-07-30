@@ -20,6 +20,8 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import chalk from "chalk";
 import { CHECKS } from "./code-checker.config.mjs";
+import path from "path";
+import fs from "fs/promises";
 
 const execPromise = promisify(exec);
 
@@ -37,6 +39,43 @@ const EXIT_CODES = {
 };
 
 // --- Core Logic ---
+async function checkLargeFiles() {
+  const MAX_FILE_SIZE_MB = 1; // 1MB limit for source files
+  const largeFiles = [];
+
+  const traverseDirectory = async (directory) => {
+    try {
+      const files = await fs.readdir(directory, { withFileTypes: true });
+      for (const file of files) {
+        const fullPath = path.join(directory, file.name);
+        if (file.isDirectory()) {
+          // Skip node_modules and .next directories
+          if (file.name === "node_modules" || file.name === ".next") {
+            continue;
+          }
+          await traverseDirectory(fullPath);
+        } else if (file.isFile()) {
+          const stats = await fs.stat(fullPath);
+          const fileSizeMB = stats.size / (1024 * 1024);
+          if (fileSizeMB > MAX_FILE_SIZE_MB) {
+            largeFiles.push({
+              filePath: fullPath,
+              sizeMB: fileSizeMB.toFixed(2),
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error(
+        chalk.red(`Error traversing directory ${directory}: ${error.message}`),
+      );
+    }
+  };
+
+  await traverseDirectory(path.resolve(process.cwd()));
+  return largeFiles;
+}
+
 function parseLinterOutput(output) {
   if (!output) return { errorsByFile: new Map(), generalOutput: [] };
   const lines = output.split("\n");
@@ -161,6 +200,19 @@ async function main() {
     console.log(chalk.bold("\nRunning Code Quality Checks..."));
 
   try {
+    const largeFiles = await checkLargeFiles();
+    if (largeFiles.length > 0) {
+      console.warn(chalk.yellow("\n--- Large Files Detected ---"));
+      largeFiles.forEach((file) => {
+        console.warn(chalk.yellow(`  - ${file.filePath} (${file.sizeMB} MB)`));
+      });
+      console.warn(
+        chalk.yellow(
+          "Consider optimizing or splitting these files to improve performance and reduce memory usage.",
+        ),
+      );
+    }
+
     const results = await Promise.all(CHECKS.map((check) => runCommand(check)));
     const allPassed = results.every((result) => result.success);
 

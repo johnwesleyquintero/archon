@@ -41,7 +41,7 @@ export default async function DashboardPage() {
       <div className="container mx-auto p-6">
         <EmptyState
           title="Failed to Load Dashboard"
-          description="There was an error loading your dashboard settings. Please try again later."
+          description={`There was an error loading your dashboard settings: ${error instanceof Error ? error.message : String(error)}. Please try again later.`}
         />
       </div>
     );
