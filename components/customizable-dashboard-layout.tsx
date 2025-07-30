@@ -6,8 +6,7 @@ import { Responsive, type Layout, WidthProvider } from "react-grid-layout";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import { AddWidgetDialog } from "./add-widget-dialog";
 
 import { DashboardWidget } from "./dashboard-widget";

@@ -58,6 +58,13 @@ jest.mock("@/lib/supabase/client", () => ({
         })),
       })),
     })),
+    channel: jest.fn(() => ({
+      on: jest.fn(() => ({
+        subscribe: jest.fn(),
+      })),
+      subscribe: jest.fn(),
+    })),
+    removeChannel: jest.fn(),
   })),
 }));
 

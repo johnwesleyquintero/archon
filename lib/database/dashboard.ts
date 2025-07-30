@@ -15,18 +15,18 @@ async function createClient() {
         get(name: string) {
           return cookieStore.get(name)?.value;
         },
-        async set(name: string, value: string, options: any) {
+        set(name: string, value: string, options: any) {
           try {
-            await cookieStore.set({ name, value, ...options });
-          } catch (error) {
+            cookieStore.set({ name, value, ...options });
+          } catch (e) {
             // The `set` method was called from a Server Component.
             // This can be ignored if you have a Supabase auth listener in a Client Component that sets cookies.
           }
         },
-        async remove(name: string, value: string, options: any) {
+        remove(name: string, options: any) {
           try {
-            await cookieStore.set({ name, value: "", ...options });
-          } catch (error) {
+            cookieStore.set({ name, value: "", ...options });
+          } catch (e) {
             // The `delete` method was called from a Server Component.
           }
         },
@@ -53,19 +53,19 @@ export async function getTaskStats() {
   const { count: totalTasks, error: totalTasksError } = await supabase
     .from("tasks")
     .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id);
+    .eq("user_id", user.id as any);
 
   const { count: completedTasks, error: completedTasksError } = await supabase
     .from("tasks")
     .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .eq("is_completed", true);
+    .eq("user_id", user.id as any)
+    .eq("is_completed", true as any);
 
   const { count: pendingTasks, error: pendingTasksError } = await supabase
     .from("tasks")
     .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .eq("is_completed", false);
+    .eq("user_id", user.id as any)
+    .eq("is_completed", false as any);
 
   // Tasks completed this month
   const now = new Date();
@@ -86,8 +86,8 @@ export async function getTaskStats() {
   } = await supabase
     .from("tasks")
     .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .eq("is_completed", true)
+    .eq("user_id", user.id as any)
+    .eq("is_completed", true as any)
     .gte("completed_at", startOfMonth)
     .lte("completed_at", endOfMonth);
 

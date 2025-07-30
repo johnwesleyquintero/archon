@@ -1,12 +1,4 @@
-import {
-  Home,
-  Target,
-  ListTodo,
-  BookOpen,
-  Settings,
-  LucideIcon,
-  User,
-} from "lucide-react";
+import { Home, Target, ListTodo, BookOpen, LucideIcon } from "lucide-react";
 import { AdvancedStatsGrid } from "@/components/advanced-stats-grid";
 import { GoalTracker } from "@/components/goal-tracker";
 import { JournalList } from "@/components/journal-list";

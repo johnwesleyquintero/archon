@@ -31,7 +31,7 @@ export function StatsGrid() {
       }
     };
 
-    fetchStats();
+    void fetchStats();
   }, []);
 
   const renderCardContent = (value: string | number) => (

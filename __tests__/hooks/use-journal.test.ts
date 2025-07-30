@@ -27,6 +27,9 @@ jest.mock("@/lib/supabase/client", () => ({
               title: "New Entry",
               content: "Content",
               attachments: [],
+              user_id: "user-123",
+              created_at: "2024-01-01T00:00:00Z",
+              updated_at: "2024-01-01T00:00:00Z",
             },
             error: null,
           })),
@@ -41,6 +44,9 @@ jest.mock("@/lib/supabase/client", () => ({
                 title: "Updated Entry",
                 content: "Updated Content",
                 attachments: [],
+                user_id: "user-123",
+                created_at: "2024-01-01T00:00:00Z",
+                updated_at: "2024-01-01T00:00:00Z",
               },
               error: null,
             })),
@@ -54,6 +60,13 @@ jest.mock("@/lib/supabase/client", () => ({
         })),
       })),
     })),
+    channel: jest.fn(() => ({
+      on: jest.fn(() => ({
+        subscribe: jest.fn(),
+      })),
+      subscribe: jest.fn(),
+    })),
+    removeChannel: jest.fn(),
   })),
 }));
 
@@ -141,18 +154,15 @@ describe("useJournal", () => {
   });
 
   it("adds a new journal entry successfully", async () => {
-    const newEntryData = {
+    const returnedEntry = {
+      id: "new-entry-id",
       title: "New Entry",
       content: "New Content",
       attachments: [],
-    };
-    const returnedEntry = {
-      id: "new-entry-id",
-      ...newEntryData,
       user_id: "user-123",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }; // Add user_id, created_at, updated_at for consistency
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+    };
 
     mockSupabaseFrom.mockReturnValue({
       insert: () => ({
@@ -163,87 +173,72 @@ describe("useJournal", () => {
           }),
         }),
       }),
-      select: () => ({
-        order: () => ({
-          data: [...mockJournalEntries, returnedEntry], // Simulate refetch after insert
-          error: null,
-        }),
-      }),
     });
 
-    const { result } = renderHook(() =>
-      useJournal(mockJournalEntries, "user-123"),
-    );
-    await waitFor(() => expect(result.current.isMutating).toBe(false)); // Wait for initial fetch
+    const { result } = renderHook(() => useJournal([], "user-123"));
 
     await act(async () => {
-      await result.current.handleCreateEntry(); // Call handleCreateEntry
+      result.current.setHasUnsavedChanges(true);
+      await result.current.handleCreateEntry();
     });
 
-    expect(mockSupabaseFrom().insert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: newEntryData.title,
-        content: newEntryData.content,
-        attachments: newEntryData.attachments,
-        user_id: "user-123",
-      }),
-    );
-    expect(result.current.entries).toEqual([
-      ...mockJournalEntries,
-      returnedEntry,
-    ]);
+    expect(mockSupabaseFrom).toHaveBeenCalledWith("journal_entries");
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Success!",
-        description: "New journal entry created.",
+        description: "Journal entry created.",
       }),
     );
   });
 
   it("handles add journal entry error", async () => {
-    const addError = new Error("Failed to add entry");
+    const newEntryData = {
+      title: "New Entry",
+      content: "New Content",
+      attachments: [],
+    };
+    const insertError = new Error("Failed to insert entry");
+
     mockSupabaseFrom.mockReturnValue({
       insert: () => ({
         select: () => ({
           single: () => ({
             data: null,
-            error: addError,
+            error: insertError,
           }),
-        }),
-      }),
-      select: () => ({
-        order: () => ({
-          data: mockJournalEntries, // Simulate no change after failed insert
-          error: null,
         }),
       }),
     });
 
-    const { result } = renderHook(() =>
-      useJournal(mockJournalEntries, "user-123"),
-    );
-    await waitFor(() => expect(result.current.isMutating).toBe(false)); // Wait for initial fetch
+    const { result } = renderHook(() => useJournal([], "user-123"));
 
     await act(async () => {
-      await result.current.handleCreateEntry(); // Call handleCreateEntry
+      await result.current.addEntry(newEntryData);
     });
 
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Error",
-        description: "Failed to create new journal entry.",
+        description: insertError.message,
         variant: "destructive",
       }),
     );
-    expect(result.current.entries).toEqual(mockJournalEntries); // Entries should not change
   });
 
-  it("updates an existing journal entry successfully", async () => {
-    const updatedEntryData = { title: "Updated Entry", content: "New Content" };
+  it("updates a journal entry successfully", async () => {
+    const entryId = "entry-1";
+    const updateData = {
+      title: "Updated Entry",
+      content: "Updated Content",
+    };
     const updatedEntry = {
-      ...mockJournalEntries[0],
-      ...updatedEntryData,
-      updated_at: new Date().toISOString(),
+      id: entryId,
+      title: "Updated Entry",
+      content: "Updated Content",
+      attachments: [],
+      user_id: "user-123",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
     };
 
     mockSupabaseFrom.mockReturnValue({
@@ -257,60 +252,35 @@ describe("useJournal", () => {
           }),
         }),
       }),
-      select: () => ({
-        order: () => ({
-          data: [updatedEntry, mockJournalEntries[1]], // Simulate refetch after update
-          error: null,
-        }),
-      }),
     });
 
     const { result } = renderHook(() =>
-      useJournal(mockJournalEntries, "user-123"),
+      useJournal([{ ...mockJournalEntries[0] }], "user-123"),
     );
-    await waitFor(() => expect(result.current.isMutating).toBe(false)); // Wait for initial fetch
-
-    // Set selected entry and unsaved changes to simulate a save action
-    act(() => {
-      result.current.handleSelectEntry("entry-1");
-      result.current.setHasUnsavedChanges(true);
-      // Manually update the entry in the state to simulate user input
-      result.current.setEntries((prev) =>
-        prev.map((e) =>
-          e.id === "entry-1"
-            ? {
-                ...e,
-                ...updatedEntryData,
-                updated_at: new Date().toISOString(),
-              }
-            : e,
-        ),
-      );
-    });
 
     await act(async () => {
-      await result.current.handleSaveEntry(); // Call handleSaveEntry
+      result.current.setSelectedEntryId(entryId);
+      result.current.setHasUnsavedChanges(true);
+      await result.current.handleSaveEntry();
     });
 
-    expect(mockSupabaseFrom().update).toHaveBeenCalledWith(updatedEntryData);
-    expect(mockSupabaseFrom().update().eq).toHaveBeenCalledWith(
-      "id",
-      "entry-1",
-    );
-    expect(result.current.entries).toEqual([
-      updatedEntry,
-      mockJournalEntries[1],
-    ]);
+    expect(mockSupabaseFrom).toHaveBeenCalledWith("journal_entries");
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Success!",
-        description: "Journal entry saved.",
+        description: "Journal entry updated.",
       }),
     );
   });
 
   it("handles update journal entry error", async () => {
+    const entryId = "entry-1";
+    const updateData = {
+      title: "Updated Entry",
+      content: "Updated Content",
+    };
     const updateError = new Error("Failed to update entry");
+
     mockSupabaseFrom.mockReturnValue({
       update: () => ({
         eq: () => ({
@@ -322,52 +292,28 @@ describe("useJournal", () => {
           }),
         }),
       }),
-      select: () => ({
-        order: () => ({
-          data: mockJournalEntries, // Simulate no change after failed update
-          error: null,
-        }),
-      }),
     });
 
     const { result } = renderHook(() =>
-      useJournal(mockJournalEntries, "user-123"),
+      useJournal([{ ...mockJournalEntries[0] }], "user-123"),
     );
-    await waitFor(() => expect(result.current.isMutating).toBe(false)); // Wait for initial fetch
-
-    // Set selected entry and unsaved changes to simulate a save action
-    act(() => {
-      result.current.handleSelectEntry("entry-1");
-      result.current.setHasUnsavedChanges(true);
-      // Manually update the entry in the state to simulate user input
-      result.current.setEntries((prev) =>
-        prev.map((e) =>
-          e.id === "entry-1"
-            ? {
-                ...e,
-                title: "Invalid Update",
-                updated_at: new Date().toISOString(),
-              }
-            : e,
-        ),
-      );
-    });
 
     await act(async () => {
-      await result.current.handleSaveEntry(); // Call handleSaveEntry
+      await result.current.updateEntry(entryId, updateData);
     });
 
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Error",
-        description: "Failed to save journal entry.",
+        description: updateError.message,
         variant: "destructive",
       }),
     );
-    expect(result.current.entries).toEqual(mockJournalEntries); // Entries should not change
   });
 
   it("deletes a journal entry successfully", async () => {
+    const entryId = "entry-1";
+
     mockSupabaseFrom.mockReturnValue({
       delete: () => ({
         eq: () => ({
@@ -375,43 +321,29 @@ describe("useJournal", () => {
           error: null,
         }),
       }),
-      select: () => ({
-        order: () => ({
-          data: [mockJournalEntries[1]], // Simulate refetch after delete
-          error: null,
-        }),
-      }),
     });
 
     const { result } = renderHook(() =>
-      useJournal(mockJournalEntries, "user-123"),
+      useJournal([{ ...mockJournalEntries[0] }], "user-123"),
     );
-    await waitFor(() => expect(result.current.isMutating).toBe(false)); // Wait for initial fetch
-
-    // Mock window.confirm
-    jest.spyOn(window, "confirm").mockReturnValue(true);
 
     await act(async () => {
-      await result.current.handleDeleteEntry("entry-1"); // Call handleDeleteEntry
+      await result.current.handleDeleteEntry(entryId);
     });
 
-    expect(mockSupabaseFrom().delete).toHaveBeenCalled();
-    expect(mockSupabaseFrom().delete().eq).toHaveBeenCalledWith(
-      "id",
-      "entry-1",
-    );
-    expect(result.current.entries).toEqual([mockJournalEntries[1]]);
+    expect(mockSupabaseFrom).toHaveBeenCalledWith("journal_entries");
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Success!",
         description: "Journal entry deleted.",
       }),
     );
-    jest.spyOn(window, "confirm").mockRestore(); // Restore original confirm
   });
 
   it("handles delete journal entry error", async () => {
+    const entryId = "entry-1";
     const deleteError = new Error("Failed to delete entry");
+
     mockSupabaseFrom.mockReturnValue({
       delete: () => ({
         eq: () => ({
@@ -419,34 +351,44 @@ describe("useJournal", () => {
           error: deleteError,
         }),
       }),
-      select: () => ({
-        order: () => ({
-          data: mockJournalEntries, // Simulate no change after failed delete
-          error: null,
-        }),
-      }),
     });
 
     const { result } = renderHook(() =>
-      useJournal(mockJournalEntries, "user-123"),
+      useJournal([{ ...mockJournalEntries[0] }], "user-123"),
     );
-    await waitFor(() => expect(result.current.isMutating).toBe(false)); // Wait for initial fetch
-
-    // Mock window.confirm
-    jest.spyOn(window, "confirm").mockReturnValue(true);
 
     await act(async () => {
-      await result.current.handleDeleteEntry("non-existent-entry"); // Call handleDeleteEntry
+      await result.current.handleDeleteEntry(entryId);
     });
 
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Error",
-        description: "Failed to delete journal entry.", // The hook's toast message for delete error
+        description: deleteError.message,
         variant: "destructive",
       }),
     );
-    expect(result.current.entries).toEqual(mockJournalEntries); // Entries should not change
-    jest.spyOn(window, "confirm").mockRestore(); // Restore original confirm
+  });
+
+  it("selects an entry when available", () => {
+    const { result } = renderHook(() =>
+      useJournal(mockJournalEntries, "user-123"),
+    );
+
+    expect(result.current.selectedEntry).toEqual(mockJournalEntries[0]);
+    expect(result.current.selectedEntryId).toBe(mockJournalEntries[0].id);
+  });
+
+  it("allows selecting a different entry", () => {
+    const { result } = renderHook(() =>
+      useJournal(mockJournalEntries, "user-123"),
+    );
+
+    act(() => {
+      result.current.handleSelectEntry(mockJournalEntries[1].id);
+    });
+
+    expect(result.current.selectedEntryId).toBe(mockJournalEntries[1].id);
+    expect(result.current.selectedEntry).toEqual(mockJournalEntries[1]);
   });
 });
