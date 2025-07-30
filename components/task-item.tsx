@@ -2,6 +2,7 @@
 
 import React from "react";
 import { format } from "date-fns";
+import { useTaskItem } from "@/hooks/use-task-item";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +38,26 @@ interface TaskItemProps
   disabled?: boolean;
 }
 
+/**
+ * TaskItem - Renders an individual task with toggle, edit, and delete functionality
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <TaskItem
+ *   id="task-123"
+ *   title="Complete project documentation"
+ *   is_completed={false}
+ *   due_date="2023-12-31"
+ *   priority="high"
+ *   category="Work"
+ *   tags={["documentation", "urgent"]}
+ *   onToggle={handleToggle}
+ *   onDelete={handleDelete}
+ *   onUpdate={handleUpdate}
+ * />
+ * ```
+ */
 export function TaskItem({
   id,
   title,
@@ -50,42 +71,25 @@ export function TaskItem({
   onUpdate,
   disabled = false,
 }: TaskItemProps) {
-  const [isToggling, setIsToggling] = React.useState(false);
-  const [isDeleting, setIsDeleting] = React.useState(false);
-  const [isEditing, setIsEditing] = React.useState(false);
-  const [newTitle, setNewTitle] = React.useState(title);
-
-  const handleToggle = async () => {
-    setIsToggling(true);
-    try {
-      await onToggle(id, !is_completed);
-    } catch (error) {
-      console.error("Error toggling task:", error);
-    } finally {
-      setIsToggling(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      await onDelete(id);
-    } catch (error) {
-      console.error("Error deleting task:", error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleUpdate = async () => {
-    if (newTitle.trim() === "") return;
-    setIsEditing(false);
-    try {
-      await onUpdate(id, newTitle);
-    } catch (error) {
-      console.error("Error updating task:", error);
-    }
-  };
+  const {
+    isToggling,
+    isDeleting,
+    isEditing,
+    newTitle,
+    setNewTitle,
+    setIsEditing,
+    handleToggle,
+    handleDelete,
+    handleUpdate,
+    handleKeyDown,
+  } = useTaskItem({
+    id,
+    title,
+    onToggle,
+    onDelete,
+    onUpdate,
+    disabled,
+  });
 
   const priorityColors = {
     low: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
@@ -101,20 +105,15 @@ export function TaskItem({
           id={`task-${id}`}
           checked={is_completed}
           disabled={disabled || isToggling}
-          onCheckedChange={() => void handleToggle()}
+          onCheckedChange={(checked) => handleToggle(!!checked)}
           className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900 dark:border-slate-600 dark:data-[state=checked]:bg-slate-50 dark:data-[state=checked]:border-slate-50"
         />
         {isEditing ? (
           <Input
             value={newTitle}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setNewTitle(e.target.value)
-            }
-            onBlur={() => void handleUpdate()}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === "Enter") void handleUpdate();
-              if (e.key === "Escape") setIsEditing(false);
-            }}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onBlur={handleUpdate}
+            onKeyDown={handleKeyDown}
             className="flex-1 text-sm h-8"
             autoFocus
           />
@@ -183,7 +182,7 @@ export function TaskItem({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => void handleDelete()}>
+              <AlertDialogAction onClick={handleDelete}>
                 Continue
               </AlertDialogAction>
             </AlertDialogFooter>

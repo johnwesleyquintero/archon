@@ -3,7 +3,11 @@
 import { useMemo, useState } from "react";
 import type { Database } from "@/lib/supabase/types";
 
-type Task = Database["public"]["Tables"]["tasks"]["Row"];
+// Ensure Task type includes all filterable/sortable properties with correct types
+type Task = Database["public"]["Tables"]["tasks"]["Row"] & {
+  tags: string[] | null; // Assuming tags can be null
+  // priority, due_date, category should be inferred from the base type
+};
 
 export type TaskSort = {
   field: "due_date" | "priority" | "created_at" | "updated_at" | "title";
@@ -45,15 +49,12 @@ export function useTaskFiltersAndSort(tasks: Task[]) {
       if (filters.status === "completed" && !task.is_completed) return false;
 
       // Priority filter
-      if (
-        filters.priority !== "all" &&
-        (task as any).priority !== filters.priority
-      )
+      if (filters.priority !== "all" && task.priority !== filters.priority)
         return false;
 
       // Due date filter
-      if (filters.dueDate !== "all" && (task as any).due_date) {
-        const dueDate = new Date((task as any).due_date);
+      if (filters.dueDate !== "all" && task.due_date) {
+        const dueDate = new Date(task.due_date);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -77,13 +78,12 @@ export function useTaskFiltersAndSort(tasks: Task[]) {
       }
 
       // Category filter
-      if (filters.category && (task as any).category !== filters.category)
-        return false;
+      if (filters.category && task.category !== filters.category) return false;
 
       // Tags filter
       if (
         filters.tags.length > 0 &&
-        !filters.tags.every((tag) => ((task as any).tags || []).includes(tag))
+        !filters.tags.every((tag) => (task.tags || []).includes(tag))
       )
         return false;
 
@@ -92,26 +92,21 @@ export function useTaskFiltersAndSort(tasks: Task[]) {
 
     // Then, apply sorting
     result.sort((a, b) => {
-      const aTyped = a as any;
-      const bTyped = b as any;
-
       switch (sort.field) {
         case "due_date":
-          if (!aTyped.due_date && !bTyped.due_date) return 0;
-          if (!aTyped.due_date) return sort.direction === "asc" ? 1 : -1;
-          if (!bTyped.due_date) return sort.direction === "asc" ? -1 : 1;
+          if (!a.due_date && !b.due_date) return 0;
+          if (!a.due_date) return sort.direction === "asc" ? 1 : -1;
+          if (!b.due_date) return sort.direction === "asc" ? -1 : 1;
           return sort.direction === "asc"
-            ? new Date(aTyped.due_date).getTime() -
-                new Date(bTyped.due_date).getTime()
-            : new Date(bTyped.due_date).getTime() -
-                new Date(aTyped.due_date).getTime();
+            ? new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+            : new Date(b.due_date).getTime() - new Date(a.due_date).getTime();
 
         case "priority":
+          const aPriority = a.priority ? priorityOrder[a.priority] || 0 : 0;
+          const bPriority = b.priority ? priorityOrder[b.priority] || 0 : 0;
           return sort.direction === "asc"
-            ? (priorityOrder[aTyped.priority] || 0) -
-                (priorityOrder[bTyped.priority] || 0)
-            : (priorityOrder[bTyped.priority] || 0) -
-                (priorityOrder[aTyped.priority] || 0);
+            ? aPriority - bPriority
+            : bPriority - aPriority;
 
         case "title":
           return sort.direction === "asc"
