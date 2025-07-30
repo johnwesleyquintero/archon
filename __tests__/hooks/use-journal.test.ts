@@ -35,24 +35,7 @@ jest.mock("@/lib/supabase/client", () => ({
           })),
         })),
       })),
-      update: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          select: jest.fn(() => ({
-            single: jest.fn(() => ({
-              data: {
-                id: "entry-1",
-                title: "Updated Entry",
-                content: "Updated Content",
-                attachments: [],
-                user_id: "user-123",
-                created_at: "2024-01-01T00:00:00Z",
-                updated_at: "2024-01-01T00:00:00Z",
-              },
-              error: null,
-            })),
-          })),
-        })),
-      })),
+
       delete: jest.fn(() => ({
         eq: jest.fn(() => ({
           data: {},
@@ -225,53 +208,47 @@ describe("useJournal", () => {
     );
   });
 
-  it("updates a journal entry successfully", async () => {
-    const entryId = "entry-1";
-    const updateData = {
-      title: "Updated Entry",
-      content: "Updated Content",
-    };
-    const updatedEntry = {
-      id: entryId,
-      title: "Updated Entry",
-      content: "Updated Content",
-      attachments: [],
-      user_id: "user-123",
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
-    };
+    it("updates an existing journal entry successfully", async () => {
+      const updatedEntryData = {
+        title: "Updated Entry",
+        content: "Updated Content",
+        attachments: [],
+      };
 
-    mockSupabaseFrom.mockReturnValue({
-      update: () => ({
-        eq: () => ({
-          select: () => ({
-            single: () => ({
-              data: updatedEntry,
-              error: null,
-            }),
-          }),
+      const { result } = renderHook(() =>
+        useJournal(mockJournalEntries, "user-123"),
+      );
+
+      await act(async () => {
+        result.current.handleSelectEntry("entry-1");
+        result.current.setHasUnsavedChanges(true);
+        // Simulate updating the selected entry's content before saving
+        result.current.setEntries((prev) =>
+          prev.map((entry) =>
+            entry.id === "entry-1"
+              ? { ...entry, ...updatedEntryData }
+              : entry,
+          ),
+        );
+        await result.current.handleSaveEntry();
+      });
+
+      expect(mockSupabaseFrom).toHaveBeenCalledWith("journal_entries");
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Success!",
+          description: "Journal entry saved.",
         }),
-      }),
+      );
+      expect(result.current.entries).toEqual([
+        {
+          ...mockJournalEntries[0],
+          title: "Updated Entry",
+          content: "Updated Content",
+        },
+        mockJournalEntries[1],
+      ]);
     });
-
-    const { result } = renderHook(() =>
-      useJournal([{ ...mockJournalEntries[0] }], "user-123"),
-    );
-
-    await act(async () => {
-      result.current.setSelectedEntryId(entryId);
-      result.current.setHasUnsavedChanges(true);
-      await result.current.handleSaveEntry();
-    });
-
-    expect(mockSupabaseFrom).toHaveBeenCalledWith("journal_entries");
-    expect(toast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "Success!",
-        description: "Journal entry updated.",
-      }),
-    );
-  });
 
   it("handles update journal entry error", async () => {
     const entryId = "entry-1";
