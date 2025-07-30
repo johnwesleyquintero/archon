@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import { useRouter } from "next/navigation";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { useAuth } from "@/contexts/auth-context";
@@ -55,14 +55,16 @@ describe("AuthGuard", () => {
     expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
   });
 
-  it("does not redirect immediately when authentication status is loading", () => {
+  it("does not redirect immediately when authentication status is loading", async () => {
     (useAuth as jest.Mock).mockReturnValue({ user: null, isLoading: true });
 
-    render(
-      <AuthGuard>
-        <div>Protected Content</div>
-      </AuthGuard>,
-    );
+    await act(async () => {
+      render(
+        <AuthGuard>
+          <div>Protected Content</div>
+        </AuthGuard>,
+      );
+    });
 
     expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
     expect(mockPush).not.toHaveBeenCalled();
@@ -85,16 +87,19 @@ describe("AuthGuard", () => {
     );
 
     expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
+    // The initial render with isLoading: true should not trigger a redirect
     expect(mockPush).not.toHaveBeenCalled();
 
     // Simulate authentication status changing after loading
     userState = { id: "123" };
     loadingState = false;
-    rerender(
-      <AuthGuard>
-        <div>Protected Content</div>
-      </AuthGuard>,
-    );
+    await act(async () => {
+      rerender(
+        <AuthGuard>
+          <div>Protected Content</div>
+        </AuthGuard>,
+      );
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Protected Content")).toBeInTheDocument();
@@ -118,16 +123,19 @@ describe("AuthGuard", () => {
     );
 
     expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
+    // The initial render with isLoading: true should not trigger a redirect
     expect(mockPush).not.toHaveBeenCalled();
 
     // Simulate authentication status changing after loading
     userState = null;
     loadingState = false;
-    rerender(
-      <AuthGuard>
-        <div>Protected Content</div>
-      </AuthGuard>,
-    );
+    await act(async () => {
+      rerender(
+        <AuthGuard>
+          <div>Protected Content</div>
+        </AuthGuard>,
+      );
+    });
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith("/auth/signin");
