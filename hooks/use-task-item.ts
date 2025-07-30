@@ -65,7 +65,7 @@ export function useTaskItem({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      handleUpdate();
+      void handleUpdate();
     } else if (e.key === "Escape") {
       setIsEditing(false);
       setNewTitle(title);

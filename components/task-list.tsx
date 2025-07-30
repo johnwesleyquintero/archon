@@ -15,10 +15,24 @@ interface TaskListProps {
 export function TaskList({ onAddTaskClick }: TaskListProps) {
   const { tasks, loading, toggleTask, deleteTask, updateTask, isMutating } =
     useTasks();
-  const processTaskTags = (task: Task) => {
+  // Process task tags to ensure they're always string arrays
+  const processTaskTags = (task: Task): Task & { tags: string[] } => {
+    // Handle Json type from Supabase by ensuring tags is a string array
+    let processedTags: string[] = [];
+
+    if (task.tags !== null) {
+      if (Array.isArray(task.tags)) {
+        // Filter out any non-string values that might be in the array
+        processedTags = task.tags.filter((tag) => typeof tag === "string");
+      } else if (typeof task.tags === "string") {
+        // If it's a single string, convert to array
+        processedTags = [task.tags];
+      }
+    }
+
     return {
       ...task,
-      tags: Array.isArray(task.tags) ? (task.tags as string[]) : [],
+      tags: processedTags,
     };
   };
   const { filteredAndSortedTasks, sort, setSort, filters, setFilters } =

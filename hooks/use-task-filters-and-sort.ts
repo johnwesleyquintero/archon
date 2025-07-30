@@ -4,8 +4,8 @@ import { useMemo, useState } from "react";
 import type { Database } from "@/lib/supabase/types";
 
 // Ensure Task type includes all filterable/sortable properties with correct types
-type Task = Database["public"]["Tables"]["tasks"]["Row"] & {
-  tags: string[] | null; // Assuming tags can be null
+type Task = Omit<Database["public"]["Tables"]["tasks"]["Row"], "tags"> & {
+  tags: string[] | null; // Explicitly define tags as string[] | null
   // priority, due_date, category should be inferred from the base type
 };
 

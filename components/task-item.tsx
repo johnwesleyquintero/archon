@@ -105,14 +105,14 @@ export function TaskItem({
           id={`task-${id}`}
           checked={is_completed}
           disabled={disabled || isToggling}
-          onCheckedChange={(checked) => handleToggle(!!checked)}
+          onCheckedChange={(checked) => void handleToggle(!!checked)}
           className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900 dark:border-slate-600 dark:data-[state=checked]:bg-slate-50 dark:data-[state=checked]:border-slate-50"
         />
         {isEditing ? (
           <Input
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            onBlur={handleUpdate}
+            onBlur={() => void handleUpdate()}
             onKeyDown={handleKeyDown}
             className="flex-1 text-sm h-8"
             autoFocus
@@ -182,7 +182,11 @@ export function TaskItem({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>
+              <AlertDialogAction
+                onClick={() => {
+                  void handleDelete();
+                }}
+              >
                 Continue
               </AlertDialogAction>
             </AlertDialogFooter>

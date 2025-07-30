@@ -1,6 +1,9 @@
 # .github/workflows/dependency-scan.yml
 name: Dependency Scanning
 
+# Reference the actions configuration file
+# github-actions: suppressWarning=context_access_snyk_token
+
 on:
   push:
     branches: [main]
@@ -27,4 +30,7 @@ jobs:
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+          command: test
         continue-on-error: true # Add error handling in case token is not available

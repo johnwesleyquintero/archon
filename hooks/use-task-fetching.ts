@@ -4,10 +4,32 @@ import { useState, useEffect, useCallback } from "react";
 import { getTasks } from "@/lib/database/tasks";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
+import type { Task } from "@/lib/types/task";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/use-toast";
 
-type Task = Database["public"]["Tables"]["tasks"]["Row"];
+// Define the raw task type from the database
+type RawTask = Database["public"]["Tables"]["tasks"]["Row"];
+
+// Helper function to convert RawTask to Task with proper tags type
+const convertRawTaskToTask = (rawTask: RawTask): Task => {
+  let processedTags: string[] | null = null;
+
+  if (rawTask.tags !== null) {
+    if (Array.isArray(rawTask.tags)) {
+      // Filter out any non-string values
+      processedTags = rawTask.tags.filter((tag) => typeof tag === "string");
+    } else if (typeof rawTask.tags === "string") {
+      // If it's a single string, convert to array
+      processedTags = [rawTask.tags];
+    }
+  }
+
+  return {
+    ...rawTask,
+    tags: processedTags,
+  };
+};
 
 export function useTaskFetching(initialTasks: Task[] = []) {
   const { user } = useAuth();
@@ -15,6 +37,7 @@ export function useTaskFetching(initialTasks: Task[] = []) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const supabase = createClient();
 
   const fetchTasks = useCallback(async () => {
     if (!user) {
@@ -25,8 +48,10 @@ export function useTaskFetching(initialTasks: Task[] = []) {
     setLoading(true);
     setError(null);
     try {
-      const fetchedTasks = await getTasks();
-      setTasks(fetchedTasks);
+      const rawTasks = await getTasks();
+      // Convert raw tasks to proper Task type with correct tags format
+      const processedTasks = rawTasks.map(convertRawTaskToTask);
+      setTasks(processedTasks);
     } catch (err) {
       console.error("Failed to fetch tasks:", err);
       setError("Failed to load tasks. Please try again.");

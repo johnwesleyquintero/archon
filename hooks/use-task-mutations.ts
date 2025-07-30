@@ -8,10 +8,32 @@ import {
   updateTask as updateTaskInDb,
 } from "@/lib/database/tasks";
 import type { Database } from "@/lib/supabase/types";
+import type { Task } from "@/lib/types/task";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/use-toast";
 
-type Task = Database["public"]["Tables"]["tasks"]["Row"];
+// Define the raw task type from the database
+type RawTask = Database["public"]["Tables"]["tasks"]["Row"];
+
+// Helper function to convert RawTask to Task with proper tags type
+const convertRawTaskToTask = (rawTask: RawTask): Task => {
+  let processedTags: string[] | null = null;
+
+  if (rawTask.tags !== null) {
+    if (Array.isArray(rawTask.tags)) {
+      // Filter out any non-string values
+      processedTags = rawTask.tags.filter((tag) => typeof tag === "string");
+    } else if (typeof rawTask.tags === "string") {
+      // If it's a single string, convert to array
+      processedTags = [rawTask.tags];
+    }
+  }
+
+  return {
+    ...rawTask,
+    tags: processedTags,
+  };
+};
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 
 export function useTaskMutations({
@@ -38,6 +60,16 @@ export function useTaskMutations({
       setError(null);
       const tempId = `temp-${Date.now()}`;
       startTransition(async () => {
+        // Process tags to ensure they're in the correct format
+        let processedTags: string[] | null = null;
+        if (input.tags !== null && input.tags !== undefined) {
+          if (Array.isArray(input.tags)) {
+            processedTags = input.tags.filter((tag) => typeof tag === "string");
+          } else if (typeof input.tags === "string") {
+            processedTags = [input.tags];
+          }
+        }
+
         const newTask: Task = {
           id: tempId,
           title: input.title,
@@ -48,15 +80,17 @@ export function useTaskMutations({
           due_date: input.due_date || null,
           priority: input.priority || null,
           category: input.category || null,
-          tags: input.tags || null,
+          tags: processedTags,
         };
         setTasks((prev) => [newTask, ...prev]);
 
         try {
-          const addedTask = await addTaskToDb(input);
-          if (addedTask) {
+          const rawAddedTask = await addTaskToDb(input);
+          if (rawAddedTask) {
+            // Convert the raw task to our Task type
+            const processedTask = convertRawTaskToTask(rawAddedTask);
             setTasks((prev) =>
-              prev.map((task) => (task.id === tempId ? addedTask : task)),
+              prev.map((task) => (task.id === tempId ? processedTask : task)),
             );
             toast({
               title: "Success!",

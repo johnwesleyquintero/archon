@@ -1,6 +1,12 @@
 import type { Database } from "@/lib/supabase/types";
 
-export type Task = Database["public"]["Tables"]["tasks"]["Row"];
+// Define the base task type from the database
+type BaseTask = Database["public"]["Tables"]["tasks"]["Row"];
+
+// Create a modified Task type with tags as string[] | null
+export type Task = Omit<BaseTask, "tags"> & {
+  tags: string[] | null;
+};
 
 export interface TaskItemProps extends Task {
   onToggle: (id: string, completed: boolean) => Promise<void>;

@@ -5,6 +5,7 @@
   "scripts": {
     "build": "npx cross-env NODE_ENV=production next build",
     "check": "node scripts/code-checker.mjs",
+    "check:actions": "node scripts/github-actions-validator.mjs",
     "dev": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev",
     "format": "node --max-old-space-size=4096 node_modules/prettier/bin/prettier.cjs --write .",
     "lint": "node --max-old-space-size=4096 node_modules/next/dist/bin/next lint",
