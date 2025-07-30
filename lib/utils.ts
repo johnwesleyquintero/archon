@@ -1,11 +1,23 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+/**
+ * Combines Tailwind CSS classes and other class values into a single string.
+ * This utility function uses `clsx` for conditional class joining and `tailwind-merge`
+ * for intelligently merging Tailwind classes to resolve conflicts.
+ *
+ * @param inputs - An array of class values (strings, objects, arrays) to be combined.
+ * @returns A single string containing the merged and combined CSS classes.
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Define a custom error class for structured error handling
+/**
+ * Custom error class for structured error handling within the Archon application.
+ * Extends the native `Error` class to include additional properties like a specific
+ * error code, detailed information, and an optional HTTP status code.
+ */
 export class AppError extends Error {
   public readonly code: string;
   public readonly details?: Record<string, unknown>;
@@ -26,7 +38,15 @@ export class AppError extends Error {
   }
 }
 
-// Centralized error logging and handling utility
+/**
+ * Centralized utility for handling and logging errors across the Archon application.
+ * It normalizes various error types into an `AppError` instance, logs them to the console,
+ * and optionally captures them with Sentry in production environments.
+ *
+ * @param error - The error object to handle. Can be an `AppError`, a standard `Error`, or any unknown type.
+ * @param context - An optional string indicating the context where the error occurred (e.g., "API", "Database", "UI").
+ * @returns An `AppError` instance representing the handled error.
+ */
 export const handleError = (
   error: unknown,
   context: string = "Application",
@@ -69,7 +89,16 @@ export const handleError = (
   return appError;
 };
 
-// Helper for API responses
+/**
+ * Generates a standardized API error response.
+ * This function leverages `handleError` to process the incoming error,
+ * determines an appropriate HTTP status code, and formats the error
+ * into a JSON response suitable for API clients.
+ *
+ * @param error - The error object to be included in the API response.
+ * @param context - An optional string indicating the context where the API error occurred.
+ * @returns A `Response` object with a JSON payload detailing the error and an appropriate HTTP status.
+ */
 export const apiErrorResponse = (
   error: unknown,
   context: string = "API",

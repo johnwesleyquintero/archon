@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+/**
+ * Zod schema for authentication, validating email and password.
+ * Used for general authentication flows where both fields are required.
+ */
 export const authSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
   password: z
@@ -7,6 +11,10 @@ export const authSchema = z.object({
     .min(6, { message: "Password must be at least 6 characters." }),
 });
 
+/**
+ * Zod schema for user login, validating email and password.
+ * Ensures that the provided credentials meet the basic requirements for login.
+ */
 export const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
   password: z
@@ -14,6 +22,10 @@ export const loginSchema = z.object({
     .min(6, { message: "Password must be at least 6 characters." }),
 });
 
+/**
+ * Zod schema for user signup, validating email, password, and password confirmation.
+ * Ensures that passwords match and meet minimum length requirements.
+ */
 export const signupSchema = z
   .object({
     email: z.string().email({ message: "Invalid email address." }),
@@ -29,8 +41,17 @@ export const signupSchema = z
     path: ["confirmPassword"],
   });
 
+/**
+ * Zod enum for defining task priorities.
+ * Validates that a task's priority is one of "low", "medium", or "high".
+ */
 export const taskPriorityEnum = z.enum(["low", "medium", "high"]);
 
+/**
+ * Zod schema for task validation.
+ * Validates task properties such as title, due date, priority, category, and tags.
+ * Ensures required fields are present and string lengths are within limits.
+ */
 export const taskSchema = z
   .object({
     title: z
@@ -57,6 +78,10 @@ export const taskSchema = z
   })
   .strict();
 
+/**
+ * Zod schema for user profile validation.
+ * Validates user profile information including full name, username, and avatar URL.
+ */
 export const profileSchema = z.object({
   fullName: z
     .string()
@@ -73,6 +98,10 @@ export const profileSchema = z.object({
     .or(z.literal("")),
 });
 
+/**
+ * Zod schema for goal validation.
+ * Validates goal properties such as title, description, target date, status, and attachments.
+ */
 export const goalSchema = z.object({
   title: z
     .string()
@@ -84,12 +113,20 @@ export const goalSchema = z.object({
   attachments: z.array(z.string().url()).optional(), // Array of URLs for attachments
 });
 
+/**
+ * Zod schema for validating individual attachment objects.
+ * Defines the structure for file attachments, including URL, filename, and type.
+ */
 const attachmentSchema = z.object({
   url: z.string().url(),
   filename: z.string(),
   type: z.enum(["image", "document"]),
 });
 
+/**
+ * Zod schema for journal entry validation.
+ * Validates journal entry properties such as title, content, and attachments.
+ */
 export const journalEntrySchema = z.object({
   title: z
     .string()

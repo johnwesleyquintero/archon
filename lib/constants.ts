@@ -31,10 +31,12 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/tasks", label: "Tasks", icon: ListTodo },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/settings/profile", label: "Profile", icon: User }, // Added dedicated profile link
 ];
 
 export const PROFILE_NAV_ITEM: NavItem = {
-  href: "/settings",
+  // Deprecated, but keeping for now to avoid immediate errors
+  href: "/settings/profile",
   label: "Profile",
   icon: User,
 };

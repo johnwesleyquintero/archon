@@ -50,12 +50,12 @@ export function ForgotPasswordForm({
     if (!emailValidationResult.success) {
       setFormError("email", {
         type: "manual",
-        message: emailValidationResult.error.errors[0].message,
+        message: emailValidationResult.error.issues[0].message,
       });
       toast({
         variant: "destructive",
         title: "Validation Error",
-        description: emailValidationResult.error.errors[0].message,
+        description: emailValidationResult.error.issues[0].message,
       });
       return;
     }

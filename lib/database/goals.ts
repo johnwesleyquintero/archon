@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { User } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
+import * as Sentry from "@sentry/nextjs";
+const { logger } = Sentry;
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 type GoalInsert = Database["public"]["Tables"]["goals"]["Insert"];
@@ -33,7 +35,8 @@ export async function getGoals(): Promise<Goal[]> {
   const { data, error } = result;
 
   if (error) {
-    console.error("Error fetching goals:", error);
+    logger.error("Error fetching goals:", { error: error.message });
+    Sentry.captureException(error);
     return [];
   }
 
@@ -72,7 +75,8 @@ export async function addGoal(
     .single();
 
   if (error) {
-    console.error("Error adding goal:", error);
+    logger.error("Error adding goal:", { error: error.message });
+    Sentry.captureException(error);
     throw new Error(`Failed to add goal: ${error.message}`);
   }
 
@@ -103,7 +107,8 @@ export async function updateGoal(
     .single();
 
   if (error) {
-    console.error("Error updating goal:", error);
+    logger.error("Error updating goal:", { error: error.message });
+    Sentry.captureException(error);
     throw new Error(`Failed to update goal: ${error.message}`);
   }
 
@@ -126,7 +131,8 @@ export async function deleteGoal(id: string): Promise<void> {
     .eq("user_id", user.id); // Ensure user owns the goal
 
   if (error) {
-    console.error("Error deleting goal:", error);
+    logger.error("Error deleting goal:", { error: error.message });
+    Sentry.captureException(error);
     throw new Error(`Failed to delete goal: ${error.message}`);
   }
 

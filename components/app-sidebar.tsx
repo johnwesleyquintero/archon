@@ -2,29 +2,25 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation"; // Removed usePathname
 
 import { LogOut } from "lucide-react";
 
 import { useAuth } from "@/contexts/auth-context";
-import {
-  NAV_ITEMS,
-  PROFILE_NAV_ITEM,
-  SIGN_OUT_LABEL,
-  SIGNING_OUT_LABEL,
-} from "@/lib/constants";
+import { SIGN_OUT_LABEL, SIGNING_OUT_LABEL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 import Logo from "./logo";
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { SidebarNav } from "./sidebar-nav"; // Import the new component
 
 interface AppSidebarProps {
   isCollapsed?: boolean;
 }
 
 export function AppSidebar({ isCollapsed = false }: AppSidebarProps) {
-  const pathname = usePathname();
+  // const pathname = usePathname(); // Removed unused pathname
   const { signOut } = useAuth();
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -58,55 +54,9 @@ export function AppSidebar({ isCollapsed = false }: AppSidebarProps) {
           {!isCollapsed && <span className="text-lg">Archon</span>}
         </Link>
       </div>
-      <nav className="flex-1 grid items-start gap-2 p-4">
-        {NAV_ITEMS.map((item) => (
-          <Tooltip key={item.href}>
-            <TooltipTrigger asChild>
-              <Link
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent",
-                  pathname.startsWith(item.href)
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground",
-                  isCollapsed ? "justify-center" : "",
-                )}
-                aria-label={item.label}
-              >
-                <item.icon className="h-5 w-5" />
-                {!isCollapsed && item.label}
-              </Link>
-            </TooltipTrigger>
-            {isCollapsed && (
-              <TooltipContent side="right">{item.label}</TooltipContent>
-            )}
-          </Tooltip>
-        ))}
-      </nav>
+      <SidebarNav isCollapsed={isCollapsed} />{" "}
+      {/* Use the new SidebarNav component */}
       <div className="mt-auto p-4 border-t border-sidebar-border">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              href={PROFILE_NAV_ITEM.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent",
-                pathname === PROFILE_NAV_ITEM.href
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground",
-                isCollapsed ? "justify-center" : "",
-              )}
-              aria-label={PROFILE_NAV_ITEM.label}
-            >
-              <PROFILE_NAV_ITEM.icon className="h-5 w-5" />
-              {!isCollapsed && PROFILE_NAV_ITEM.label}
-            </Link>
-          </TooltipTrigger>
-          {isCollapsed && (
-            <TooltipContent side="right">
-              {PROFILE_NAV_ITEM.label}
-            </TooltipContent>
-          )}
-        </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
