@@ -28,7 +28,11 @@ export function TaskList({ onAddTaskClick }: TaskListProps) {
     return (
       <div className="flex flex-col h-full py-2 space-y-2">
         {Array.from({ length: 5 }).map((_, index) => (
-          <div key={index} className="flex items-center space-x-2">
+          <div
+            key={index}
+            className="flex items-center space-x-2"
+            data-testid="task-skeleton"
+          >
             <Skeleton className="h-5 w-5 rounded-full" />
             <Skeleton className="h-5 w-3/4" />
           </div>

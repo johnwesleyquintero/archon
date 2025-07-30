@@ -1,18 +1,18 @@
-import { render, screen } from '@testing-library/react';
-import { TaskList } from '@/components/task-list';
-import { useTasks } from '@/hooks/use-tasks';
-import { useTaskFiltersAndSort } from '@/hooks/use-task-filters-and-sort';
+import { render, screen } from "@testing-library/react";
+import { TaskList } from "@/components/task-list";
+import { useTasks } from "@/hooks/use-tasks";
+import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
 
 // Mock the hooks
-jest.mock('@/hooks/use-tasks');
-jest.mock('@/hooks/use-task-filters-and-sort');
+jest.mock("@/hooks/use-tasks");
+jest.mock("@/hooks/use-task-filters-and-sort");
 
-describe('TaskList', () => {
+describe("TaskList", () => {
   const mockOnAddTaskClick = jest.fn();
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup default mock implementations
     (useTasks as jest.Mock).mockReturnValue({
       tasks: [],
@@ -20,40 +20,46 @@ describe('TaskList', () => {
       toggleTask: jest.fn(),
       deleteTask: jest.fn(),
       updateTask: jest.fn(),
-      isMutating: false
+      isMutating: false,
     });
-    
+
     (useTaskFiltersAndSort as jest.Mock).mockReturnValue({
       filteredAndSortedTasks: [],
-      sort: { field: 'created_at', direction: 'desc' },
+      sort: { field: "created_at", direction: "desc" },
       setSort: jest.fn(),
-      filters: { status: 'all', priority: 'all', dueDate: 'all', category: null, tags: [] },
-      setFilters: jest.fn()
+      filters: {
+        status: "all",
+        priority: "all",
+        dueDate: "all",
+        category: null,
+        tags: [],
+      },
+      setFilters: jest.fn(),
     });
   });
-  
-  test('renders loading state correctly', () => {
+
+  test("renders loading state correctly", () => {
     (useTasks as jest.Mock).mockReturnValue({
       tasks: [],
       loading: true,
       toggleTask: jest.fn(),
       deleteTask: jest.fn(),
       updateTask: jest.fn(),
-      isMutating: false
+      isMutating: false,
     });
-    
+
     render(<TaskList onAddTaskClick={mockOnAddTaskClick} />);
-    
+
     // Check for skeleton loaders
-    expect(screen.getAllByTestId('task-skeleton')).toHaveLength(5);
+    expect(screen.getAllByTestId("task-skeleton")).toHaveLength(5);
   });
-  
-  test('renders empty state when no tasks exist', () => {
+
+  test("renders empty state when no tasks exist", () => {
     render(<TaskList onAddTaskClick={mockOnAddTaskClick} />);
-    
-    expect(screen.getByText('No tasks yet!')).toBeInTheDocument();
-    expect(screen.getByText('Add New Task')).toBeInTheDocument();
+
+    expect(screen.getByText("No tasks yet!")).toBeInTheDocument();
+    expect(screen.getByText("Add New Task")).toBeInTheDocument();
   });
-  
+
   // Additional tests for filtering, sorting, and task interactions
 });

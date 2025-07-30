@@ -40,7 +40,7 @@ interface TaskItemProps
 
 /**
  * TaskItem - Renders an individual task with toggle, edit, and delete functionality
- * 
+ *
  * @component
  * @example
  * ```tsx

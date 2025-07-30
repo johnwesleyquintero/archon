@@ -56,7 +56,7 @@ export function useTaskMutations({
           const addedTask = await addTaskToDb(input);
           if (addedTask) {
             setTasks((prev) =>
-              prev.map((task) => (task.id === tempId ? addedTask : task))
+              prev.map((task) => (task.id === tempId ? addedTask : task)),
             );
             toast({
               title: "Success!",
@@ -77,7 +77,7 @@ export function useTaskMutations({
         }
       });
     },
-    [user, toast, setTasks]
+    [user, toast, setTasks],
   );
 
   const handleToggleTask = useCallback(
@@ -86,8 +86,8 @@ export function useTaskMutations({
       startTransition(async () => {
         setTasks((prev) =>
           prev.map((task) =>
-            task.id === id ? { ...task, is_completed: completed } : task
-          )
+            task.id === id ? { ...task, is_completed: completed } : task,
+          ),
         );
         try {
           await toggleTaskInDb(id, completed);
@@ -98,8 +98,8 @@ export function useTaskMutations({
         } catch (err) {
           setTasks((prev) =>
             prev.map((task) =>
-              task.id === id ? { ...task, is_completed: !completed } : task
-            )
+              task.id === id ? { ...task, is_completed: !completed } : task,
+            ),
           );
           toast({
             title: "Error",
@@ -109,7 +109,7 @@ export function useTaskMutations({
         }
       });
     },
-    [user, toast, setTasks]
+    [user, toast, setTasks],
   );
 
   const handleDeleteTask = useCallback(
@@ -137,7 +137,7 @@ export function useTaskMutations({
         }
       });
     },
-    [user, toast, setTasks]
+    [user, toast, setTasks],
   );
 
   const handleUpdateTask = useCallback(
@@ -147,7 +147,7 @@ export function useTaskMutations({
       setTasks((prev) => {
         originalTasks = prev;
         return prev.map((task) =>
-          task.id === id ? { ...task, title: newTitle } : task
+          task.id === id ? { ...task, title: newTitle } : task,
         );
       });
       startTransition(async () => {
@@ -167,7 +167,7 @@ export function useTaskMutations({
         }
       });
     },
-    [user, toast, setTasks]
+    [user, toast, setTasks],
   );
 
   return {
