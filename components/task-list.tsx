@@ -15,19 +15,23 @@ interface TaskListProps {
 export function TaskList({ onAddTaskClick }: TaskListProps) {
   const { tasks, loading, toggleTask, deleteTask, updateTask, isMutating } =
     useTasks();
-  // Process task tags to ensure they're always string arrays
   const processTaskTags = (task: Task): Task & { tags: string[] } => {
-    // Handle Json type from Supabase by ensuring tags is a string array
+    if (!task.tags) {
+      return { ...task, tags: [] };
+    }
+
     let processedTags: string[] = [];
 
-    if (task.tags !== null) {
-      if (Array.isArray(task.tags)) {
-        // Filter out any non-string values that might be in the array
-        processedTags = task.tags.filter((tag) => typeof tag === "string");
-      } else if (typeof task.tags === "string") {
-        // If it's a single string, convert to array
-        processedTags = [task.tags];
-      }
+    if (Array.isArray(task.tags)) {
+      processedTags = task.tags.filter(
+        (tag): tag is string => typeof tag === "string",
+      );
+    } else if (typeof task.tags === "string") {
+      processedTags = [task.tags];
+    } else {
+      // Fallback for any unexpected type, ensuring it's always an array of strings
+      console.warn("Unexpected type for task tags:", task.tags);
+      processedTags = [];
     }
 
     return {

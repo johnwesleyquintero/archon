@@ -64,12 +64,12 @@ export function useTaskMutations({
         let processedTags: string[] | null = null;
         if (input.tags !== null && input.tags !== undefined) {
           if (Array.isArray(input.tags)) {
-            processedTags = input.tags.filter((tag) => typeof tag === "string");
-          } else if (typeof input.tags === "string") {
+            processedTags = input.tags.filter(tag => typeof tag === 'string');
+          } else if (typeof input.tags === 'string') {
             processedTags = [input.tags];
           }
         }
-
+        
         const newTask: Task = {
           id: tempId,
           title: input.title,
