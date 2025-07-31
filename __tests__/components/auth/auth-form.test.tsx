@@ -1,23 +1,25 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { useAuth } from "@/contexts/auth-context";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 // Mock the useAuth hook
 jest.mock("@/contexts/auth-context", () => ({
   useAuth: jest.fn(),
 }));
 
-// Mock the useToast hook
-jest.mock("@/hooks/use-toast", () => ({
-  toast: jest.fn(),
+// Mock the sonner toast function
+jest.mock("sonner", () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
 }));
 
 describe("AuthForm", () => {
   const mockSignIn = jest.fn();
   const mockSignUp = jest.fn();
   const mockResetPassword = jest.fn();
-  let toast: ReturnType<typeof useToast>["toast"];
 
   beforeEach(() => {
     (useAuth as jest.Mock).mockReturnValue({
@@ -27,12 +29,8 @@ describe("AuthForm", () => {
       user: null,
       isLoading: false,
     });
-    // Mock the useToast hook to return a mock toast function
-    const mockToast = jest.fn();
-    (useToast as jest.Mock).mockReturnValue({ toast: mockToast });
-    toast = mockToast; // Assign the mock toast function to the variable
-
-    mockToast.mockClear();
+    (toast.success as jest.Mock).mockClear();
+    (toast.error as jest.Mock).mockClear();
     mockSignIn.mockClear();
     mockSignUp.mockClear();
     mockResetPassword.mockClear();
@@ -91,12 +89,9 @@ describe("AuthForm", () => {
         "password123",
       );
     });
-    expect(toast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "Signed in successfully!",
-        description: "Welcome back to Archon.",
-      }),
-    );
+    expect(toast.success).toHaveBeenCalledWith("Signed in successfully!", {
+      description: "Welcome back to Archon.",
+    });
   });
 
   it("handles sign-in submission with error", async () => {
@@ -116,13 +111,9 @@ describe("AuthForm", () => {
         "wrongpassword",
       );
     });
-    expect(toast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "Sign In Failed",
-        description: "Invalid credentials",
-        variant: "destructive",
-      }),
-    );
+    expect(toast.error).toHaveBeenCalledWith("Sign In Failed", {
+      description: "Invalid credentials",
+    });
   });
 
   it("handles sign-up submission successfully", async () => {
@@ -146,12 +137,9 @@ describe("AuthForm", () => {
         "newpassword123",
       );
     });
-    expect(toast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "Signed up successfully!",
-        description: "Please check your email to verify your account.",
-      }),
-    );
+    expect(toast.success).toHaveBeenCalledWith("Signed up successfully!", {
+      description: "Please check your email to verify your account.",
+    });
   });
 
   it("handles sign-up submission with password mismatch", async () => {
@@ -187,13 +175,10 @@ describe("AuthForm", () => {
     await waitFor(() => {
       expect(mockResetPassword).toHaveBeenCalledWith("reset@example.com");
     });
-    expect(toast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "Password Reset Email Sent",
-        description:
-          "Please check your email for instructions to reset your password.",
-      }),
-    );
+    expect(toast.success).toHaveBeenCalledWith("Password Reset Email Sent", {
+      description:
+        "Please check your email for instructions to reset your password.",
+    });
   });
 
   it("handles reset password submission with error", async () => {
@@ -209,12 +194,8 @@ describe("AuthForm", () => {
     await waitFor(() => {
       expect(mockResetPassword).toHaveBeenCalledWith("nonexistent@example.com");
     });
-    expect(toast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "Password Reset Failed",
-        description: "User not found",
-        variant: "destructive",
-      }),
-    );
+    expect(toast.error).toHaveBeenCalledWith("Password Reset Failed", {
+      description: "User not found",
+    });
   });
 });

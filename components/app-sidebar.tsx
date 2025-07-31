@@ -54,8 +54,35 @@ export function AppSidebar({ isCollapsed = false }: AppSidebarProps) {
           {!isCollapsed && <span className="text-lg">Archon</span>}
         </Link>
       </div>
-      <SidebarNav isCollapsed={isCollapsed} />{" "}
-      {/* Use the new SidebarNav component */}
+      <SidebarNav isCollapsed={isCollapsed} />
+      <div className="mt-auto flex flex-col items-center gap-4 p-4">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-full"
+              onClick={() => {
+                void handleSignOut();
+              }}
+              disabled={isSigningOut}
+              aria-label={isSigningOut ? SIGNING_OUT_LABEL : SIGN_OUT_LABEL}
+            >
+              <LogOut className="h-5 w-5" />
+              {!isCollapsed && (
+                <span className="ml-2">
+                  {isSigningOut ? SIGNING_OUT_LABEL : SIGN_OUT_LABEL}
+                </span>
+              )}
+            </Button>
+          </TooltipTrigger>
+          {isCollapsed && (
+            <TooltipContent side="right">
+              {isSigningOut ? SIGNING_OUT_LABEL : SIGN_OUT_LABEL}
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </div>
     </aside>
   );
 }

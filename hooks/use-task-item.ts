@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { Task } from "@/lib/types/task";
 
 export function useTaskItem({
   id,
@@ -14,7 +15,7 @@ export function useTaskItem({
   title: string;
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  onUpdate: (id: string, newTitle: string) => Promise<void>;
+  onUpdate: (id: string, updatedTask: Partial<Task>) => Promise<void>;
   disabled?: boolean;
 }) {
   const [isToggling, setIsToggling] = useState(false);
@@ -56,7 +57,7 @@ export function useTaskItem({
     }
     setIsEditing(false);
     try {
-      await onUpdate(id, newTitle.trim());
+      await onUpdate(id, { title: newTitle.trim() });
     } catch (error) {
       console.error("Error updating task:", error);
       // Optionally, show a toast notification

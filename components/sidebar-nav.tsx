@@ -28,8 +28,7 @@ export function SidebarNav({ isCollapsed }: SidebarNavProps) {
                   ? "bg-sidebar-accent text-sidebar-accent-foreground"
                   : "text-sidebar-foreground",
                 isCollapsed ? "justify-center" : "",
-              )
-            }
+              )}
               aria-label={item.label}
             >
               <item.icon className="h-5 w-5" />

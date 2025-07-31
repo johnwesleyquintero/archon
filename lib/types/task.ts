@@ -11,5 +11,9 @@ export type Task = Omit<BaseTask, "tags"> & {
 export interface TaskItemProps extends Task {
   onToggle: (id: string, completed: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onUpdate: (
+    id: string,
+    updatedTask: Partial<Database["public"]["Tables"]["tasks"]["Update"]>,
+  ) => Promise<void>;
   disabled: boolean;
 }

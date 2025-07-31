@@ -11,29 +11,8 @@ import type { Database } from "@/lib/supabase/types";
 import type { Task } from "@/lib/types/task";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/use-toast";
+import { convertRawTaskToTask } from "@/lib/utils";
 
-// Define the raw task type from the database
-type RawTask = Database["public"]["Tables"]["tasks"]["Row"];
-
-// Helper function to convert RawTask to Task with proper tags type
-const convertRawTaskToTask = (rawTask: RawTask): Task => {
-  let processedTags: string[] | null = null;
-
-  if (rawTask.tags !== null) {
-    if (Array.isArray(rawTask.tags)) {
-      // Filter out any non-string values
-      processedTags = rawTask.tags.filter((tag) => typeof tag === "string");
-    } else if (typeof rawTask.tags === "string") {
-      // If it's a single string, convert to array
-      processedTags = [rawTask.tags];
-    }
-  }
-
-  return {
-    ...rawTask,
-    tags: processedTags,
-  };
-};
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 
 export function useTaskMutations({
@@ -175,18 +154,21 @@ export function useTaskMutations({
   );
 
   const handleUpdateTask = useCallback(
-    async (id: string, newTitle: string) => {
+    async (
+      id: string,
+      updatedTask: Partial<Database["public"]["Tables"]["tasks"]["Update"]>,
+    ) => {
       if (!user) return;
       let originalTasks: Task[] = [];
       setTasks((prev) => {
         originalTasks = prev;
         return prev.map((task) =>
-          task.id === id ? { ...task, title: newTitle } : task,
-        );
+          task.id === id ? { ...task, ...updatedTask } : task,
+        ) as Task[];
       });
       startTransition(async () => {
         try {
-          await updateTaskInDb(id, newTitle);
+          await updateTaskInDb(id, updatedTask);
           toast({
             title: "Success!",
             description: "Task updated.",

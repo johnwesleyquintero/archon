@@ -1,5 +1,10 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { Database } from "@/lib/supabase/types";
+import type { Task } from "@/lib/types/task";
+
+// Define the raw task type from the database, ensuring it's sourced from the single source of truth.
+type RawTask = Database["public"]["Tables"]["tasks"]["Row"];
 
 /**
  * Combines Tailwind CSS classes and other class values into a single string.
@@ -12,6 +17,35 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+/**
+ * Converts a raw task object from the database to a structured Task object.
+ * This function processes the `tags` field, ensuring it is always an array of strings or null,
+ * which aligns the data structure with the application's `Task` type definition.
+ *
+ * @param rawTask - The raw task object fetched from the Supabase database.
+ * @returns A structured `Task` object with a properly formatted `tags` property.
+ */
+export const convertRawTaskToTask = (rawTask: RawTask): Task => {
+  let processedTags: string[] | null = null;
+
+  if (rawTask.tags !== null) {
+    if (Array.isArray(rawTask.tags)) {
+      // Filter out any non-string values to ensure type safety.
+      processedTags = rawTask.tags.filter(
+        (tag): tag is string => typeof tag === "string",
+      );
+    } else if (typeof rawTask.tags === "string") {
+      // If it's a single string, wrap it in an array.
+      processedTags = [rawTask.tags];
+    }
+  }
+
+  return {
+    ...rawTask,
+    tags: processedTags,
+  };
+};
 
 /**
  * Custom error class for structured error handling within the Archon application.

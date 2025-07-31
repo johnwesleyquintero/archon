@@ -1,32 +1,12 @@
 "use client";
 
 import type { Database } from "@/lib/supabase/types";
-import type { Task } from "@/lib/types/task";
 import { useTaskFetching } from "./use-task-fetching";
 import { useTaskMutations } from "./use-task-mutations";
+import { convertRawTaskToTask } from "@/lib/utils";
 
 // Define the raw task type from the database
 type RawTask = Database["public"]["Tables"]["tasks"]["Row"];
-
-// Helper function to convert RawTask to Task with proper tags type
-const convertRawTaskToTask = (rawTask: RawTask): Task => {
-  let processedTags: string[] | null = null;
-
-  if (rawTask.tags !== null) {
-    if (Array.isArray(rawTask.tags)) {
-      // Filter out any non-string values
-      processedTags = rawTask.tags.filter((tag) => typeof tag === "string");
-    } else if (typeof rawTask.tags === "string") {
-      // If it's a single string, convert to array
-      processedTags = [rawTask.tags];
-    }
-  }
-
-  return {
-    ...rawTask,
-    tags: processedTags,
-  };
-};
 
 // Compose fetching and mutation hooks
 export function useTasks(initialRawTasks: RawTask[] = []) {

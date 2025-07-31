@@ -176,9 +176,7 @@ export function DashboardWidget({
         </div>
       </CardHeader>
 
-      <CardContent
-        className={`flex-1 ${isExpanded ? "p-6" : "p-4"}`}
-      >
+      <CardContent className={`flex-1 ${isExpanded ? "p-6" : "p-4"}`}>
         {isVisible ? (
           children
         ) : (

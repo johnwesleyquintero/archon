@@ -153,7 +153,7 @@ export async function deleteTask(id: string): Promise<void> {
 
 export async function updateTask(
   id: string,
-  newTitle: string,
+  updatedTask: Partial<TaskUpdate>,
 ): Promise<Task | null> {
   const supabase = await createClient();
   const {
@@ -166,7 +166,7 @@ export async function updateTask(
 
   const { data, error } = await supabase
     .from("tasks")
-    .update({ title: newTitle } as TaskUpdate)
+    .update(updatedTask)
     .eq("id", id)
     .eq("user_id", user.id) // Ensure user owns the task
     .select()

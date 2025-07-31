@@ -31,10 +31,13 @@ interface TaskItemProps
     Task,
     "id" | "title" | "is_completed" | "due_date" | "priority" | "category"
   > {
-  tags: string[]; // Explicitly define tags as string[]
+  tags: string[] | null; // Explicitly define tags as string[]
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  onUpdate: (id: string, newTitle: string) => Promise<void>;
+  onUpdate: (
+    id: string,
+    updatedTask: Partial<Database["public"]["Tables"]["tasks"]["Update"]>,
+  ) => Promise<void>;
   disabled?: boolean;
 }
 
@@ -87,7 +90,10 @@ export function TaskItem({
     title,
     onToggle,
     onDelete,
-    onUpdate,
+    onUpdate: onUpdate as (
+      id: string,
+      updatedTask: Partial<Task>,
+    ) => Promise<void>,
     disabled,
   });
 
@@ -193,7 +199,7 @@ export function TaskItem({
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      {(category || tags?.length > 0) && (
+      {(category || (tags && tags.length > 0)) && (
         <div className="flex items-center gap-2 ml-6 text-xs text-slate-500 dark:text-slate-400">
           {category && (
             <span className="flex items-center gap-1">

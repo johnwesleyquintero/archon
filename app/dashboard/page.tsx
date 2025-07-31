@@ -1,5 +1,7 @@
+"use client";
 import * as Sentry from "@sentry/nextjs";
 const { logger } = Sentry;
+import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
 import { CustomizableDashboardLayout } from "@/components/customizable-dashboard-layout";
 import { getDashboardSettings } from "@/lib/database/dashboard-settings";
@@ -37,14 +39,7 @@ export default async function DashboardPage() {
       error: error instanceof Error ? error.message : String(error),
     });
     Sentry.captureException(error);
-    return (
-      <div className="container mx-auto p-6">
-        <EmptyState
-          title="Failed to Load Dashboard"
-          description={`There was an error loading your dashboard settings: ${error instanceof Error ? error.message : String(error)}. Please try again later.`}
-        />
-      </div>
-    );
+    toast.error("Failed to load dashboard settings. Using default layout.");
   }
 
   return (

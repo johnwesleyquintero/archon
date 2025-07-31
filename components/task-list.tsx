@@ -6,7 +6,6 @@ import { useTasks } from "@/hooks/use-tasks";
 import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ListTodo, Filter } from "lucide-react";
-import type { Task } from "@/lib/types/task";
 
 interface TaskListProps {
   onAddTaskClick: () => void;
@@ -15,30 +14,7 @@ interface TaskListProps {
 export function TaskList({ onAddTaskClick }: TaskListProps) {
   const { tasks, loading, toggleTask, deleteTask, updateTask, isMutating } =
     useTasks();
-  const processTaskTags = (task: Task): Task & { tags: string[] } => {
-    if (!task.tags) {
-      return { ...task, tags: [] };
-    }
 
-    let processedTags: string[] = [];
-
-    if (Array.isArray(task.tags)) {
-      processedTags = task.tags.filter(
-        (tag): tag is string => typeof tag === "string",
-      );
-    } else if (typeof task.tags === "string") {
-      processedTags = [task.tags];
-    } else {
-      // Fallback for any unexpected type, ensuring it's always an array of strings
-      console.warn("Unexpected type for task tags:", task.tags);
-      processedTags = [];
-    }
-
-    return {
-      ...task,
-      tags: processedTags,
-    };
-  };
   const { filteredAndSortedTasks, sort, setSort, filters, setFilters } =
     useTaskFiltersAndSort(tasks);
 
@@ -106,20 +82,17 @@ export function TaskList({ onAddTaskClick }: TaskListProps) {
           />
         ) : (
           <ul className="space-y-1">
-            {filteredAndSortedTasks.map((task) => {
-              const processedTask = processTaskTags(task);
-              return (
-                <li key={task.id}>
-                  <TaskItem
-                    {...processedTask}
-                    onToggle={toggleTask}
-                    onDelete={deleteTask}
-                    onUpdate={updateTask}
-                    disabled={isMutating}
-                  />
-                </li>
-              );
-            })}
+            {filteredAndSortedTasks.map((task) => (
+              <li key={task.id}>
+                <TaskItem
+                  {...task}
+                  onToggle={toggleTask}
+                  onDelete={deleteTask}
+                  onUpdate={updateTask}
+                  disabled={isMutating}
+                />
+              </li>
+            ))}
           </ul>
         )}
       </div>

@@ -215,7 +215,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                       <div className="space-y-4">
                         <h4 className="font-medium leading-none">Tags</h4>
                         <div className="flex flex-wrap gap-2">
-                          {field.value.map((tag, index) => (
+                          {field.value.map((tag: string, index: number) => (
                             <Badge
                               key={tag}
                               variant="secondary"

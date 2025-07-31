@@ -6,6 +6,7 @@ import * as Sentry from "@sentry/nextjs";
 const { logger } = Sentry;
 
 import { WidgetLayout } from "@/app/types";
+import { widgetLayoutsSchema } from "@/lib/zod-schemas";
 import { revalidatePath } from "next/cache";
 
 export async function getDashboardSettings(
@@ -26,8 +27,19 @@ export async function getDashboardSettings(
     return null;
   }
 
-  // Cast the layout from Json to WidgetLayout[]
-  return (data?.layout as WidgetLayout[] | null) || null;
+  if (!data?.layout) {
+    return null;
+  }
+
+  try {
+    return widgetLayoutsSchema.parse(data.layout);
+  } catch (e) {
+    logger.error("Error parsing dashboard settings:", {
+      error: e instanceof Error ? e.message : String(e),
+    });
+    Sentry.captureException(e);
+    return null;
+  }
 }
 
 export async function updateDashboardSettings(

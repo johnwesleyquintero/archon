@@ -36,10 +36,14 @@ export const signupSchema = z
       .string()
       .min(6, { message: "Password must be at least 6 characters." }),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match.",
-    path: ["confirmPassword"],
-  });
+  .refine(
+    (data: { password: string; confirmPassword: string }) =>
+      data.password === data.confirmPassword,
+    {
+      message: "Passwords don't match.",
+      path: ["confirmPassword"],
+    },
+  );
 
 /**
  * Zod enum for defining task priorities.
