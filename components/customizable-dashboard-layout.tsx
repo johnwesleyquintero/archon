@@ -85,6 +85,24 @@ export function CustomizableDashboardLayout({
     [currentLayout, toggleWidgetVisibility],
   );
 
+  const handleSaveWidgetConfig = (
+    widgetId: string,
+    config: { title: string },
+  ) => {
+    // This is a placeholder. In a real app, you'd save this to a DB.
+    console.log(`Saving config for ${widgetId}:`, config);
+    // For now, we'll just update the layout in memory.
+    const newLayout = currentLayout.map((item) => {
+      if (item.i === widgetId) {
+        // Here you could store the new title, but widgets define their own titles.
+        // This requires a more complex state management solution.
+        // For this example, we'll just log it.
+      }
+      return item;
+    });
+    handleLayoutChange(newLayout);
+  };
+
   const visibleWidgets = useMemo(() => {
     return currentLayout.filter((item) => item.isVisible || isCustomizing);
   }, [currentLayout, isCustomizing]);
@@ -147,7 +165,7 @@ export function CustomizableDashboardLayout({
         onLayoutChange={handleLayoutChange}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-        rowHeight={60}
+        rowHeight={30}
         isDraggable={isCustomizing}
         isResizable={isCustomizing}
         margin={[16, 16]}
@@ -155,6 +173,7 @@ export function CustomizableDashboardLayout({
         useCSSTransforms={true}
         compactType="vertical"
         preventCollision={false}
+        autoSize={true}
       >
         {visibleWidgets.map((layoutItem) => {
           const widget = widgets.find((w) => w.id === layoutItem.i);
@@ -174,6 +193,10 @@ export function CustomizableDashboardLayout({
                   handleToggleWidgetVisibility(widget.id)
                 }
                 isVisible={layoutItem.isVisible}
+                widgetId={widget.id}
+                onSaveConfig={(config) =>
+                  handleSaveWidgetConfig(widget.id, config)
+                }
               >
                 <WidgetComponent {...(widget.defaultProps || {})} />
               </DashboardWidget>

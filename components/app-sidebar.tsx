@@ -56,29 +56,6 @@ export function AppSidebar({ isCollapsed = false }: AppSidebarProps) {
       </div>
       <SidebarNav isCollapsed={isCollapsed} />{" "}
       {/* Use the new SidebarNav component */}
-      <div className="mt-auto p-4 border-t border-sidebar-border">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              className={cn(
-                "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent mt-2",
-                isCollapsed ? "justify-center" : "",
-              )}
-              onClick={() => void handleSignOut()} // Re-added void for no-misused-promises
-              disabled={isSigningOut}
-              aria-label={SIGN_OUT_LABEL}
-            >
-              <LogOut className="h-5 w-5" />
-              {!isCollapsed &&
-                (isSigningOut ? SIGNING_OUT_LABEL : SIGN_OUT_LABEL)}
-            </Button>
-          </TooltipTrigger>
-          {isCollapsed && (
-            <TooltipContent side="right">{SIGN_OUT_LABEL}</TooltipContent>
-          )}
-        </Tooltip>
-      </div>
     </aside>
   );
 }

@@ -43,20 +43,21 @@ export function useJournal(
         },
         (payload) => {
           if (payload.eventType === "INSERT") {
-            setEntries((prev) => [payload.new as JournalEntry, ...prev]);
+            const newEntry = payload.new as JournalEntry;
+            setEntries((prev) => [newEntry, ...prev]);
           }
           if (payload.eventType === "UPDATE") {
+            const updatedEntry = payload.new as JournalEntry;
             setEntries((prev) =>
               prev.map((entry) =>
-                entry.id === payload.new.id
-                  ? (payload.new as JournalEntry)
-                  : entry,
+                entry.id === updatedEntry.id ? updatedEntry : entry,
               ),
             );
           }
           if (payload.eventType === "DELETE") {
+            const deletedEntry = payload.old as { id: string };
             setEntries((prev) =>
-              prev.filter((entry) => entry.id !== payload.old.id),
+              prev.filter((entry) => entry.id !== deletedEntry.id),
             );
           }
         },
@@ -85,7 +86,7 @@ export function useJournal(
         user_id: userId,
       };
       const newEntry = await addJournalEntry(newEntryData);
-      if (newEntry) {
+      if (newEntry !== null) {
         setEntries((prev) => [newEntry, ...prev]);
         setSelectedEntryId(newEntry.id);
         toast({
@@ -112,7 +113,7 @@ export function useJournal(
           content,
           attachments,
         });
-        if (updatedEntry) {
+        if (updatedEntry !== null) {
           setEntries((prev) =>
             prev.map((entry) =>
               entry.id === updatedEntry.id ? updatedEntry : entry,

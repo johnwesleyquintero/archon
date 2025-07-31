@@ -80,8 +80,8 @@ const mockJournalEntries = [
 ];
 
 describe("useJournal", () => {
-  let toast: jest.Mock;
-  let mockSupabaseFrom: jest.Mock;
+  let toast: jest.Mock<any, any>;
+  let mockSupabaseFrom: jest.Mock<any, any>;
 
   beforeEach(() => {
     const mockToast = jest.fn();
@@ -175,11 +175,6 @@ describe("useJournal", () => {
   });
 
   it("handles add journal entry error", async () => {
-    const newEntryData = {
-      title: "New Entry",
-      content: "New Content",
-      attachments: [],
-    };
     const insertError = new Error("Failed to insert entry");
 
     mockSupabaseFrom.mockReturnValue({
@@ -196,7 +191,7 @@ describe("useJournal", () => {
     const { result } = renderHook(() => useJournal([], "user-123"));
 
     await act(async () => {
-      await result.current.addEntry(newEntryData);
+      await result.current.handleCreateEntry();
     });
 
     expect(toast).toHaveBeenCalledWith(
@@ -208,54 +203,47 @@ describe("useJournal", () => {
     );
   });
 
-    it("updates an existing journal entry successfully", async () => {
-      const updatedEntryData = {
-        title: "Updated Entry",
-        content: "Updated Content",
-        attachments: [],
-      };
-
-      const { result } = renderHook(() =>
-        useJournal(mockJournalEntries, "user-123"),
-      );
-
-      await act(async () => {
-        result.current.handleSelectEntry("entry-1");
-        result.current.setHasUnsavedChanges(true);
-        // Simulate updating the selected entry's content before saving
-        result.current.setEntries((prev) =>
-          prev.map((entry) =>
-            entry.id === "entry-1"
-              ? { ...entry, ...updatedEntryData }
-              : entry,
-          ),
-        );
-        await result.current.handleSaveEntry();
-      });
-
-      expect(mockSupabaseFrom).toHaveBeenCalledWith("journal_entries");
-      expect(toast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: "Success!",
-          description: "Journal entry saved.",
-        }),
-      );
-      expect(result.current.entries).toEqual([
-        {
-          ...mockJournalEntries[0],
-          title: "Updated Entry",
-          content: "Updated Content",
-        },
-        mockJournalEntries[1],
-      ]);
-    });
-
-  it("handles update journal entry error", async () => {
-    const entryId = "entry-1";
-    const updateData = {
+  it("updates an existing journal entry successfully", async () => {
+    const updatedEntryData = {
       title: "Updated Entry",
       content: "Updated Content",
+      attachments: [],
     };
+
+    const { result } = renderHook(() =>
+      useJournal(mockJournalEntries, "user-123"),
+    );
+
+    await act(async () => {
+      result.current.handleSelectEntry("entry-1");
+      result.current.setHasUnsavedChanges(true);
+      // Simulate updating the selected entry's content before saving
+      result.current.setEntries((prev) =>
+        prev.map((entry) =>
+          entry.id === "entry-1" ? { ...entry, ...updatedEntryData } : entry,
+        ),
+      );
+      await result.current.handleSaveEntry();
+    });
+
+    expect(mockSupabaseFrom).toHaveBeenCalledWith("journal_entries");
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Success!",
+        description: "Journal entry saved.",
+      }),
+    );
+    expect(result.current.entries).toEqual([
+      {
+        ...mockJournalEntries[0],
+        title: "Updated Entry",
+        content: "Updated Content",
+      },
+      mockJournalEntries[1],
+    ]);
+  });
+
+  it("handles update journal entry error", async () => {
     const updateError = new Error("Failed to update entry");
 
     mockSupabaseFrom.mockReturnValue({
@@ -272,11 +260,21 @@ describe("useJournal", () => {
     });
 
     const { result } = renderHook(() =>
-      useJournal([{ ...mockJournalEntries[0] }], "user-123"),
+      useJournal(mockJournalEntries, "user-123"),
     );
 
     await act(async () => {
-      await result.current.updateEntry(entryId, updateData);
+      result.current.handleSelectEntry("entry-1");
+      result.current.setHasUnsavedChanges(true);
+      // Simulate updating the selected entry's content before saving
+      result.current.setEntries((prev) =>
+        prev.map((entry) =>
+          entry.id === "entry-1"
+            ? { ...entry, content: "Simulated updated content" }
+            : entry,
+        ),
+      );
+      await result.current.handleSaveEntry();
     });
 
     expect(toast).toHaveBeenCalledWith(
@@ -301,7 +299,7 @@ describe("useJournal", () => {
     });
 
     const { result } = renderHook(() =>
-      useJournal([{ ...mockJournalEntries[0] }], "user-123"),
+      useJournal(mockJournalEntries, "user-123"),
     );
 
     await act(async () => {

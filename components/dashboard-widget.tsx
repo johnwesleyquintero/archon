@@ -24,6 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { QuickTasksConfigModal } from "./quick-tasks-config-modal";
 
 interface DashboardWidgetProps {
   title: string;
@@ -32,8 +33,10 @@ interface DashboardWidgetProps {
   onRemove?: () => void;
   onRefresh?: () => Promise<void>; // Changed to return Promise<void>
   onToggleVisibility?: (isVisible: boolean) => void; // Updated to pass visibility state
+  onSaveConfig?: (config: { title: string }) => void;
   isVisible?: boolean;
   className?: string;
+  widgetId?: string;
 }
 
 export function DashboardWidget({
@@ -43,11 +46,14 @@ export function DashboardWidget({
   onRemove,
   onRefresh,
   onToggleVisibility,
+  onSaveConfig,
   isVisible = true,
   className = "",
+  widgetId,
 }: DashboardWidgetProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
 
   const handleToggleVisibility = () => {
     if (onToggleVisibility) {
@@ -146,10 +152,12 @@ export function DashboardWidget({
                 </DropdownMenuItem>
               )}
 
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                Configure
-              </DropdownMenuItem>
+              {widgetId === "quick-tasks" && (
+                <DropdownMenuItem onClick={() => setIsConfigModalOpen(true)}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Configure
+                </DropdownMenuItem>
+              )}
 
               {isCustomizing && onRemove && (
                 <>
@@ -169,7 +177,7 @@ export function DashboardWidget({
       </CardHeader>
 
       <CardContent
-        className={`flex-1 overflow-auto ${isExpanded ? "p-6" : "p-4"}`}
+        className={`flex-1 ${isExpanded ? "p-6" : "p-4"}`}
       >
         {isVisible ? (
           children
@@ -182,6 +190,14 @@ export function DashboardWidget({
           </div>
         )}
       </CardContent>
+      {widgetId === "quick-tasks" && onSaveConfig && (
+        <QuickTasksConfigModal
+          isOpen={isConfigModalOpen}
+          onClose={() => setIsConfigModalOpen(false)}
+          onSave={onSaveConfig}
+          currentTitle={title}
+        />
+      )}
     </Card>
   );
 }
