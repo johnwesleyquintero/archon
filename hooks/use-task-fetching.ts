@@ -45,10 +45,7 @@ export function useTaskFetching(initialTasks: Task[] = []) {
       setLoading(false);
       return;
     }
-    // Only set loading to true if it's not already true (e.g., from initial state)
-    if (!loading) {
-      setLoading(true);
-    }
+    setLoading(true);
     setError(null);
     try {
       const rawTasks = await getTasks();
@@ -70,6 +67,11 @@ export function useTaskFetching(initialTasks: Task[] = []) {
 
   // Setup realtime subscription
   useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     if (initialTasks.length === 0) {
       fetchTasks();
     }

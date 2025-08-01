@@ -27,8 +27,8 @@ export async function middleware(request: NextRequest) {
   );
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const protectedPaths = [
     "/dashboard",
@@ -37,11 +37,22 @@ export async function middleware(request: NextRequest) {
     "/tasks",
     "/settings",
   ];
+  const authPaths = ["/auth/signin", "/auth/signup"];
+
   const isProtected = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path),
   );
+  const isAuthPath = authPaths.some((path) =>
+    request.nextUrl.pathname.startsWith(path),
+  );
 
-  if (!session && isProtected) {
+  if (user && isAuthPath) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/signin";
     return NextResponse.redirect(url);

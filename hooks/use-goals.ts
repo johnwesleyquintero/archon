@@ -31,7 +31,6 @@ export function useGoals(initialGoals: Goal[] = []) {
     } catch (err) {
       const error =
         err instanceof Error ? err : new Error("Failed to load goals.");
-      console.error("Failed to fetch goals:", error.message);
       setError(error);
     } finally {
       setIsLoading(false);
@@ -108,7 +107,6 @@ export function useGoals(initialGoals: Goal[] = []) {
         } catch (err) {
           const error =
             err instanceof Error ? err : new Error("Failed to add goal.");
-          console.error("Failed to add goal:", error.message);
           setError(error);
           setGoals((prev) =>
             prev.filter((goal) => !goal.id.startsWith("temp-")),
@@ -144,7 +142,6 @@ export function useGoals(initialGoals: Goal[] = []) {
         } catch (err) {
           const error =
             err instanceof Error ? err : new Error("Failed to update goal.");
-          console.error("Failed to update goal:", error.message);
           setError(error);
           setGoals(originalGoals); // Rollback
         }
@@ -164,7 +161,6 @@ export function useGoals(initialGoals: Goal[] = []) {
         } catch (err) {
           const error =
             err instanceof Error ? err : new Error("Failed to delete goal.");
-          console.error("Failed to delete goal:", error.message);
           setError(error);
           setGoals(originalGoals); // Rollback
         }

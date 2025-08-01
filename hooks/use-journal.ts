@@ -79,68 +79,78 @@ export function useJournal(
 
   const handleCreateEntry = useCallback(() => {
     startTransition(async () => {
-      const newEntryData: JournalInsert = {
-        title: "New Entry",
-        content: "",
-        attachments: [],
-        user_id: userId,
-      };
-      const newEntry = await addJournalEntry(newEntryData);
-      if (newEntry !== null) {
-        setEntries((prev) => [newEntry, ...prev]);
-        setSelectedEntryId(newEntry.id);
-        toast({
-          title: "Success!",
-          description: "New journal entry created.",
-        });
-      } else {
+      try {
+        const newEntryData: JournalInsert = {
+          title: "New Entry",
+          content: "",
+          attachments: [],
+          user_id: userId,
+        };
+        const newEntry = await addJournalEntry(newEntryData);
+        if (newEntry !== null) {
+          setEntries((prev) => [newEntry, ...prev]);
+          setSelectedEntryId(newEntry.id);
+          toast({
+            title: "Success!",
+            description: "New journal entry created.",
+          });
+        } else {
+          throw new Error("Failed to create new journal entry.");
+        }
+      } catch (error) {
         toast({
           title: "Error",
           description: "Failed to create new journal entry.",
           variant: "destructive",
         });
+      } finally {
+        setHasUnsavedChanges(false);
       }
-      setHasUnsavedChanges(false);
     });
   }, [userId, toast]);
 
   const handleSaveEntry = useCallback(() => {
     if (selectedEntry && hasUnsavedChanges) {
       startTransition(async () => {
-        const { id, title, content, attachments } = selectedEntry;
-        const updatedEntry = await updateJournalEntry(id, {
-          title,
-          content,
-          attachments,
-        });
-        if (updatedEntry !== null) {
-          setEntries((prev) =>
-            prev.map((entry) =>
-              entry.id === updatedEntry.id ? updatedEntry : entry,
-            ),
-          );
-          toast({
-            title: "Success!",
-            description: "Journal entry saved.",
+        try {
+          const { id, title, content, attachments } = selectedEntry;
+          const updatedEntry = await updateJournalEntry(id, {
+            title,
+            content,
+            attachments,
           });
-        } else {
+          if (updatedEntry !== null) {
+            setEntries((prev) =>
+              prev.map((entry) =>
+                entry.id === updatedEntry.id ? updatedEntry : entry,
+              ),
+            );
+            toast({
+              title: "Success!",
+              description: "Journal entry saved.",
+            });
+          } else {
+            throw new Error("Failed to save journal entry.");
+          }
+        } catch (error) {
           toast({
             title: "Error",
             description: "Failed to save journal entry.",
             variant: "destructive",
           });
+        } finally {
+          setHasUnsavedChanges(false);
         }
-        setHasUnsavedChanges(false);
       });
     }
   }, [selectedEntry, hasUnsavedChanges, toast]);
 
   const handleDeleteEntry = useCallback(
-    (entryId: string) => {
+    async (entryId: string) => {
       if (
         window.confirm("Are you sure you want to delete this journal entry?")
       ) {
-        startTransition(async () => {
+        try {
           await deleteJournalEntry(entryId);
           setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
           if (selectedEntryId === entryId) {
@@ -150,7 +160,13 @@ export function useJournal(
             title: "Success!",
             description: "Journal entry deleted.",
           });
-        });
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to delete journal entry.",
+            variant: "destructive",
+          });
+        }
       }
     },
     [selectedEntryId, toast],
