@@ -32,7 +32,7 @@ export async function getDashboardSettings(
   }
 
   try {
-    const parsedLayout = widgetLayoutsSchema.parse(data.layout);
+    const parsedLayout = widgetLayoutsSchema.parse(data.layout as unknown);
     return parsedLayout;
   } catch (e) {
     logger.error("Error parsing dashboard settings:", {

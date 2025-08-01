@@ -27,7 +27,6 @@ export function useGoals(initialGoals: Goal[] = []) {
     setError(null);
     try {
       const data = await getGoals();
-      console.log("Fetched goals data:", data); // Debug log
       setGoals(data || []);
     } catch (err: any) {
       console.error("Failed to fetch goals:", err);

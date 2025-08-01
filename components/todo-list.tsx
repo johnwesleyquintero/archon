@@ -34,7 +34,14 @@ export function TodoList({ initialTasks }: TodoListProps) {
           ref={taskInputRef}
           onAddTask={async (input) => {
             if (user) {
-              await addTask({ ...input, user_id: user.id });
+              await addTask({
+                title: input.title,
+                due_date: input.dueDate,
+                priority: input.priority,
+                category: input.category,
+                tags: input.tags,
+                user_id: user.id,
+              });
             }
           }}
           disabled={isMutating || !user}

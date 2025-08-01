@@ -2,9 +2,12 @@
 import "@testing-library/jest-dom";
 import * as React from "react";
 import { TextEncoder, TextDecoder } from "util"; // Node.js 'util' module for polyfill
+import ResizeObserverPolyfill from "resize-observer-polyfill";
+import nodeFetch from "node-fetch";
+import FormData from "form-data";
 
 // Mock ResizeObserver
-global.ResizeObserver = require("resize-observer-polyfill");
+global.ResizeObserver = ResizeObserverPolyfill;
 
 // Polyfill TextEncoder and TextDecoder for Jest JSDOM environment
 // These are global APIs expected in browser/Node.js environments but missing in JSDOM by default.
@@ -15,16 +18,16 @@ global.TextDecoder = TextDecoder;
 // These are global APIs expected in browser environments but missing in JSDOM by default.
 // They are often used by Next.js and other libraries.
 if (typeof globalThis.Request === "undefined") {
-  globalThis.Request = require("node-fetch").Request;
+  globalThis.Request = nodeFetch.Request;
 }
 if (typeof globalThis.Response === "undefined") {
-  globalThis.Response = require("node-fetch").Response;
+  globalThis.Response = nodeFetch.Response;
 }
 if (typeof globalThis.Headers === "undefined") {
-  globalThis.Headers = require("node-fetch").Headers;
+  globalThis.Headers = nodeFetch.Headers;
 }
 if (typeof globalThis.FormData === "undefined") {
-  globalThis.FormData = require("form-data");
+  globalThis.FormData = FormData;
 }
 
 // Mock environment variables for testing

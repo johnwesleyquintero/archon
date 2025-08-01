@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { taskSchema } from "@/lib/validators";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { z } from "zod";
+import * as Zod from "zod"; // Changed from import type { z } from "zod";
 import {
   Form,
   FormControl,
@@ -30,7 +30,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-type TaskFormValues = z.infer<typeof taskSchema>;
+type TaskFormValues = Zod.infer<typeof taskSchema>; // Changed from z.infer
 
 interface TaskInputProps {
   onAddTask: (input: TaskFormValues) => Promise<void>;
@@ -64,16 +64,36 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
           dueDate: data.dueDate,
         });
         form.reset(); // Reset form after successful submission
-      } catch (err) {
+      } catch (err: unknown) {
+        // Explicitly type err as unknown
         console.error("Error adding task:", err);
         // Set form error if needed, though onAddTask might handle it
-        form.setError("root", {
-          type: "manual",
-          message:
-            err instanceof Error
-              ? err.message
-              : "An unexpected error occurred.",
-        });
+        if (err instanceof Zod.ZodError) {
+          err.errors.forEach((error: Zod.ZodIssue) => {
+            // Explicitly type error as Zod.ZodIssue
+            if (error.path.length > 0) {
+              form.setError(error.path[0] as keyof TaskFormValues, {
+                type: "manual",
+                message: error.message,
+              });
+            } else {
+              form.setError("root", {
+                type: "manual",
+                message: error.message,
+              });
+            }
+          });
+        } else if (err instanceof Error) {
+          form.setError("root", {
+            type: "manual",
+            message: err.message,
+          });
+        } else {
+          form.setError("root", {
+            type: "manual",
+            message: "An unexpected error occurred.",
+          });
+        }
       } finally {
         setIsAdding(false);
       }
