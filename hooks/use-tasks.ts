@@ -1,8 +1,8 @@
 "use client";
 
 import type { Database } from "@/lib/supabase/types";
-import { useTaskFetching } from "./use-task-fetching";
-import { useTaskMutations } from "./use-task-mutations";
+import { useTaskFetching } from "./use-task-fetching.js";
+import { useTaskMutations } from "./use-task-mutations.js";
 import { convertRawTaskToTask } from "@/lib/utils";
 
 // Define the raw task type from the database

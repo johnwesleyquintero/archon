@@ -10,10 +10,10 @@ import { useAuth } from "@/contexts/auth-context";
 import { SIGN_OUT_LABEL, SIGNING_OUT_LABEL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-import Logo from "./logo";
-import { Button } from "./ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { SidebarNav } from "./sidebar-nav"; // Import the new component
+import Logo from "./logo.js";
+import { Button } from "./ui/button.js";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip.js";
+import { SidebarNav } from "./sidebar-nav.js"; // Import the new component
 
 interface AppSidebarProps {
   isCollapsed?: boolean;

@@ -10,11 +10,8 @@ const createJestConfig = nextJest({
 const customJestConfig = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"], // Ensure this is consistently .ts
   moduleNameMapper: {
-    // Handle module aliases (this will be automatically configured for you by Next.js if you use the default config)
-    "^@/components/(.*)$": "<rootDir>/components/$1",
-    "^@/lib/(.*)$": "<rootDir>/lib/$1",
-    "^@/hooks/(.*)$": "<rootDir>/hooks/$1",
-    "^@/contexts/(.*)$": "<rootDir>/contexts/$1",
+    // Handle module aliases
+    "^@/(.*)$": "<rootDir>/$1",
     "^isows$": "<rootDir>/__mocks__/isows.js",
   },
   testEnvironment: "jest-environment-jsdom",

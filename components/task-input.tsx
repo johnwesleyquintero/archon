@@ -67,9 +67,12 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
       } catch (err) {
         console.error("Error adding task:", err);
         // Set form error if needed, though onAddTask might handle it
-        form.setError("title", {
+        form.setError("root", {
           type: "manual",
-          message: "Failed to add task. Please try again.",
+          message:
+            err instanceof Error
+              ? err.message
+              : "An unexpected error occurred.",
         });
       } finally {
         setIsAdding(false);
@@ -215,9 +218,9 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                       <div className="space-y-4">
                         <h4 className="font-medium leading-none">Tags</h4>
                         <div className="flex flex-wrap gap-2">
-                          {field.value.map((tag: string, index: number) => (
+                          {field.value?.map((tag: string, index: number) => (
                             <Badge
-                              key={tag}
+                              key={`${tag}-${index}`}
                               variant="secondary"
                               className="gap-1"
                             >
@@ -243,8 +246,11 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                                 e.preventDefault();
                                 const input = e.currentTarget;
                                 const value = input.value.trim();
-                                if (value && !field.value.includes(value)) {
-                                  field.onChange([...field.value, value]);
+                                if (value && !field.value?.includes(value)) {
+                                  field.onChange([
+                                    ...(field.value || []),
+                                    value,
+                                  ]);
                                   input.value = "";
                                 }
                               }

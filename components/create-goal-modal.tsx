@@ -10,8 +10,8 @@ import type { z } from "zod";
 import { cn } from "@/lib/utils";
 import { goalSchema } from "@/lib/validators";
 
-import { Button } from "./ui/button";
-import { Calendar } from "./ui/calendar";
+import { Button } from "./ui/button.js";
+import { Calendar } from "./ui/calendar.js";
 import {
   Form,
   FormControl,
@@ -19,12 +19,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { Input } from "./ui/input";
-import { Modal } from "./ui/modal";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Spinner } from "./ui/spinner";
-import { Textarea } from "./ui/textarea";
+} from "./ui/form.js";
+import { Input } from "./ui/input.js";
+import { Modal } from "./ui/modal.js";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
+import { Spinner } from "./ui/spinner.js";
+import { Textarea } from "./ui/textarea.js";
 
 import type { Database } from "@/lib/supabase/types";
 
@@ -187,11 +187,9 @@ export function CreateGoalModal({
                         disabled={isSaving}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {field.value ? (
-                          format(new Date(field.value), "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
+                        {field.value
+                          ? format(new Date(field.value), "PPP")
+                          : "Pick a date"}
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -199,11 +197,9 @@ export function CreateGoalModal({
                     <Calendar
                       mode="single"
                       selected={field.value ? new Date(field.value) : undefined}
-                      onSelect={(date) =>
-                        field.onChange(date?.toISOString(), {
-                          shouldValidate: true,
-                        })
-                      }
+                      onSelect={(date) => {
+                        field.onChange(date?.toISOString());
+                      }}
                       initialFocus
                     />
                   </PopoverContent>

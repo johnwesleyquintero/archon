@@ -8,4 +8,6 @@ const serverEnvSchema = z.object({
   GROQ_API_KEY: z.string().optional(),
 });
 
-export const serverEnv = serverEnvSchema.parse(process.env);
+export const serverEnv = serverEnvSchema.parse(
+  process.env as Record<string, string | undefined>,
+);

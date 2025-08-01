@@ -23,7 +23,7 @@ import type { Database } from "@/lib/supabase/types";
 import Image from "next/image";
 import { Spinner } from "@/components/ui/spinner";
 import { useDebounce } from "@/hooks/use-debounce";
-import { TipTapEditor, type TipTapEditorRef } from "./quill-editor"; // Renamed and updated import
+import { TipTapEditor, type TipTapEditorRef } from "./quill-editor.js"; // Renamed and updated import
 
 type Attachment = {
   url: string;
@@ -121,7 +121,7 @@ export function JournalEditorWithAttachments({
             type: fileType,
           };
           const updatedAttachments: Attachment[] = [
-            ...currentAttachments,
+            ...(currentAttachments || []),
             newAttachment,
           ];
           form.setValue("attachments", updatedAttachments, {
@@ -130,7 +130,7 @@ export function JournalEditorWithAttachments({
           });
 
           await updateEntry(entry.id, {
-            attachments: updatedAttachments.map((att) => att.url),
+            attachments: updatedAttachments.map((att: Attachment) => att.url),
           });
 
           // Insert image directly into TipTap editor if it's an image
@@ -197,14 +197,14 @@ export function JournalEditorWithAttachments({
 
     const currentAttachments = form.getValues("attachments") || [];
     const updatedAttachments = currentAttachments.filter(
-      (attachment) => attachment.url !== url,
+      (attachment: Attachment) => attachment.url !== url,
     );
     form.setValue("attachments", updatedAttachments, {
       shouldDirty: true,
       shouldValidate: true,
     });
     void updateEntry(entry.id, {
-      attachments: updatedAttachments.map((att) => att.url),
+      attachments: updatedAttachments.map((att: Attachment) => att.url),
     });
 
     // In a real app, you might want to also delete the file from blob storage
@@ -402,24 +402,33 @@ export function JournalEditorWithAttachments({
                 Attachments ({form.watch("attachments")?.length})
               </p>
               <div className="flex flex-wrap gap-2">
-                {form.watch("attachments")?.map((attachment: Attachment) => {
-                  if (!attachment || !attachment.url) return null;
+                {form.watch("attachments")?.map((attachment: unknown) => {
+                  if (
+                    !attachment ||
+                    typeof attachment !== "object" ||
+                    !("url" in attachment) ||
+                    typeof attachment.url !== "string"
+                  )
+                    return null;
+
+                  const typedAttachment = attachment as Attachment;
+
                   return (
                     <div
-                      key={attachment.url}
+                      key={typedAttachment.url}
                       className="group relative border border-slate-200 rounded-md p-1 hover:border-slate-300"
                     >
-                      {attachment.type === "image" ? (
+                      {typedAttachment.type === "image" ? (
                         <div className="relative w-16 h-16">
                           <Image
-                            src={attachment.url || "/placeholder.png"}
-                            alt={attachment.filename || "attachment"}
+                            src={typedAttachment.url || "/placeholder.png"}
+                            alt={typedAttachment.filename || "attachment"}
                             fill
                             className="object-cover rounded"
                             onClick={() => {
                               if (editorRef.current) {
                                 editorRef.current.commands.insertContent(
-                                  `<img src="${attachment.url}" alt="${attachment.filename}" />`,
+                                  `<img src="${typedAttachment.url}" alt="${typedAttachment.filename}" />`,
                                 );
                               }
                             }}
@@ -431,7 +440,7 @@ export function JournalEditorWithAttachments({
                               onClick={() => {
                                 if (editorRef.current) {
                                   editorRef.current.commands.insertContent(
-                                    `<img src="${attachment.url}" alt="${attachment.filename}" />`,
+                                    `<img src="${typedAttachment.url}" alt="${typedAttachment.filename}" />`,
                                   );
                                 }
                               }}
@@ -447,14 +456,16 @@ export function JournalEditorWithAttachments({
                         <div className="w-16 h-16 bg-slate-100 rounded flex flex-col items-center justify-center p-1 text-center">
                           <Paperclip className="h-6 w-6 text-slate-400 mb-1" />
                           <span className="text-[10px] text-slate-500 truncate w-full">
-                            {attachment.filename}
+                            {typedAttachment.filename}
                           </span>
                         </div>
                       )}
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => void removeAttachment(attachment.url)}
+                        onClick={() =>
+                          void removeAttachment(typedAttachment.url)
+                        }
                         className="absolute -top-2 -right-2 h-5 w-5 p-0 bg-white border border-slate-200 rounded-full opacity-0 group-hover:opacity-100"
                         disabled={isMutating}
                       >

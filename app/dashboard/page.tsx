@@ -1,8 +1,6 @@
-"use client";
 import * as Sentry from "@sentry/nextjs";
 const { logger } = Sentry;
 import { toast } from "sonner";
-import { EmptyState } from "@/components/empty-state";
 import { CustomizableDashboardLayout } from "@/components/customizable-dashboard-layout";
 import { getDashboardSettings } from "@/lib/database/dashboard-settings";
 import { getGoals } from "@/lib/database/goals";

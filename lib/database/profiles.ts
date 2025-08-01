@@ -1,5 +1,5 @@
-import { createServerSupabaseClient } from "../supabase/server";
-import type { Database } from "../supabase/types";
+import { createServerSupabaseClient } from "../supabase/server.js";
+import type { Database } from "../supabase/types.js";
 
 export type ProfilesRow = Database["public"]["Tables"]["profiles"]["Row"];
 type ProfilesUpdate = Database["public"]["Tables"]["profiles"]["Update"];

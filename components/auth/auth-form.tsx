@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 
 import { Separator } from "@/components/ui/separator";
 
-import { EmailSignInForm } from "./email-sign-in-form";
-import { ForgotPasswordForm } from "./forgot-password-form";
-import { SocialSignInButtons } from "./social-sign-in-buttons";
+import { EmailSignInForm } from "./email-sign-in-form.js";
+import { ForgotPasswordForm } from "./forgot-password-form.js";
+import { SocialSignInButtons } from "./social-sign-in-buttons.js";
 
 interface AuthFormProps {
   mode?: "signIn" | "signUp";

@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Widget } from "./customizable-dashboard-layout";
+import { Widget } from "./customizable-dashboard-layout.js";
 
 interface AddWidgetDialogProps {
   availableWidgets: Widget[];

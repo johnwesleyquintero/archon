@@ -14,6 +14,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "typecheck": "node --max-old-space-size=4096 node_modules/typescript/bin/tsc --noEmit",
+    "clean": "tsc --build --clean",
     "commit": "node scripts/git-commit.mjs"
   },
   "dependencies": {
@@ -89,7 +90,7 @@
     "tailwindcss-animate": "1.0.7",
     "util": "0.12.5",
     "vaul": "1.1.2",
-    "zod": "3.25.0"
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@swc/jest": "0.2.39",
