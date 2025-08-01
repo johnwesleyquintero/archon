@@ -99,6 +99,10 @@ const mockGoals = [
     target_date: "2025-12-31",
     status: "pending",
     attachments: [],
+    created_at: new Date().toISOString(),
+    progress: 0,
+    updated_at: new Date().toISOString(),
+    user_id: "test-user-id",
   },
   {
     id: "goal-2",
@@ -107,6 +111,10 @@ const mockGoals = [
     target_date: "2025-11-30",
     status: "in_progress",
     attachments: [],
+    created_at: new Date().toISOString(),
+    progress: 50,
+    updated_at: new Date().toISOString(),
+    user_id: "test-user-id",
   },
 ];
 
@@ -133,17 +141,17 @@ describe("useGoals", () => {
   it("fetches goals successfully", async () => {
     // Import the mocked getGoals function
     const { getGoals } = require("@/lib/database/goals");
-    
+
     // Set up the mock to resolve with mockGoals
     (getGoals as jest.Mock).mockResolvedValue(mockGoals);
 
     const { result } = renderHook(() => useGoals());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    
+
     // Verify the mock was called
     expect(getGoals).toHaveBeenCalled();
-    
+
     // Verify the goals were set in the state
     expect(result.current.goals).toEqual(mockGoals);
     expect(result.current.error).toBeNull();
@@ -151,20 +159,20 @@ describe("useGoals", () => {
 
   it("handles fetch goals error", async () => {
     const fetchError = new Error("Failed to fetch goals");
-    
+
     // Import the mocked getGoals function
     const { getGoals } = require("@/lib/database/goals");
-    
+
     // Set up the mock to reject with an error
     (getGoals as jest.Mock).mockRejectedValue(fetchError);
 
     const { result } = renderHook(() => useGoals());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    
+
     // Verify the mock was called
     expect(getGoals).toHaveBeenCalled();
-    
+
     // Verify error handling
     expect(result.current.goals).toEqual([]);
     expect(result.current.error).toEqual(fetchError);
@@ -178,18 +186,18 @@ describe("useGoals", () => {
       status: "pending",
       attachments: [],
     };
-    const returnedGoal = { 
-      id: "new-goal-id", 
+    const returnedGoal = {
+      id: "new-goal-id",
       user_id: "test-user-id",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       progress: 0,
-      ...newGoalData 
+      ...newGoalData,
     };
 
     // Import the mocked addGoal function
     const { addGoal } = require("@/lib/database/goals");
-    
+
     // Set up the mock to resolve with the new goal
     (addGoal as jest.Mock).mockResolvedValue(returnedGoal);
 
@@ -202,11 +210,11 @@ describe("useGoals", () => {
 
     // Verify the mock was called with the correct data
     expect(addGoal).toHaveBeenCalledWith(newGoalData);
-    
+
     // Verify that the new goal was added to the state
     // The optimistic update is replaced with the returned goal
     expect(result.current.goals).toContainEqual(returnedGoal);
-    
+
     // Verify that there are no errors
     expect(result.current.error).toBeNull();
   });
@@ -220,10 +228,10 @@ describe("useGoals", () => {
       status: "pending",
       attachments: [],
     };
-    
+
     // Import the mocked addGoal function
     const { addGoal } = require("@/lib/database/goals");
-    
+
     // Set up the mock to reject with an error
     (addGoal as jest.Mock).mockRejectedValue(addError);
 
@@ -236,10 +244,10 @@ describe("useGoals", () => {
 
     // Verify the mock was called with the correct data
     expect(addGoal).toHaveBeenCalledWith(badGoalData);
-    
+
     // Verify error handling
     expect(result.current.error).toEqual(addError);
-    
+
     // Verify that goals remain unchanged
     expect(result.current.goals).toEqual(mockGoals);
   });
@@ -254,7 +262,7 @@ describe("useGoals", () => {
 
     // Import the mocked updateGoal function
     const { updateGoal } = require("@/lib/database/goals");
-    
+
     // Set up the mock to resolve with the updated goal
     (updateGoal as jest.Mock).mockResolvedValue(updatedGoal);
 
@@ -267,10 +275,10 @@ describe("useGoals", () => {
 
     // Verify the mock was called with the correct data
     expect(updateGoal).toHaveBeenCalledWith(goalToUpdate.id, updatedData);
-    
+
     // Verify that the goal was updated in the state
     expect(result.current.goals).toContainEqual(updatedGoal);
-    
+
     // Verify that there are no errors
     expect(result.current.error).toBeNull();
   });
@@ -279,10 +287,10 @@ describe("useGoals", () => {
     const updateError = new Error("Failed to update goal");
     const goalId = "goal-1";
     const badUpdateData = { title: "Bad Update" };
-    
+
     // Import the mocked updateGoal function
     const { updateGoal } = require("@/lib/database/goals");
-    
+
     // Set up the mock to reject with an error
     (updateGoal as jest.Mock).mockRejectedValue(updateError);
 
@@ -295,10 +303,10 @@ describe("useGoals", () => {
 
     // Verify the mock was called with the correct data
     expect(updateGoal).toHaveBeenCalledWith(goalId, badUpdateData);
-    
+
     // Verify error handling
     expect(result.current.error).toEqual(updateError);
-    
+
     // Verify that goals remain unchanged
     expect(result.current.goals).toEqual(mockGoals);
   });
@@ -306,13 +314,13 @@ describe("useGoals", () => {
   it("deletes a goal successfully", async () => {
     // Import the mocked deleteGoal function
     const { deleteGoal } = require("@/lib/database/goals");
-    
+
     // Set up the mock to resolve successfully
     (deleteGoal as jest.Mock).mockResolvedValue(undefined);
 
     // Initialize with mock data to avoid initial fetch
     const { result } = renderHook(() => useGoals([...mockGoals]));
-    
+
     // Execute the delete operation
     await act(async () => {
       await result.current.deleteGoal("goal-1");
@@ -320,26 +328,26 @@ describe("useGoals", () => {
 
     // Verify the mock was called with the correct ID
     expect(deleteGoal).toHaveBeenCalledWith("goal-1");
-    
+
     // Verify that the goal was removed from the state
     expect(result.current.goals).toEqual([mockGoals[1]]);
-    
+
     // Verify that there are no errors
     expect(result.current.error).toBeNull();
-  })
+  });
 
   it("handles delete goal error", async () => {
     const deleteError = new Error("Failed to delete goal");
-    
+
     // Import the mocked deleteGoal function
     const { deleteGoal } = require("@/lib/database/goals");
-    
+
     // Set up the mock to reject with an error
     (deleteGoal as jest.Mock).mockRejectedValue(deleteError);
 
     // Initialize with mock data to avoid initial fetch
     const { result } = renderHook(() => useGoals([...mockGoals]));
-    
+
     // Execute the delete operation
     await act(async () => {
       await result.current.deleteGoal("non-existent-goal");
@@ -347,11 +355,11 @@ describe("useGoals", () => {
 
     // Verify the mock was called with the correct ID
     expect(deleteGoal).toHaveBeenCalledWith("non-existent-goal");
-    
+
     // Verify error handling
     expect(result.current.error).toEqual(deleteError);
-    
+
     // Verify that goals remain unchanged
     expect(result.current.goals).toEqual(mockGoals);
-  })
+  });
 });

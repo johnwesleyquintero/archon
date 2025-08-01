@@ -27,7 +27,7 @@ describe("AuthGuard", () => {
   it("renders children when user is authenticated", () => {
     (useAuth as jest.Mock).mockReturnValue({
       user: { id: "123" },
-      isLoading: false,
+      loading: false,
     });
 
     render(
@@ -41,7 +41,7 @@ describe("AuthGuard", () => {
   });
 
   it("redirects to sign-in page when user is not authenticated and not loading", async () => {
-    (useAuth as jest.Mock).mockReturnValue({ user: null, isLoading: false });
+    (useAuth as jest.Mock).mockReturnValue({ user: null, loading: false });
 
     render(
       <AuthGuard>
@@ -56,7 +56,7 @@ describe("AuthGuard", () => {
   });
 
   it("does not redirect immediately when authentication status is loading", async () => {
-    (useAuth as jest.Mock).mockReturnValue({ user: null, isLoading: true });
+    (useAuth as jest.Mock).mockReturnValue({ user: null, loading: true });
 
     await act(async () => {
       render(
@@ -77,7 +77,7 @@ describe("AuthGuard", () => {
 
     (useAuth as jest.Mock).mockImplementation(() => ({
       user: userState,
-      isLoading: loadingState,
+      loading: loadingState,
     }));
 
     const { rerender } = render(
@@ -113,7 +113,7 @@ describe("AuthGuard", () => {
 
     (useAuth as jest.Mock).mockImplementation(() => ({
       user: userState,
-      isLoading: loadingState,
+      loading: loadingState,
     }));
 
     const { rerender } = render(

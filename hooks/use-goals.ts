@@ -28,9 +28,11 @@ export function useGoals(initialGoals: Goal[] = []) {
     try {
       const data = await getGoals();
       setGoals(data || []);
-    } catch (err: any) {
-      console.error("Failed to fetch goals:", err);
-      setError(new Error(err.message || "Failed to load goals."));
+    } catch (err) {
+      const error =
+        err instanceof Error ? err : new Error("Failed to load goals.");
+      console.error("Failed to fetch goals:", error.message);
+      setError(error);
     } finally {
       setIsLoading(false);
     }
@@ -103,9 +105,11 @@ export function useGoals(initialGoals: Goal[] = []) {
           setGoals((prev) =>
             prev.map((goal) => (goal.id === tempId ? data! : goal)),
           );
-        } catch (err: any) {
-          console.error("Failed to add goal:", err);
-          setError(new Error(err.message || "Failed to add goal."));
+        } catch (err) {
+          const error =
+            err instanceof Error ? err : new Error("Failed to add goal.");
+          console.error("Failed to add goal:", error.message);
+          setError(error);
           setGoals((prev) =>
             prev.filter((goal) => !goal.id.startsWith("temp-")),
           ); // Rollback optimistic update
@@ -137,9 +141,11 @@ export function useGoals(initialGoals: Goal[] = []) {
           setGoals((prev) =>
             prev.map((goal) => (goal.id === id ? data! : goal)),
           );
-        } catch (err: any) {
-          console.error("Failed to update goal:", err);
-          setError(new Error(err.message || "Failed to update goal."));
+        } catch (err) {
+          const error =
+            err instanceof Error ? err : new Error("Failed to update goal.");
+          console.error("Failed to update goal:", error.message);
+          setError(error);
           setGoals(originalGoals); // Rollback
         }
       });
@@ -155,9 +161,11 @@ export function useGoals(initialGoals: Goal[] = []) {
         setGoals((prev) => prev.filter((goal) => goal.id !== id)); // Optimistic delete
         try {
           await deleteGoal(id);
-        } catch (err: any) {
-          console.error("Failed to delete goal:", err);
-          setError(new Error(err.message || "Failed to delete goal."));
+        } catch (err) {
+          const error =
+            err instanceof Error ? err : new Error("Failed to delete goal.");
+          console.error("Failed to delete goal:", error.message);
+          setError(error);
           setGoals(originalGoals); // Rollback
         }
       });

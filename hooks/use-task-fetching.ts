@@ -34,7 +34,7 @@ const convertRawTaskToTask = (rawTask: RawTask): Task => {
 export function useTaskFetching(initialTasks: Task[] = []) {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(initialTasks.length === 0);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const supabase = createClient();
@@ -45,7 +45,10 @@ export function useTaskFetching(initialTasks: Task[] = []) {
       setLoading(false);
       return;
     }
-    setLoading(true);
+    // Only set loading to true if it's not already true (e.g., from initial state)
+    if (!loading) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const rawTasks = await getTasks();

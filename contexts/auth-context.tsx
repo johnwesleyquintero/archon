@@ -7,6 +7,8 @@ import {
   Session,
   AuthError as SupabaseAuthError,
   AuthChangeEvent,
+  SignInWithPasswordCredentials,
+  SignUpWithPasswordCredentials,
 } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
@@ -18,7 +20,7 @@ interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  error: SupabaseAuthError | null; // Use SupabaseAuthError type
+  error: SupabaseAuthError | null;
   signOut: () => Promise<{ error: SupabaseAuthError | null }>;
   refreshProfile: () => Promise<void>;
   updateProfile: (
@@ -26,6 +28,16 @@ interface AuthContextType {
   ) => Promise<{ error: SupabaseAuthError | null }>;
   isSigningOut: boolean;
   setIsSigningOut: React.Dispatch<React.SetStateAction<boolean>>;
+  signInWithPassword: (
+    credentials: SignInWithPasswordCredentials,
+  ) => Promise<{ error: SupabaseAuthError | null }>;
+  signUpWithPassword: (
+    credentials: SignUpWithPasswordCredentials,
+  ) => Promise<{ error: SupabaseAuthError | null }>;
+  sendPasswordResetEmail: (
+    email: string,
+  ) => Promise<{ error: SupabaseAuthError | null }>;
+  reauthenticate: () => Promise<{ error: SupabaseAuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -158,6 +170,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithPassword = async (
+    credentials: SignInWithPasswordCredentials,
+  ) => {
+    setError(null);
+    const { error: signInError } =
+      await supabase.auth.signInWithPassword(credentials);
+    if (signInError) {
+      setError(signInError);
+      return { error: signInError };
+    }
+    return { error: null };
+  };
+
+  const signUpWithPassword = async (
+    credentials: SignUpWithPasswordCredentials,
+  ) => {
+    setError(null);
+    const { error: signUpError } = await supabase.auth.signUp(credentials);
+    if (signUpError) {
+      setError(signUpError);
+      return { error: signUpError };
+    }
+    return { error: null };
+  };
+
+  const sendPasswordResetEmail = async (email: string) => {
+    setError(null);
+    const { error: resetError } =
+      await supabase.auth.resetPasswordForEmail(email);
+    if (resetError) {
+      setError(resetError);
+      return { error: resetError };
+    }
+    return { error: null };
+  };
+
+  const reauthenticate = async () => {
+    setError(null);
+    const { error: reauthError } = await supabase.auth.reauthenticate();
+    if (reauthError) {
+      setError(reauthError);
+      return { error: reauthError };
+    }
+    return { error: null };
+  };
+
   useEffect(() => {
     const {
       data: { subscription },
@@ -183,12 +241,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profile,
     session,
     loading,
-    error, // Include error in the context value
+    error,
     signOut,
     refreshProfile,
     updateProfile,
     isSigningOut,
     setIsSigningOut,
+    signInWithPassword,
+    signUpWithPassword,
+    sendPasswordResetEmail,
+    reauthenticate,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

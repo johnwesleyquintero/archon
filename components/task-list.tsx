@@ -1,7 +1,7 @@
-import { TaskItem } from "./task-item.js";
-import { TaskFilterBar } from "./task-filter-bar.js";
-import { TaskSort } from "./task-sort.js";
-import { EmptyState } from "./empty-state.js";
+import { TaskItem } from "./task-item";
+import { TaskFilterBar } from "./task-filter-bar";
+import { TaskSort } from "./task-sort";
+import { EmptyState } from "./empty-state";
 import { useTasks } from "@/hooks/use-tasks";
 import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
 import { Skeleton } from "@/components/ui/skeleton";

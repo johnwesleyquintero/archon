@@ -1,4 +1,4 @@
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { useTasks } from "@/hooks/use-tasks";
 import {
   getTasks,
@@ -39,7 +39,7 @@ describe("useTasks", () => {
       toast: jest.fn(),
     });
 
-    (getTasks as jest.Mock).mockResolvedValue([]);
+    (getTasks as jest.Mock).mockImplementation(() => new Promise(() => {})); // Initially pending
   });
 
   test("fetches tasks on initial render", async () => {
@@ -48,21 +48,31 @@ describe("useTasks", () => {
       { id: "2", title: "Task 2", is_completed: true },
     ];
 
-    (getTasks as jest.Mock).mockResolvedValue(mockTasks);
+    let resolveGetTasks: (value: any) => void;
+    (getTasks as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveGetTasks = resolve;
+        }),
+    );
 
     const { result } = renderHook(() => useTasks());
 
-    // Initial state
+    // Initial state should be loading
     expect(result.current.loading).toBe(true);
     expect(result.current.tasks).toEqual([]);
 
-    // Wait for state update after async fetch
+    // Resolve the promise to simulate fetch completion
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      resolveGetTasks(mockTasks);
+    });
+
+    // Wait for the loading to complete
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
     });
 
     // After fetch completes
-    expect(result.current.loading).toBe(false);
     expect(result.current.tasks).toEqual(mockTasks);
     expect(getTasks).toHaveBeenCalledTimes(1);
   });
