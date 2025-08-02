@@ -31,8 +31,9 @@ yarn-error.log*
 .env.development
 .env.test
 .env.production
+.env.sentry-build-plugin
 
-# vercel
+# Vercel
 .vercel
 
 # typescript
