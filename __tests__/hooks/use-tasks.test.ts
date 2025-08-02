@@ -50,20 +50,17 @@ describe("useTasks", () => {
       () => new Promise((resolve) => (resolveGetTasks = resolve)),
     );
 
-    let result: any;
-    await act(async () => {
-      ({ result } = renderHook(() => useTasks()));
-      jest.runAllTimers(); // Advance timers immediately after render
+    const { result } = renderHook(() => useTasks());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(true);
     });
 
-    // Initial state should be loading (after the fetch is initiated)
-    expect(result.current.loading).toBe(true);
     expect(result.current.tasks).toEqual([]);
 
     // Resolve the promise to simulate fetch completion
     await act(async () => {
       resolveGetTasks(mockTasks);
-      jest.runAllTimers(); // Advance timers after promise resolution
     });
 
     // Wait for the hook to update

@@ -6,12 +6,11 @@ import {
   updateJournalEntry,
   deleteJournalEntry,
 } from "@/app/journal/actions";
-import React from "react";
 
 // Mock server actions
 jest.mock("@/app/journal/actions");
 
-// Mock Supabase client (not used for mutations anymore, but for subscriptions)
+// Mock Supabase client
 jest.mock("@/lib/supabase/client", () => ({
   createClient: jest.fn(() => ({
     channel: jest.fn(() => ({
@@ -30,34 +29,6 @@ jest.mock("@/hooks/use-toast", () => ({
   }),
 }));
 
-// Mock useTransition to be synchronous
-jest.mock("react", () => {
-  const originalReact = jest.requireActual("react");
-  let isPending = false;
-  let startTransition;
-
-  const useTransition = () => {
-    const [pending, setPending] = originalReact.useState(isPending);
-
-    startTransition = (callback: () => void) => {
-      setPending(true);
-      isPending = true;
-      callback();
-      originalReact.startTransition(() => {
-        setPending(false);
-        isPending = false;
-      });
-    };
-
-    return [pending, startTransition];
-  };
-
-  return {
-    ...originalReact,
-    useTransition,
-  };
-});
-
 const mockJournalEntries = [
   {
     id: "entry-1",
@@ -74,12 +45,6 @@ describe("useJournal", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     window.confirm = jest.fn(() => true);
-    jest.useFakeTimers(); // Add this
-  });
-
-  afterEach(() => {
-    jest.runOnlyPendingTimers(); // Add this
-    jest.useRealTimers(); // Add this
   });
 
   it("adds a new journal entry successfully", async () => {
@@ -98,7 +63,6 @@ describe("useJournal", () => {
 
     await act(async () => {
       result.current.handleCreateEntry();
-      jest.runAllTimers(); // Add this
     });
 
     await waitFor(() => {
@@ -118,7 +82,6 @@ describe("useJournal", () => {
 
     await act(async () => {
       result.current.handleCreateEntry();
-      jest.runAllTimers(); // Add this
     });
 
     await waitFor(() => {
@@ -138,13 +101,15 @@ describe("useJournal", () => {
       useJournal(mockJournalEntries, "user-123"),
     );
 
-    await act(async () => {
+    act(() => {
       result.current.setEntries((prev) =>
         prev.map((e) => (e.id === "entry-1" ? updatedEntry : e)),
       );
       result.current.setHasUnsavedChanges(true);
+    });
+
+    await act(async () => {
       result.current.handleSaveEntry();
-      jest.runAllTimers(); // Add this
     });
 
     await waitFor(() => {
@@ -163,10 +128,12 @@ describe("useJournal", () => {
       useJournal(mockJournalEntries, "user-123"),
     );
 
-    await act(async () => {
+    act(() => {
       result.current.setHasUnsavedChanges(true);
+    });
+
+    await act(async () => {
       result.current.handleSaveEntry();
-      jest.runAllTimers(); // Add this
     });
 
     await waitFor(() => {
@@ -187,7 +154,6 @@ describe("useJournal", () => {
 
     await act(async () => {
       await result.current.handleDeleteEntry("entry-1");
-      jest.runAllTimers(); // Add this
     });
 
     await waitFor(() => {
@@ -209,7 +175,6 @@ describe("useJournal", () => {
 
     await act(async () => {
       await result.current.handleDeleteEntry("entry-1");
-      jest.runAllTimers(); // Add this
     });
 
     await waitFor(() => {
