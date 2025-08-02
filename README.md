@@ -213,9 +213,7 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 
 This project is open-source and available under the [MIT License](LICENSE).
 
-````
-
-```plaintext file="LICENSE"
+```plaintext
 MIT License
 
 Copyright (c) 2025 John Wesley Quintero
