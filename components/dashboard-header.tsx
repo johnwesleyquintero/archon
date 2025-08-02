@@ -3,9 +3,9 @@
 import { Menu } from "lucide-react";
 
 import { MobileNavSheet } from "@/components/dashboard/mobile-nav-sheet";
-import { NotificationsButton } from "@/components/dashboard/notifications-button";
-import { SearchBar } from "@/components/dashboard/search-bar";
-import { UserMenu } from "@/components/dashboard/user-menu";
+import { NotificationsButton } from "@/components/dashboard/header/notifications-button";
+import { SearchBar } from "@/components/dashboard/controls/search-bar";
+import { UserMenu } from "@/components/dashboard/header/user-menu";
 import { Button } from "@/components/ui/button";
 
 interface DashboardHeaderProps {

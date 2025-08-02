@@ -10,7 +10,7 @@ import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
 import { AddWidgetDialog } from "./add-widget-dialog";
 
 import { DashboardWidget } from "./dashboard-widget";
-import { DashboardControlBar } from "./dashboard/dashboard-control-bar";
+import { DashboardControlBar } from "./dashboard/controls/dashboard-control-bar";
 import { CustomizationHelpText } from "./dashboard/customization-help-text";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);

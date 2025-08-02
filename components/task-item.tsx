@@ -61,7 +61,7 @@ interface TaskItemProps
  * />
  * ```
  */
-export function TaskItem({
+export const TaskItem = React.memo(function TaskItem({
   id,
   title,
   is_completed,
@@ -222,4 +222,4 @@ export function TaskItem({
       )}
     </div>
   );
-}
+});

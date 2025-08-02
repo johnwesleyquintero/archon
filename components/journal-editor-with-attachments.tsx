@@ -21,9 +21,23 @@ import { journalEntrySchema } from "@/lib/validators";
 import type { z } from "zod";
 import type { Database } from "@/lib/supabase/types";
 import Image from "next/image";
-import { Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/components/ui/spinner"; // Re-add for direct usage in this component
 import { useDebounce } from "@/hooks/use-debounce";
-import { TipTapEditor, type TipTapEditorRef } from "./quill-editor"; // Renamed and updated import
+import dynamic from "next/dynamic";
+
+const TipTapEditor = dynamic(
+  () => import("./quill-editor").then((mod) => mod.TipTapEditor),
+  {
+    ssr: false, // This component uses client-side hooks, so disable SSR
+    loading: () => (
+      <div className="flex-1 flex items-center justify-center">
+        <Spinner className="h-8 w-8" />
+      </div>
+    ),
+  },
+);
+
+type TipTapEditorRef = import("./quill-editor").TipTapEditorRef; // Re-export the type for local use
 
 type Attachment = {
   url: string;
