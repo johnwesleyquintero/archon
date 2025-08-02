@@ -7,29 +7,10 @@ import type { Database } from "@/lib/supabase/types";
 import type { Task } from "@/lib/types/task";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/use-toast";
+import { convertRawTaskToTask } from "@/lib/utils";
 
 // Define the raw task type from the database
 type RawTask = Database["public"]["Tables"]["tasks"]["Row"];
-
-// Helper function to convert RawTask to Task with proper tags type
-const convertRawTaskToTask = (rawTask: RawTask): Task => {
-  let processedTags: string[] | null = null;
-
-  if (rawTask.tags !== null) {
-    if (Array.isArray(rawTask.tags)) {
-      // Filter out any non-string values
-      processedTags = rawTask.tags.filter((tag) => typeof tag === "string");
-    } else if (typeof rawTask.tags === "string") {
-      // If it's a single string, convert to array
-      processedTags = [rawTask.tags];
-    }
-  }
-
-  return {
-    ...rawTask,
-    tags: processedTags,
-  };
-};
 
 export function useTaskFetching(initialTasks: Task[] = []) {
   const { user } = useAuth();

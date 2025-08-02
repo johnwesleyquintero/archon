@@ -2,6 +2,8 @@
 
 import { useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { TaskInput } from "./task-input";
 import { TaskList } from "./task-list";
 import { useTasks } from "@/hooks/use-tasks";
@@ -13,24 +15,14 @@ type Task = Database["public"]["Tables"]["tasks"]["Row"];
 
 interface TodoListProps {
   initialTasks?: Task[];
-  error?: boolean;
+  errorMessage?: string | null;
 }
 
-export function TodoList({ initialTasks, error }: TodoListProps) {
+export function TodoList({ initialTasks, errorMessage }: TodoListProps) {
   const { addTask, isMutating } = useTasks(initialTasks);
   const { user } = useAuth();
   const taskInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Error fetching tasks",
-        description: "There was an issue loading your tasks. Please try again later.",
-        variant: "destructive",
-      });
-    }
-  }, [error, toast]);
 
   const handleAddTaskClick = () => {
     taskInputRef.current?.focus();
@@ -42,6 +34,13 @@ export function TodoList({ initialTasks, error }: TodoListProps) {
         <CardTitle>Todo List</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-4">
+        {errorMessage && (
+          <Alert variant="destructive" className="mb-4">
+            <ExclamationTriangleIcon className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
         <TaskList onAddTaskClick={handleAddTaskClick} />
         <TaskInput
           ref={taskInputRef}

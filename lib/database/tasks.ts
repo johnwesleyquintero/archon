@@ -59,7 +59,7 @@ export async function getTasks(): Promise<Task[]> {
 
   if (error) {
     console.error("Error fetching tasks:", error);
-    return [];
+    throw new Error(`Failed to fetch tasks: ${error.message}`);
   }
 
 
