@@ -1,3 +1,4 @@
+// Minor change to trigger Vercel rebuild
 import { type NextRequest, NextResponse } from "next/server";
 
 import { put } from "@vercel/blob";

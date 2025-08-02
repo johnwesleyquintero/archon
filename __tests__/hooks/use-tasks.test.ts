@@ -53,17 +53,11 @@ describe("useTasks", () => {
     let result: any;
     await act(async () => {
       ({ result } = renderHook(() => useTasks()));
-    });
-
-    // Advance timers to allow useEffect to run
-    act(() => {
-      jest.runAllTimers();
+      jest.runAllTimers(); // Advance timers immediately after render
     });
 
     // Initial state should be loading (after the fetch is initiated)
-    await waitFor(() => {
-      expect(result.current.loading).toBe(true);
-    });
+    expect(result.current.loading).toBe(true);
     expect(result.current.tasks).toEqual([]);
 
     // Resolve the promise to simulate fetch completion

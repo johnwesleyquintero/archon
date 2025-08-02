@@ -31,16 +31,32 @@ jest.mock("@/hooks/use-toast", () => ({
 }));
 
 // Mock useTransition to be synchronous
-jest.mock("react", () => ({
-  ...jest.requireActual("react"),
-  useTransition: () => [
-    false,
-    (callback: () => void) => {
-      // Simulate asynchronous transition
-      setTimeout(callback, 0);
-    },
-  ],
-}));
+jest.mock("react", () => {
+  const originalReact = jest.requireActual("react");
+  let isPending = false;
+  let startTransition;
+
+  const useTransition = () => {
+    const [pending, setPending] = originalReact.useState(isPending);
+
+    startTransition = (callback: () => void) => {
+      setPending(true);
+      isPending = true;
+      callback();
+      originalReact.startTransition(() => {
+        setPending(false);
+        isPending = false;
+      });
+    };
+
+    return [pending, startTransition];
+  };
+
+  return {
+    ...originalReact,
+    useTransition,
+  };
+});
 
 const mockJournalEntries = [
   {
@@ -58,6 +74,12 @@ describe("useJournal", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     window.confirm = jest.fn(() => true);
+    jest.useFakeTimers(); // Add this
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers(); // Add this
+    jest.useRealTimers(); // Add this
   });
 
   it("adds a new journal entry successfully", async () => {
@@ -76,6 +98,7 @@ describe("useJournal", () => {
 
     await act(async () => {
       result.current.handleCreateEntry();
+      jest.runAllTimers(); // Add this
     });
 
     await waitFor(() => {
@@ -95,6 +118,7 @@ describe("useJournal", () => {
 
     await act(async () => {
       result.current.handleCreateEntry();
+      jest.runAllTimers(); // Add this
     });
 
     await waitFor(() => {
@@ -120,6 +144,7 @@ describe("useJournal", () => {
       );
       result.current.setHasUnsavedChanges(true);
       result.current.handleSaveEntry();
+      jest.runAllTimers(); // Add this
     });
 
     await waitFor(() => {
@@ -141,6 +166,7 @@ describe("useJournal", () => {
     await act(async () => {
       result.current.setHasUnsavedChanges(true);
       result.current.handleSaveEntry();
+      jest.runAllTimers(); // Add this
     });
 
     await waitFor(() => {
@@ -161,6 +187,7 @@ describe("useJournal", () => {
 
     await act(async () => {
       await result.current.handleDeleteEntry("entry-1");
+      jest.runAllTimers(); // Add this
     });
 
     await waitFor(() => {
@@ -182,6 +209,7 @@ describe("useJournal", () => {
 
     await act(async () => {
       await result.current.handleDeleteEntry("entry-1");
+      jest.runAllTimers(); // Add this
     });
 
     await waitFor(() => {

@@ -1,3 +1,4 @@
+// Minor change to trigger Vercel rebuild
 "use client";
 
 import Link from "next/link";

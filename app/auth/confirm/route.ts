@@ -1,3 +1,4 @@
+// Minor change to trigger Vercel rebuild
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 
