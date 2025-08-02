@@ -1,8 +1,13 @@
 "use client";
 
-import Head from "next/head";
 import * as Sentry from "@sentry/nextjs";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useDataState } from "@/hooks/use-data-state";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
+import { EmptyState } from "@/components/empty-state";
+import { ErrorState } from "@/components/error-state"; // Corrected import path
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 class SentryExampleFrontendError extends Error {
   constructor(message: string | undefined) {
@@ -12,28 +17,87 @@ class SentryExampleFrontendError extends Error {
 }
 
 export default function Page() {
-  const [hasSentError, setHasSentError] = useState(false);
-  const [isConnected, setIsConnected] = useState(true);
+  const {
+    data: isConnected,
+    isLoading: checkingConnectivity,
+    error: connectivityError,
+    refetch: checkConnectivity,
+  } = useDataState({
+    fetcher: async () => {
+      const result = await Sentry.diagnoseSdkConnectivity();
+      if (result === "sentry-unreachable") {
+        throw new Error(
+          "Network requests to Sentry are being blocked, which will prevent errors from being captured. Try disabling your ad-blocker to complete the test.",
+        );
+      }
+      return true;
+    },
+    initialData: false,
+    skip: false,
+  });
 
-  useEffect(() => {
-    async function checkConnectivity() {
-      await Sentry.diagnoseSdkConnectivity()
-        .then((result) => setIsConnected(result !== "sentry-unreachable"))
-        .catch((error) => {
-          console.error("Failed to diagnose SDK connectivity:", error);
-          setIsConnected(false); // Assume not connected on error
-        });
-    }
-    void checkConnectivity();
-  }, []);
+  const [hasSentError, setHasSentError] = useState(false);
+
+  const handleThrowError = async () => {
+    setHasSentError(false); // Reset error state on new attempt
+    Sentry.startSpan(
+      {
+        name: "Example Frontend/Backend Span",
+        op: "test",
+      },
+      async (span) => {
+        try {
+          const res = await fetch("/api/sentry-example-api");
+
+          if (!res.ok) {
+            throw new SentryExampleFrontendError(
+              "This error is raised on the frontend of the example page.",
+            );
+          }
+          // If successful, you might want to clear any previous error messages
+          setHasSentError(false);
+        } catch (error) {
+          Sentry.captureException(error);
+          setHasSentError(true);
+          span.setStatus("internal_error" as any); // Confirmed valid SpanStatus, bypassing strict type check
+        }
+      },
+    );
+  };
+
+  if (checkingConnectivity) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSkeleton />
+      </div>
+    );
+  }
+
+  if (connectivityError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <ErrorState
+          title="Connectivity Issue"
+          message={connectivityError}
+          onRetry={checkConnectivity}
+        />
+      </div>
+    );
+  }
+
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <EmptyState
+          title="Sentry Not Connected"
+          description="It looks like network requests to Sentry are being blocked, which will prevent errors from being captured. Try disabling your ad-blocker to complete the test."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 font-sans">
-      <Head>
-        <title>sentry-example-page</title>
-        <meta name="description" content="Test Sentry for your Next.js app!" />
-      </Head>
-
       <main className="flex flex-col items-center justify-center gap-4 p-4 font-sans">
         <div className="flex-grow" />
         <svg
@@ -71,61 +135,20 @@ export default function Page() {
           .
         </p>
 
-        <button
+        <Button
           type="button"
-          onClick={() => {
-            Sentry.startSpan(
-              {
-                name: "Example Frontend/Backend Span",
-                op: "test",
-              },
-              async () => {
-                try {
-                  const res = await fetch("/api/sentry-example-api").catch(
-                    (fetchError) => {
-                      console.error("Fetch error:", fetchError);
-                      Sentry.captureException(fetchError);
-                      setHasSentError(true); // Indicate an error occurred
-                      return null; // Return null to avoid further processing
-                    },
-                  );
-
-                  if (!res || !res.ok) {
-                    setHasSentError(true);
-                    throw new SentryExampleFrontendError(
-                      "This error is raised on the frontend of the example page.",
-                    );
-                  }
-                } catch (error) {
-                  console.error("Error in onClick handler:", error);
-                  Sentry.captureException(error);
-                }
-              },
-            ).catch((spanError) => {
-              console.error("Error in Sentry span:", spanError);
-              Sentry.captureException(spanError);
-            });
-          }}
+          onClick={handleThrowError}
           disabled={!isConnected}
-          className="rounded-lg text-white cursor-pointer bg-purple-700 border-none p-0 mt-1 [&>span]:inline-block [&>span]:py-3 [&>span]:px-4 [&>span]:rounded-inherit [&>span]:text-lg [&>span]:font-bold [&>span]:leading-none [&>span]:bg-purple-500 [&>span]:border [&>span]:border-purple-700 [&>span]:-translate-y-1 [&:hover>span]:-translate-y-2 [&:active>span]:translate-y-0 [&:disabled]:cursor-not-allowed [&:disabled]:opacity-60 [&:disabled>span]:translate-y-0 [&:disabled>span]:border-none"
+          className="mt-1"
         >
-          <span>Throw Sample Error</span>
-        </button>
+          Throw Sample Error
+        </Button>
 
-        {hasSentError ? (
-          <p className="py-3 px-4 rounded-lg text-lg leading-none bg-green-500 border border-green-600 text-gray-900">
-            Error sent to Sentry.
-          </p>
-        ) : !isConnected ? (
-          <div className="py-3 px-4 bg-red-600 rounded-lg w-full max-w-md text-white border border-red-800 text-center m-0">
-            <p>
-              It looks like network requests to Sentry are being blocked, which
-              will prevent errors from being captured. Try disabling your
-              ad-blocker to complete the test.
-            </p>
-          </div>
-        ) : (
-          <div className="h-11" />
+        {hasSentError && (
+          <Alert className="mt-4" variant="default">
+            <AlertTitle>Error Sent</AlertTitle>
+            <AlertDescription>Error sent to Sentry.</AlertDescription>
+          </Alert>
         )}
 
         <div className="flex-grow" />
