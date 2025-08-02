@@ -3,6 +3,23 @@ import "@testing-library/jest-dom";
 import * as React from "react";
 import { TextEncoder, TextDecoder } from "util"; // Node.js 'util' module for polyfill
 import ResizeObserverPolyfill from "resize-observer-polyfill";
+// Mock node-fetch and form-data to avoid ES module issues in Jest
+jest.mock("node-fetch", () => ({
+  __esModule: true,
+  default: {
+    Request: class Request {},
+    Response: class Response {},
+    Headers: class Headers {},
+  },
+}));
+
+jest.mock("form-data", () => {
+  return class FormDataMock {
+    append() {}
+  };
+});
+
+// Re-import after mocking to ensure the mocks are used
 import nodeFetch from "node-fetch";
 import FormData from "form-data";
 
