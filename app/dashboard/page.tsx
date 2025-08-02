@@ -1,5 +1,4 @@
 import * as Sentry from "@sentry/nextjs";
-import { toast } from "sonner";
 import { CustomizableDashboardLayout } from "@/components/customizable-dashboard-layout";
 import { getDashboardSettings } from "@/lib/database/dashboard-settings";
 import { getGoals } from "@/lib/database/goals";

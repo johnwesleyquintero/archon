@@ -80,7 +80,9 @@ export function JournalInterface({
             selectedEntryId={selectedEntryId}
             onSelectEntry={(id) => handleSelectEntry(id)}
             onCreateEntry={() => handleCreateEntry()}
-            onDeleteEntry={(id) => handleDeleteEntry(id)}
+            onDeleteEntry={(id) => {
+              void handleDeleteEntry(id);
+            }}
             isMutating={isMutating}
           />
         </div>

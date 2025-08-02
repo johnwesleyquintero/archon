@@ -60,8 +60,10 @@ describe("useTasks", () => {
       jest.runAllTimers();
     });
 
-    // Initial state should be loading
-    expect(result.current.loading).toBe(true);
+    // Initial state should be loading (after the fetch is initiated)
+    await waitFor(() => {
+      expect(result.current.loading).toBe(true);
+    });
     expect(result.current.tasks).toEqual([]);
 
     // Resolve the promise to simulate fetch completion

@@ -25,11 +25,11 @@ export const metadata: Metadata = {
   description: "Reset your password",
 };
 
+import type { PageProps } from "@/app/types"; // Import PageProps
+
 export default function ForgotPasswordPage({
   searchParams,
-}: {
-  searchParams?: URLSearchParams | undefined;
-}) {
+}: PageProps) {
   const forgotPassword = async (formData: FormData) => {
     "use server";
 
@@ -119,15 +119,13 @@ export default function ForgotPasswordPage({
             {searchParams?.message && (
               <Alert
                 variant={
-                  searchParams
-                    .get("message")
-                    ?.includes("Password reset email sent")
+                  searchParams.message.includes("Password reset email sent")
                     ? "default"
                     : "destructive"
                 }
               >
                 <AlertDescription className="text-sm">
-                  {searchParams.get("message")}
+                  {searchParams.message}
                 </AlertDescription>
               </Alert>
             )}

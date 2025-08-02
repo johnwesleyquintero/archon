@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
@@ -9,7 +9,6 @@ import { TaskList } from "./task-list";
 import { useTasks } from "@/hooks/use-tasks";
 import { useAuth } from "@/contexts/auth-context";
 import type { Database } from "@/lib/supabase/types";
-import { useToast } from "@/components/ui/use-toast";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
 
@@ -22,7 +21,6 @@ export function TodoList({ initialTasks, errorMessage }: TodoListProps) {
   const { addTask, isMutating } = useTasks(initialTasks);
   const { user } = useAuth();
   const taskInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
 
   const handleAddTaskClick = () => {
     taskInputRef.current?.focus();

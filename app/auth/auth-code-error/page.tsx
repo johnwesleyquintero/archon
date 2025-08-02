@@ -1,6 +1,5 @@
 "use client";
 
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ArchonLogoSVG } from "@/components/archon-logo-svg";

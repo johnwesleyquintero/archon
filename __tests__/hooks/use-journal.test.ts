@@ -33,7 +33,13 @@ jest.mock("@/hooks/use-toast", () => ({
 // Mock useTransition to be synchronous
 jest.mock("react", () => ({
   ...jest.requireActual("react"),
-  useTransition: () => [false, (callback: () => void) => callback()],
+  useTransition: () => [
+    false,
+    (callback: () => void) => {
+      // Simulate asynchronous transition
+      setTimeout(callback, 0);
+    },
+  ],
 }));
 
 const mockJournalEntries = [
