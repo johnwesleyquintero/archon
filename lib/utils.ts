@@ -148,3 +148,21 @@ export const apiErrorResponse = (
     { status, headers: { "Content-Type": "application/json" } },
   );
 };
+
+/**
+ * Extracts a user-friendly error message from an unknown error type.
+ * This utility is useful for displaying error messages in the UI or logs
+ * when the exact type of the error is not known.
+ *
+ * @param error - The unknown error object.
+ * @returns A string representation of the error message.
+ */
+export const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  return "An unexpected error occurred.";
+};

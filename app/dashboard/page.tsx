@@ -1,5 +1,4 @@
 import * as Sentry from "@sentry/nextjs";
-const { logger } = Sentry;
 import { toast } from "sonner";
 import { CustomizableDashboardLayout } from "@/components/customizable-dashboard-layout";
 import { getDashboardSettings } from "@/lib/database/dashboard-settings";
@@ -11,6 +10,7 @@ import type { Database } from "@/lib/supabase/types";
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 import { mergeLayouts } from "@/lib/dashboard-utils";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getErrorMessage } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -25,6 +25,7 @@ export default async function DashboardPage() {
   const availableWidgets = getAvailableWidgets(initialGoals);
 
   let initialLayout = DEFAULT_LAYOUT;
+  let dashboardSettingsError: string | null = null;
   try {
     if (user) {
       const storedLayout = await getDashboardSettings(user.id);
@@ -33,11 +34,13 @@ export default async function DashboardPage() {
       }
     }
   } catch (error: unknown) {
-    logger.error("Failed to load dashboard settings:", {
-      error: error instanceof Error ? error.message : String(error),
+    dashboardSettingsError = getErrorMessage(error);
+    Sentry.captureException(error, {
+      extra: {
+        context: "Dashboard Settings Loading",
+        errorMessage: dashboardSettingsError,
+      },
     });
-    Sentry.captureException(error);
-    toast.error("Failed to load dashboard settings. Using default layout.");
   }
 
   return (
@@ -45,6 +48,7 @@ export default async function DashboardPage() {
       <CustomizableDashboardLayout
         widgets={availableWidgets}
         initialLayout={initialLayout}
+        dashboardSettingsError={dashboardSettingsError}
         className="min-h-screen"
       />
     </div>

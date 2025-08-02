@@ -22,6 +22,7 @@ import { taskSchema } from "@/lib/validators";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Zod from "zod"; // Changed from import type { z } from "zod";
+import { handleError } from "@/lib/utils";
 import {
   Form,
   FormControl,
@@ -66,7 +67,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
         form.reset(); // Reset form after successful submission
       } catch (err: unknown) {
         // Explicitly type err as unknown
-        console.error("Error adding task:", err);
+        handleError(err, "TaskInput");
         // Set form error if needed, though onAddTask might handle it
         if (err instanceof Zod.ZodError) {
           err.errors.forEach((error: Zod.ZodIssue) => {

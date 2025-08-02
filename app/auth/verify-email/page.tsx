@@ -18,7 +18,7 @@ export default function VerifyEmailPage() {
     // or that the session somehow persists enough info.
     // A more robust solution would involve a server action to resend.
     // For now, we'll just log a message.
-    console.log("Resend email functionality needs to be implemented.");
+  
     // Example:
     // const { error } = await supabase.auth.resend({
     //   type: 'signup',

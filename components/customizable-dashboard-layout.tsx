@@ -33,16 +33,21 @@ export interface Widget<P = Record<string, unknown>> {
   maxH?: number;
 }
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { TriangleAlert } from "lucide-react";
+
 interface CustomizableDashboardLayoutProps {
   widgets: Widget[];
   initialLayout?: DashboardLayoutItem[];
   className?: string;
+  dashboardSettingsError?: string | null;
 }
 
 export function CustomizableDashboardLayout({
   widgets,
   initialLayout = [],
   className = "",
+  dashboardSettingsError = null,
 }: CustomizableDashboardLayoutProps) {
   const [isCustomizing, setIsCustomizing] = useState(false);
   const {
@@ -90,7 +95,7 @@ export function CustomizableDashboardLayout({
     config: { title: string },
   ) => {
     // This is a placeholder. In a real app, you'd save this to a DB.
-    console.log(`Saving config for ${widgetId}:`, config);
+
     // For now, we'll just update the layout in memory.
     const newLayout = currentLayout.map((item) => {
       if (item.i === widgetId) {
@@ -145,6 +150,16 @@ export function CustomizableDashboardLayout({
 
   return (
     <div className={`space-y-4 ${className}`}>
+      {dashboardSettingsError && (
+        <Alert variant="destructive">
+          <TriangleAlert className="h-4 w-4" />
+          <AlertTitle>Error Loading Dashboard Settings</AlertTitle>
+          <AlertDescription>
+            {dashboardSettingsError}. Using default layout.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Control Bar */}
       <DashboardControlBar
         isCustomizing={isCustomizing}
@@ -187,7 +202,7 @@ export function CustomizableDashboardLayout({
                 isCustomizing={isCustomizing}
                 onRemove={() => {
                   // Handle widget removal if needed
-                  console.log(`Remove widget: ${widget.id}`);
+              
                 }}
                 onToggleVisibility={() =>
                   handleToggleWidgetVisibility(widget.id)

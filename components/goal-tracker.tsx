@@ -49,7 +49,7 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
       // This would ideally be a server action or API call to get fresh data
       // For now, we'll just simulate a refresh.
       // In a real app, you'd call getGoals() here.
-      console.log("Refreshing goals...");
+  
     } catch (err) {
       console.error("Error refreshing goals:", err);
     } finally {
@@ -70,7 +70,7 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
   const handleSaveGoal = async (goalData: GoalFormValues, goalId?: string) => {
     setIsSaving(true);
     // Here you would call your API to save or update the goal
-    console.log("Saving goal:", goalData, goalId);
+
     await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
     setIsSaving(false);
     setModalOpen(false);

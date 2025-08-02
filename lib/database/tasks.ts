@@ -42,7 +42,7 @@ async function createClient() {
 
 export async function getTasks(): Promise<Task[]> {
   const supabase = await createClient();
-  console.log("Supabase client created in getTasks.");
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -62,7 +62,7 @@ export async function getTasks(): Promise<Task[]> {
     return [];
   }
 
-  console.log("Tasks fetched successfully.", data);
+
   // Map the data to ensure 'tags' is of type string[] | null
   const typedData: Task[] = data.map((task) => ({
     ...task,

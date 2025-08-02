@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Task } from "@/lib/types/task";
+import { handleError } from "@/lib/utils";
 
 export function useTaskItem({
   id,
@@ -28,8 +29,8 @@ export function useTaskItem({
     setIsToggling(true);
     try {
       await onToggle(id, is_completed);
-    } catch (error) {
-      console.error("Error toggling task:", error);
+    } catch (error: unknown) {
+      handleError(error, "useTaskItem:toggle");
       // Optionally, show a toast notification
     } finally {
       setIsToggling(false);
@@ -41,8 +42,8 @@ export function useTaskItem({
     setIsDeleting(true);
     try {
       await onDelete(id);
-    } catch (error) {
-      console.error("Error deleting task:", error);
+    } catch (error: unknown) {
+      handleError(error, "useTaskItem:delete");
       // Optionally, show a toast notification
     } finally {
       setIsDeleting(false);
@@ -58,8 +59,8 @@ export function useTaskItem({
     setIsEditing(false);
     try {
       await onUpdate(id, { title: newTitle.trim() });
-    } catch (error) {
-      console.error("Error updating task:", error);
+    } catch (error: unknown) {
+      handleError(error, "useTaskItem:update");
       // Optionally, show a toast notification
     }
   };

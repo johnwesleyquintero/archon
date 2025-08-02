@@ -78,12 +78,12 @@ export function useTaskMutations({
           } else {
             throw new Error("Failed to add task.");
           }
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.error("Error adding task:", err);
-          setError(err.message || "Failed to add task.");
+          setError(err instanceof Error ? err.message : "Failed to add task.");
           toast({
             title: "Error",
-            description: err.message || "Failed to add task.",
+            description: err instanceof Error ? err.message : "Failed to add task.",
             variant: "destructive",
           });
           setTasks((prev) => prev.filter((task) => task.id !== tempId));

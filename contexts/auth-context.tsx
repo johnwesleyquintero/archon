@@ -156,8 +156,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: null };
     } catch (err) {
       const typedError = err instanceof Error ? err : new Error(String(err));
-      const status = (err as any).status || 500;
-      const code = (err as any).code || "CLIENT_ERROR";
+      const status = (err instanceof SupabaseAuthError && err.status) ? err.status : 500;
+      const code = (err instanceof SupabaseAuthError && err.code) ? err.code : "CLIENT_ERROR";
       // Correctly instantiate SupabaseAuthError
       const supabaseError = new SupabaseAuthError(
         typedError.message,

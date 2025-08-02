@@ -34,8 +34,8 @@ export function useDataState<T>({
     try {
       const result = await fetcher();
       setData(result);
-    } catch (err: any) {
-      setError(err.message || "An unknown error occurred.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred.");
       setData(null); // Clear data on error
     } finally {
       setIsLoading(false);

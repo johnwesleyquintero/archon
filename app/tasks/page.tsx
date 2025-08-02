@@ -11,12 +11,13 @@ export default async function TasksPage() {
   } = await supabase.auth.getUser();
 
   let initialTasks: Task[] = [];
+  let hasError = false;
   if (user) {
     try {
       initialTasks = await getTasks();
     } catch (error) {
       console.error("Error fetching tasks in TasksPage:", error);
-      // Optionally, handle the error gracefully, e.g., display an error message to the user
+      hasError = true;
     }
   }
 
@@ -24,7 +25,7 @@ export default async function TasksPage() {
     <DashboardLayout>
       <div className="flex flex-col gap-6">
         <h1 className="text-2xl font-bold text-slate-900">Tasks</h1>
-        <TodoList initialTasks={initialTasks} />
+        <TodoList initialTasks={initialTasks} error={hasError} />
       </div>
     </DashboardLayout>
   );
