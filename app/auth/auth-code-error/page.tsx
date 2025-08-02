@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 interface AuthCodeErrorPageProps {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: Record<string, string | string[] | undefined>;
 }
 
 export default function AuthCodeErrorPage({

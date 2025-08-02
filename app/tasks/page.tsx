@@ -1,4 +1,5 @@
 import { TodoList } from "@/components/todo-list";
+import { Task } from "@/lib/types/task";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { getTasks } from "@/lib/database/tasks";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -9,7 +10,15 @@ export default async function TasksPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const initialTasks = user ? await getTasks() : [];
+  let initialTasks: Task[] = [];
+  if (user) {
+    try {
+      initialTasks = await getTasks();
+    } catch (error) {
+      console.error("Error fetching tasks in TasksPage:", error);
+      // Optionally, handle the error gracefully, e.g., display an error message to the user
+    }
+  }
 
   return (
     <DashboardLayout>

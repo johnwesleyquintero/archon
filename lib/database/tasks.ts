@@ -4,13 +4,14 @@ import { revalidatePath } from "next/cache";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/lib/supabase/types";
-
-type Task = Database["public"]["Tables"]["tasks"]["Row"];
+import { Task } from "@/lib/types/task";
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
 
 async function createClient() {
   const cookieStore = await cookies();
+
+
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -41,6 +42,7 @@ async function createClient() {
 
 export async function getTasks(): Promise<Task[]> {
   const supabase = await createClient();
+  console.log("Supabase client created in getTasks.");
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -60,7 +62,13 @@ export async function getTasks(): Promise<Task[]> {
     return [];
   }
 
-  return data;
+  console.log("Tasks fetched successfully.", data);
+  // Map the data to ensure 'tags' is of type string[] | null
+  const typedData: Task[] = data.map((task) => ({
+    ...task,
+    tags: Array.isArray(task.tags) ? (task.tags as string[]) : null,
+  }));
+  return typedData;
 }
 
 export async function addTask(
@@ -94,7 +102,11 @@ export async function addTask(
   }
 
   revalidatePath("/dashboard");
-  return data;
+  const typedData: Task = {
+    ...data,
+    tags: Array.isArray(data.tags) ? (data.tags as string[]) : null,
+  };
+  return typedData;
 }
 
 export async function toggleTask(
@@ -124,7 +136,11 @@ export async function toggleTask(
   }
 
   revalidatePath("/dashboard");
-  return data;
+  const typedData: Task = {
+    ...data,
+    tags: Array.isArray(data.tags) ? (data.tags as string[]) : null,
+  };
+  return typedData;
 }
 
 export async function deleteTask(id: string): Promise<void> {
@@ -178,5 +194,9 @@ export async function updateTask(
   }
 
   revalidatePath("/dashboard");
-  return data;
+  const typedData: Task = {
+    ...data,
+    tags: Array.isArray(data.tags) ? (data.tags as string[]) : null,
+  };
+  return typedData;
 }

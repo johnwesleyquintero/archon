@@ -48,7 +48,7 @@ export function AppFooter() {
           text-center text-gray-600 dark:text-gray-400
         "
         >
-          <p>&copy; 2024 Archon. All rights reserved.</p>
+          <p>&copy; 2025 Archon. All rights reserved.</p>
         </div>
       </div>
     </footer>
