@@ -14,10 +14,9 @@ type Task = Database["public"]["Tables"]["tasks"]["Row"];
 
 interface TodoListProps {
   initialTasks?: Task[];
-  errorMessage?: string | null;
 }
 
-export function TodoList({ initialTasks, errorMessage }: TodoListProps) {
+export function TodoList({ initialTasks }: TodoListProps) {
   const { addTask, isMutating } = useTasks(initialTasks);
   const { user } = useAuth();
   const taskInputRef = useRef<HTMLInputElement>(null);
@@ -32,13 +31,7 @@ export function TodoList({ initialTasks, errorMessage }: TodoListProps) {
         <CardTitle>Todo List</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-4">
-        {errorMessage && (
-          <Alert variant="destructive" className="mb-4">
-            <ExclamationTriangleIcon className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{errorMessage}</AlertDescription>
-          </Alert>
-        )}
+
         <TaskList onAddTaskClick={handleAddTaskClick} />
         <TaskInput
           ref={taskInputRef}
