@@ -97,9 +97,7 @@ const KanbanPage = () => {
 
         setTasks((prevTasks) =>
           prevTasks.map((task) =>
-            task.id === activeId
-              ? { ...task, status: newStatus }
-              : task,
+            task.id === activeId ? { ...task, status: newStatus } : task,
           ),
         );
       } else {

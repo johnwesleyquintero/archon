@@ -7,9 +7,9 @@ export async function GET() {
     return NextResponse.json(goals);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return new NextResponse(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return new NextResponse(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }

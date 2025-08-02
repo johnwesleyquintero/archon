@@ -41,7 +41,13 @@ type Task = Database["public"]["Tables"]["tasks"]["Row"];
 interface TaskItemProps
   extends Pick<
     Task,
-    "id" | "title" | "is_completed" | "due_date" | "priority" | "category" | "status"
+    | "id"
+    | "title"
+    | "is_completed"
+    | "due_date"
+    | "priority"
+    | "category"
+    | "status"
   > {
   tags: string[] | null; // Explicitly define tags as string[]
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
@@ -286,7 +292,9 @@ export const TaskItem = React.memo(function TaskItem({
               <Select
                 value={category || ""}
                 onValueChange={(newCategory) =>
-                  onUpdate(id, { category: newCategory === "__none__" ? null : newCategory })
+                  onUpdate(id, {
+                    category: newCategory === "__none__" ? null : newCategory,
+                  })
                 }
               >
                 <SelectTrigger className="h-8 text-sm">

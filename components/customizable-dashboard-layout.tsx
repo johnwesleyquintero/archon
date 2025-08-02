@@ -52,7 +52,8 @@ export function CustomizableDashboardLayout({
   goalsError = null,
 }: CustomizableDashboardLayoutProps) {
   const [isCustomizing, setIsCustomizing] = useState(false);
-  const [showDashboardSettingsError, setShowDashboardSettingsError] = useState(true);
+  const [showDashboardSettingsError, setShowDashboardSettingsError] =
+    useState(true);
   const [showGoalsError, setShowGoalsError] = useState(true);
   const {
     layout: currentLayout,

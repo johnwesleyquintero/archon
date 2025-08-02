@@ -176,10 +176,7 @@ export const getErrorMessage = (error: unknown): string => {
  * @param context - A string describing the context of the action for logging purposes.
  * @returns A new asynchronous function that wraps the original action with error handling.
  */
-export const withErrorHandling = <
-  Args extends unknown[],
-  Return,
->(
+export const withErrorHandling = <Args extends unknown[], Return>(
   actionFn: (...args: Args) => Promise<Return>,
   context: string,
 ) => {
