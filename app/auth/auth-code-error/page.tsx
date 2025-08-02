@@ -1,3 +1,5 @@
+"use client";
+
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -10,10 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export const metadata: Metadata = {
-  title: "Error - Authorization Code",
-  description: "Authorization code error page",
-};
+
 
 import { useSearchParams } from "next/navigation";
 
