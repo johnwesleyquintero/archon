@@ -10,7 +10,7 @@ if (!SENTRY_DSN) {
 } else {
   Sentry.init({
     dsn: SENTRY_DSN,
-    tracesSampleRate: 1.0,
+    tracesSampleRate: 0.1,
     _experiments: {
       enableLogs: true,
     },
