@@ -146,30 +146,32 @@ export function useJournal(
   }, [selectedEntry, hasUnsavedChanges, toast]);
 
   const handleDeleteEntry = useCallback(
-    async (entryId: string) => {
+    (entryId: string) => {
       if (
         window.confirm("Are you sure you want to delete this journal entry?")
       ) {
-        try {
-          await deleteJournalEntry(entryId);
-          setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
-          if (selectedEntryId === entryId) {
-            setSelectedEntryId(null);
+        startTransition(async () => {
+          try {
+            await deleteJournalEntry(entryId);
+            setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
+            if (selectedEntryId === entryId) {
+              setSelectedEntryId(null);
+            }
+            toast({
+              title: "Success!",
+              description: "Journal entry deleted.",
+            });
+          } catch (error) {
+            toast({
+              title: "Error",
+              description: "Failed to delete journal entry.",
+              variant: "destructive",
+            });
           }
-          toast({
-            title: "Success!",
-            description: "Journal entry deleted.",
-          });
-        } catch (error) {
-          toast({
-            title: "Error",
-            description: "Failed to delete journal entry.",
-            variant: "destructive",
-          });
-        }
+        });
       }
     },
-    [selectedEntryId, toast],
+    [selectedEntryId, toast, startTransition],
   );
 
   return {

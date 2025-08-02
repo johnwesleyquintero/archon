@@ -23,27 +23,29 @@ jest.mock("@/lib/supabase/client", () => ({
 
 // Mock useToast hook
 const mockToast = jest.fn();
-jest.mock("@/hooks/use-toast", () => ({
+
+jest.mock("@/components/ui/use-toast", () => ({
   useToast: () => ({
     toast: mockToast,
   }),
 }));
 
-const mockJournalEntries = [
-  {
-    id: "entry-1",
-    title: "Entry 1",
-    content: "Content 1",
-    attachments: [],
-    created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-01-01T00:00:00Z",
-    user_id: "user-123",
-  },
-];
-
 describe("useJournal", () => {
+  const mockJournalEntries = [
+    {
+      id: "entry-1",
+      title: "Entry 1",
+      content: "Content 1",
+      attachments: [],
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      user_id: "user-123",
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockToast.mockClear(); // Explicitly clear mock calls
     window.confirm = jest.fn(() => true);
   });
 
