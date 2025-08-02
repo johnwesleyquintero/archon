@@ -15,15 +15,12 @@ export const metadata: Metadata = {
   description: "Authorization code error page",
 };
 
-interface AuthCodeErrorPageProps {
-  searchParams?: Record<string, string | string[] | undefined>;
-}
+import { useSearchParams } from "next/navigation";
 
-export default function AuthCodeErrorPage({
-  searchParams,
-}: AuthCodeErrorPageProps) {
+export default function AuthCodeErrorPage() {
+  const searchParams = useSearchParams();
   const message =
-    (searchParams?.message as string) ||
+    searchParams.get("message") ||
     "An unexpected authentication error occurred. Please try again."; // More specific default message
 
   return (
