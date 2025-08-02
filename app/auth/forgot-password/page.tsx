@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 
 
 
-export default function ForgotPasswordPage({ searchParams }: { searchParams: { message: string } }) {
+export default function ForgotPasswordPage({ searchParams }: { params: { slug: string }; searchParams: { [key: string]: string | string[] | undefined }}) {
   const forgotPassword = async (formData: FormData) => {
     "use server";
 
