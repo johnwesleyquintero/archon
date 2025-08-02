@@ -66,7 +66,10 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
     setModalOpen(true);
   };
 
-  const handleSaveGoal = async (goalData: GoalFormValues, goalId?: string) => {
+  const handleSaveGoal = async (
+    _goalData: GoalFormValues,
+    _goalId?: string,
+  ) => {
     setIsSaving(true);
     // Here you would call your API to save or update the goal
 

@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 export default function ForgotPasswordPage({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: URLSearchParams | undefined;
 }) {
   const forgotPassword = async (formData: FormData) => {
     "use server";
@@ -119,15 +119,15 @@ export default function ForgotPasswordPage({
             {searchParams?.message && (
               <Alert
                 variant={
-                  String(searchParams.message).includes(
-                    "Password reset email sent",
-                  )
+                  searchParams
+                    .get("message")
+                    ?.includes("Password reset email sent")
                     ? "default"
                     : "destructive"
                 }
               >
                 <AlertDescription className="text-sm">
-                  {String(searchParams.message)}
+                  {searchParams.get("message")}
                 </AlertDescription>
               </Alert>
             )}

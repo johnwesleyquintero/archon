@@ -10,7 +10,7 @@
     "project": "./tsconfig.json"
   },
   "plugins": ["@typescript-eslint"],
-  "ignorePatterns": ["lib/supabase/types.generated.ts"],
+  "ignorePatterns": ["lib/supabase/types.generated.ts", "**/.next/**"],
   "rules": {
     // React rules
     "react/no-unescaped-entities": ["error", { "forbid": [">", "}"] }],

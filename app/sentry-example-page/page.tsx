@@ -59,7 +59,7 @@ export default function Page() {
         } catch (error) {
           Sentry.captureException(error);
           setHasSentError(true);
-          span.setStatus("internal_error" as any); // Confirmed valid SpanStatus, bypassing strict type check
+          span.setStatus("internal_error" as any); // Sentry type workaround
         }
       },
     );
@@ -79,7 +79,7 @@ export default function Page() {
         <ErrorState
           title="Connectivity Issue"
           message={connectivityError}
-          onRetry={checkConnectivity}
+          onRetry={() => checkConnectivity()}
         />
       </div>
     );
@@ -137,7 +137,7 @@ export default function Page() {
 
         <Button
           type="button"
-          onClick={handleThrowError}
+          onClick={() => handleThrowError()}
           disabled={!isConnected}
           className="mt-1"
         >

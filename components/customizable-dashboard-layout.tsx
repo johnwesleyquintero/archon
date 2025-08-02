@@ -92,7 +92,7 @@ export function CustomizableDashboardLayout({
 
   const handleSaveWidgetConfig = (
     widgetId: string,
-    config: { title: string },
+    _config: { title: string },
   ) => {
     // This is a placeholder. In a real app, you'd save this to a DB.
 

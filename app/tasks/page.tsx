@@ -15,9 +15,10 @@ export default async function TasksPage() {
   if (user) {
     try {
       initialTasks = await getTasks();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching tasks in TasksPage:", error);
-      errorMessage = error.message || "Failed to fetch tasks.";
+      errorMessage =
+        error instanceof Error ? error.message : "Failed to fetch tasks.";
     }
   }
 
