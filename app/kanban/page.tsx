@@ -32,27 +32,23 @@ const KanbanPage = () => {
 
   const columns = useMemo(() => {
     const initialColumns = [
-      { id: "low", title: "Low Priority", taskIds: [] as string[] },
-      { id: "medium", title: "Medium Priority", taskIds: [] as string[] },
-      { id: "high", title: "High Priority", taskIds: [] as string[] },
-      { id: "completed", title: "Completed", taskIds: [] as string[] },
+      { id: "todo", title: "To Do", taskIds: [] as string[] },
+      { id: "in-progress", title: "In Progress", taskIds: [] as string[] },
+      { id: "done", title: "Done", taskIds: [] as string[] },
     ];
 
     const tasksById: Record<string, Task> = {};
 
     tasks.forEach((task) => {
       tasksById[task.id] = task;
-      if (task.is_completed) {
-        initialColumns[3].taskIds.push(task.id);
-      } else if (task.priority) {
-        const columnIndex = initialColumns.findIndex(
-          (col) => col.id === task.priority,
-        );
-        if (columnIndex !== -1) {
-          initialColumns[columnIndex].taskIds.push(task.id);
-        }
+      const columnIndex = initialColumns.findIndex(
+        (col) => col.id === task.status,
+      );
+      if (columnIndex !== -1) {
+        initialColumns[columnIndex].taskIds.push(task.id);
       } else {
-        initialColumns[1].taskIds.push(task.id);
+        // Fallback for tasks without a valid status, assign to 'todo'
+        initialColumns[0].taskIds.push(task.id);
       }
     });
 
@@ -93,21 +89,16 @@ const KanbanPage = () => {
 
       if (oldColumnId !== newColumnId) {
         // Moving between columns
-        const newPriority =
-          newColumnId === "completed"
-            ? activeTask.priority
-            : (newColumnId as "low" | "medium" | "high");
-        const isCompleted = newColumnId === "completed";
+        const newStatus = newColumnId as Task["status"];
 
         await updateTask(activeId, {
-          priority: newPriority,
-          is_completed: isCompleted,
+          status: newStatus,
         });
 
         setTasks((prevTasks) =>
           prevTasks.map((task) =>
             task.id === activeId
-              ? { ...task, priority: newPriority, is_completed: isCompleted }
+              ? { ...task, status: newStatus }
               : task,
           ),
         );

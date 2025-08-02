@@ -60,6 +60,7 @@ export function useTaskMutations({
           priority: input.priority || null,
           category: input.category || null,
           tags: processedTags,
+          status: (input.status || "todo") as Task["status"],
         };
         setTasks((prev) => [newTask, ...prev]);
 

@@ -93,6 +93,7 @@ export const addTask = withErrorHandling(
         priority: validatedTaskData.priority || "medium",
         category: validatedTaskData.category,
         tags: validatedTaskData.tags || [],
+        status: validatedTaskData.status || "todo", // Add default status
       })
       .select()
       .single();

@@ -12,9 +12,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function AuthCodeErrorPage() {
+function AuthCodeErrorContent() {
   const searchParams = useSearchParams();
   const message =
     searchParams.get("message") ||
@@ -39,5 +40,13 @@ export default function AuthCodeErrorPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function AuthCodeErrorPage() {
+  return (
+    <Suspense fallback={<div>Loading error details...</div>}>
+      <AuthCodeErrorContent />
+    </Suspense>
   );
 }

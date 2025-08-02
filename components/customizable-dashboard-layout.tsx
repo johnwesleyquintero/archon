@@ -34,7 +34,7 @@ export interface Widget<P = Record<string, unknown>> {
 }
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { TriangleAlert } from "lucide-react";
+import { TriangleAlert, X } from "lucide-react";
 
 interface CustomizableDashboardLayoutProps {
   widgets: Widget[];
@@ -52,6 +52,8 @@ export function CustomizableDashboardLayout({
   goalsError = null,
 }: CustomizableDashboardLayoutProps) {
   const [isCustomizing, setIsCustomizing] = useState(false);
+  const [showDashboardSettingsError, setShowDashboardSettingsError] = useState(true);
+  const [showGoalsError, setShowGoalsError] = useState(true);
   const {
     layout: currentLayout,
     isLoading,
@@ -152,23 +154,37 @@ export function CustomizableDashboardLayout({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {dashboardSettingsError && (
-        <Alert variant="destructive">
+      {dashboardSettingsError && showDashboardSettingsError && (
+        <Alert variant="destructive" className="relative pr-8">
           <TriangleAlert className="h-4 w-4" />
           <AlertTitle>Error Loading Dashboard Settings</AlertTitle>
           <AlertDescription>
             {dashboardSettingsError}. Using default layout.
           </AlertDescription>
+          <button
+            onClick={() => setShowDashboardSettingsError(false)}
+            className="absolute right-2 top-2 p-1 rounded-md hover:bg-red-500/10"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </Alert>
       )}
 
-      {goalsError && (
-        <Alert variant="destructive">
+      {goalsError && showGoalsError && (
+        <Alert variant="destructive" className="relative pr-8">
           <TriangleAlert className="h-4 w-4" />
           <AlertTitle>Error Loading Goals</AlertTitle>
           <AlertDescription>
             {goalsError}. Goals might not be displayed correctly.
           </AlertDescription>
+          <button
+            onClick={() => setShowGoalsError(false)}
+            className="absolute right-2 top-2 p-1 rounded-md hover:bg-red-500/10"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </Alert>
       )}
 

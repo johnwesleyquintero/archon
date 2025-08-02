@@ -7,6 +7,10 @@ import { handleError } from "@/lib/utils";
 export function useTaskItem({
   id,
   title,
+  due_date,
+  priority,
+  category,
+  tags,
   onToggle,
   onDelete,
   onUpdate,
@@ -14,6 +18,10 @@ export function useTaskItem({
 }: {
   id: string;
   title: string;
+  due_date: string | null;
+  priority: "low" | "medium" | "high" | null;
+  category: string | null;
+  tags: string[] | null;
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onUpdate: (id: string, updatedTask: Partial<Task>) => Promise<void>;
@@ -23,6 +31,10 @@ export function useTaskItem({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(title);
+  const [newDueDate, setNewDueDate] = useState(due_date);
+  const [newPriority, setNewPriority] = useState(priority);
+  const [newCategory, setNewCategory] = useState(category);
+  const [newTags, setNewTags] = useState(tags);
 
   const handleToggle = async (is_completed: boolean) => {
     if (disabled) return;
@@ -51,14 +63,34 @@ export function useTaskItem({
   };
 
   const handleUpdate = async () => {
-    if (disabled || newTitle.trim() === "" || newTitle.trim() === title) {
-      setIsEditing(false);
-      setNewTitle(title); // Reset if no change
-      return;
+    if (disabled) return;
+
+    const updates: Partial<Task> = {};
+    if (newTitle.trim() !== title) {
+      updates.title = newTitle.trim();
     }
+    if (newDueDate !== due_date) {
+      updates.due_date = newDueDate;
+    }
+    if (newPriority !== priority) {
+      updates.priority = newPriority;
+    }
+    if (newCategory !== category) {
+      updates.category = newCategory;
+    }
+    // Deep comparison for tags
+    if (JSON.stringify(newTags) !== JSON.stringify(tags)) {
+      updates.tags = newTags;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      setIsEditing(false);
+      return; // No changes to update
+    }
+
     setIsEditing(false);
     try {
-      await onUpdate(id, { title: newTitle.trim() });
+      await onUpdate(id, updates);
     } catch (error: unknown) {
       handleError(error, "useTaskItem:update");
       // Optionally, show a toast notification
@@ -71,6 +103,10 @@ export function useTaskItem({
     } else if (e.key === "Escape") {
       setIsEditing(false);
       setNewTitle(title);
+      setNewDueDate(due_date);
+      setNewPriority(priority);
+      setNewCategory(category);
+      setNewTags(tags);
     }
   };
 
@@ -85,5 +121,13 @@ export function useTaskItem({
     handleDelete,
     handleUpdate,
     handleKeyDown,
+    newDueDate,
+    setNewDueDate,
+    newPriority,
+    setNewPriority,
+    newCategory,
+    setNewCategory,
+    newTags,
+    setNewTags,
   };
 }

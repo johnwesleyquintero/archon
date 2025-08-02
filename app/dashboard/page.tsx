@@ -5,6 +5,7 @@ import { getGoals } from "@/lib/database/goals";
 import { getAvailableWidgets } from "@/lib/constants";
 import { DEFAULT_LAYOUT } from "@/lib/layouts";
 import type { Database } from "@/lib/supabase/types";
+import { GoalsDisplay } from "@/components/goals-display";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 import { mergeLayouts } from "@/lib/dashboard-utils";
@@ -62,6 +63,8 @@ export default async function DashboardPage() {
         goalsError={goalsError}
         className="min-h-screen"
       />
+      <GoalsDisplay initialGoals={initialGoals} />
     </div>
   );
 }
+

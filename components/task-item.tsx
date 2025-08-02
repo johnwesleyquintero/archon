@@ -7,7 +7,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Calendar, Tag, Trash2, Edit } from "lucide-react";
+import { Calendar, Trash2, Edit } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -21,6 +26,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import type { Database } from "@/lib/supabase/types";
 
@@ -29,7 +41,7 @@ type Task = Database["public"]["Tables"]["tasks"]["Row"];
 interface TaskItemProps
   extends Pick<
     Task,
-    "id" | "title" | "is_completed" | "due_date" | "priority" | "category"
+    "id" | "title" | "is_completed" | "due_date" | "priority" | "category" | "status"
   > {
   tags: string[] | null; // Explicitly define tags as string[]
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
@@ -68,6 +80,7 @@ export const TaskItem = React.memo(function TaskItem({
   due_date,
   priority,
   category,
+  status,
   tags = [],
   onToggle,
   onDelete,
@@ -88,6 +101,10 @@ export const TaskItem = React.memo(function TaskItem({
   } = useTaskItem({
     id,
     title,
+    due_date,
+    priority,
+    category,
+    tags,
     onToggle,
     onDelete,
     onUpdate: onUpdate as (
@@ -135,20 +152,75 @@ export const TaskItem = React.memo(function TaskItem({
             {title}
           </label>
         )}
-        {due_date && (
-          <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
-            <Calendar className="h-3 w-3" />
-            <span>{format(new Date(due_date), "MMM d")}</span>
-          </div>
-        )}
-        {priority && (
-          <Badge
-            variant="secondary"
-            className={cn("text-xs font-medium", priorityColors[priority])}
-          >
-            {priority}
-          </Badge>
-        )}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "h-6 text-xs px-2 py-0",
+                !due_date && "text-muted-foreground",
+              )}
+              disabled={disabled}
+            >
+              <Calendar className="mr-1 h-3 w-3" />
+              {due_date ? format(new Date(due_date), "MMM d") : "Set Due Date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={due_date ? new Date(due_date) : undefined}
+              onSelect={(date) => {
+                onUpdate(id, { due_date: date ? date.toISOString() : null });
+              }}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Badge
+              variant="secondary"
+              className={cn(
+                "text-xs font-medium cursor-pointer",
+                priority ? priorityColors[priority] : "",
+              )}
+            >
+              {priority || "Set Priority"}
+            </Badge>
+          </PopoverTrigger>
+          <PopoverContent className="w-[160px] p-0" align="start">
+            <Select
+              value={priority || ""}
+              onValueChange={(newPriority) =>
+                onUpdate(id, { priority: newPriority as Task["priority"] })
+              }
+            >
+              <SelectTrigger className="h-8 text-sm">
+                <SelectValue placeholder="Select Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+              </SelectContent>
+            </Select>
+          </PopoverContent>
+        </Popover>
+        <Select
+          value={status}
+          onValueChange={(newStatus) => onUpdate(id, { status: newStatus })}
+          disabled={disabled}
+        >
+          <SelectTrigger className="h-6 text-xs w-[100px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todo">To Do</SelectItem>
+            <SelectItem value="in-progress">In Progress</SelectItem>
+            <SelectItem value="done">Done</SelectItem>
+          </SelectContent>
+        </Select>
         {isToggling && (
           <Spinner className="w-4 h-4 text-slate-400 dark:text-slate-600" />
         )}
@@ -201,23 +273,88 @@ export const TaskItem = React.memo(function TaskItem({
       </div>
       {(category || (tags && tags.length > 0)) && (
         <div className="flex items-center gap-2 ml-6 text-xs text-slate-500 dark:text-slate-400">
-          {category && (
-            <span className="flex items-center gap-1">
-              <Tag className="h-3 w-3" />
-              {category}
-            </span>
-          )}
-          {Array.isArray(tags) &&
-            tags.length > 0 &&
-            tags.map((tag: string) => (
+          <Popover>
+            <PopoverTrigger asChild>
               <Badge
-                key={tag}
-                variant="outline"
-                className="px-1.5 py-0 text-xs border-slate-200 dark:border-slate-700"
+                variant="secondary"
+                className="text-xs font-medium cursor-pointer"
               >
-                {tag}
+                {category || "Set Category"}
               </Badge>
-            ))}
+            </PopoverTrigger>
+            <PopoverContent className="w-[160px] p-0" align="start">
+              <Select
+                value={category || ""}
+                onValueChange={(newCategory) =>
+                  onUpdate(id, { category: newCategory === "__none__" ? null : newCategory })
+                }
+              >
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">No Category</SelectItem>
+                  <SelectItem value="work">Work</SelectItem>
+                  <SelectItem value="personal">Personal</SelectItem>
+                  <SelectItem value="shopping">Shopping</SelectItem>
+                  <SelectItem value="health">Health</SelectItem>
+                </SelectContent>
+              </Select>
+            </PopoverContent>
+          </Popover>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Badge
+                variant="secondary"
+                className="text-xs font-medium cursor-pointer"
+              >
+                {tags && tags.length > 0 ? tags.join(", ") : "Add Tags"}
+              </Badge>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-3" align="end">
+              <div className="space-y-4">
+                <h4 className="font-medium leading-none">Tags</h4>
+                <div className="flex flex-wrap gap-2">
+                  {tags?.map((tag: string, index: number) => (
+                    <Badge
+                      key={`${tag}-${index}`}
+                      variant="secondary"
+                      className="gap-1"
+                    >
+                      {tag}
+                      <button
+                        onClick={() => {
+                          const newTags = [...tags];
+                          newTags.splice(index, 1);
+                          onUpdate(id, { tags: newTags });
+                        }}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add tag"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const input = e.currentTarget;
+                        const value = input.value.trim();
+                        if (value && !tags?.includes(value)) {
+                          onUpdate(id, { tags: [...(tags || []), value] });
+                          input.value = "";
+                        }
+                      }
+                    }}
+                    className="h-8"
+                  />
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       )}
     </div>

@@ -103,7 +103,7 @@ export const goalSchema = Zod.object({
     .max(255, { message: "Goal title is too long." }),
   description: Zod.string().optional(),
   target_date: Zod.string().optional(), // Consider using Zod.date() if you parse dates
-  status: Zod.enum(["pending", "in_progress", "completed"]),
+  status: Zod.enum(["pending", "in_progress", "completed"]).optional(),
   attachments: Zod.array(Zod.string().url()).optional(), // Array of URLs for attachments
 });
 

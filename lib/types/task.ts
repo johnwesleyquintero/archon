@@ -4,8 +4,9 @@ import type { Database } from "@/lib/supabase/types";
 type BaseTask = Database["public"]["Tables"]["tasks"]["Row"];
 
 // Create a modified Task type with tags as string[] | null
-export type Task = Omit<BaseTask, "tags"> & {
+export type Task = Omit<BaseTask, "tags" | "status"> & {
   tags: string[] | null;
+  status: "todo" | "in-progress" | "done";
 };
 
 export interface TaskItemProps extends Task {
