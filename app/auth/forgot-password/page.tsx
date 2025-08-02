@@ -1,8 +1,7 @@
-import type { AuthError } from "@supabase/supabase-js";
-import type { Metadata } from "next";
-import { headers } from "next/headers";
+"use client";
+
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Mail } from "lucide-react";
 
 import { ArchonLogoSVG } from "@/components/archon-logo-svg";
@@ -17,37 +16,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { forgotPassword } from "./actions";
 
-export const metadata: Metadata = {
-  title: "Forgot Password",
-  description: "Reset your password",
-};
-
-export default function ForgotPasswordPage({ searchParams }) {
-  const forgotPassword = async (formData: FormData) => {
-    "use server";
-
-    const origin = (await headers()).get("origin");
-    const email = formData.get("email") as string;
-    const supabase = await createServerSupabaseClient();
-
-    const { error }: { error: AuthError | null } =
-      await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${origin}/auth/update-password`,
-      });
-
-    if (error) {
-      return redirect(
-        `/auth/forgot-password?message=${encodeURIComponent(error.message)}`,
-      );
-    }
-
-    return redirect(
-      "/auth/forgot-password?message=Password reset email sent. Please check your inbox.",
-    ); // More explicit success message
-  };
+export default function ForgotPasswordPage() {
+  const searchParams = useSearchParams();
+  const message = searchParams.get("message");
 
   return (
     <div className="flex-1 flex flex-col w-full px-8 sm:max-w-md justify-center gap-2">
@@ -112,16 +86,16 @@ export default function ForgotPasswordPage({ searchParams }) {
               </div>
             </div>
 
-            {searchParams?.message && (
+            {message && (
               <Alert
                 variant={
-                  searchParams.message.includes("Password reset email sent")
+                  message.includes("Password reset email sent")
                     ? "default"
                     : "destructive"
                 }
               >
                 <AlertDescription className="text-sm">
-                  {searchParams.message}
+                  {message}
                 </AlertDescription>
               </Alert>
             )}

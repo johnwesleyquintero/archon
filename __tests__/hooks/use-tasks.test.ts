@@ -31,7 +31,7 @@ describe("useTasks", () => {
     (useToast as jest.Mock).mockReturnValue({
       toast: jest.fn(),
     });
-    (getTasks as jest.Mock).mockImplementation(() => new Promise(() => {}));
+    (getTasks as jest.Mock).mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -52,10 +52,7 @@ describe("useTasks", () => {
 
     const { result } = renderHook(() => useTasks());
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(true);
-    });
-
+    expect(result.current.loading).toBe(true);
     expect(result.current.tasks).toEqual([]);
 
     // Resolve the promise to simulate fetch completion

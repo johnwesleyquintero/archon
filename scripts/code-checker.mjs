@@ -19,7 +19,7 @@
 import { exec } from "child_process";
 import { promisify } from "util";
 import chalk from "chalk";
-import { CHECKS } from "./code-checker.config.mjs";
+import { CHECKS, LARGE_FILE_CHECK_CONFIG } from "./code-checker.config.mjs";
 import path from "path";
 import fs from "fs/promises";
 
@@ -40,7 +40,7 @@ const EXIT_CODES = {
 
 // --- Core Logic ---
 async function checkLargeFiles() {
-  const MAX_FILE_SIZE_MB = 1; // 1MB limit for source files
+  const { MAX_FILE_SIZE_MB, EXCLUDED_DIRECTORIES } = LARGE_FILE_CHECK_CONFIG;
   const largeFiles = [];
 
   const traverseDirectory = async (directory) => {
@@ -49,8 +49,7 @@ async function checkLargeFiles() {
       for (const file of files) {
         const fullPath = path.join(directory, file.name);
         if (file.isDirectory()) {
-          // Skip node_modules and .next directories
-          if (file.name === "node_modules" || file.name === ".next") {
+          if (EXCLUDED_DIRECTORIES.includes(file.name)) {
             continue;
           }
           await traverseDirectory(fullPath);
@@ -81,17 +80,27 @@ function parseLinterOutput(output) {
   const lines = output.split("\n");
   const errorsByFile = new Map();
   const generalOutput = [];
-  const filePattern = /^(?<filePath>[^\s].*?):(?<line>\d+):(?<column>\d+)/;
+  // More flexible pattern to capture various linter outputs (e.g., ESLint, TypeScript)
+  // Tries to capture filePath, line, column, and a more specific message/rule if available
+  const filePattern =
+    /^(?<filePath>[^\s].*?):(?<line>\d+):(?<column>\d+)(?:\s+(?<type>\w+):)?\s*(?<message>.*)$/;
 
   lines.forEach((line) => {
     const match = line.match(filePattern);
     if (match?.groups?.filePath) {
-      const { filePath, line: lineStr, column: colStr } = match.groups;
+      const {
+        filePath,
+        line: lineStr,
+        column: colStr,
+        type,
+        message,
+      } = match.groups;
       const parsedError = {
         filePath,
         line: parseInt(lineStr, 10),
         column: parseInt(colStr, 10),
-        message: line,
+        type: type || "error", // Default to 'error' if not specified
+        message: message || line,
       };
       if (!errorsByFile.has(filePath)) errorsByFile.set(filePath, []);
       errorsByFile.get(filePath)?.push(parsedError);
@@ -118,6 +127,28 @@ async function runCommand(check) {
   } catch (error) {
     if (error.code === "ENOENT") {
       const errorMessage = `Command not found: ${command.split(" ")[0]}. Please ensure it is installed and in your PATH.`;
+      return {
+        name,
+        command,
+        success: false,
+        stdout: "",
+        stderr: errorMessage,
+        combinedOutput: errorMessage,
+        parsedOutput: parseLinterOutput(errorMessage),
+      };
+    } else if (error.code === "EACCES") {
+      const errorMessage = `Permission denied: Could not execute command \`${command}\`. Check file permissions.`;
+      return {
+        name,
+        command,
+        success: false,
+        stdout: "",
+        stderr: errorMessage,
+        combinedOutput: errorMessage,
+        parsedOutput: parseLinterOutput(errorMessage),
+      };
+    } else if (error.code === "ETIMEDOUT") {
+      const errorMessage = `Command timed out: \`${command}\`. Consider increasing the timeout if this is expected.`;
       return {
         name,
         command,

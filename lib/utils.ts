@@ -166,3 +166,30 @@ export const getErrorMessage = (error: unknown): string => {
   }
   return "An unexpected error occurred.";
 };
+
+/**
+ * A higher-order function to wrap async server actions with centralized error handling.
+ * It catches errors, logs them using `handleError`, and re-throws a new Error
+ * with a user-friendly message, ensuring consistent error responses from server actions.
+ *
+ * @param actionFn - The asynchronous function (server action) to be wrapped.
+ * @param context - A string describing the context of the action for logging purposes.
+ * @returns A new asynchronous function that wraps the original action with error handling.
+ */
+export const withErrorHandling = <
+  T extends (...args: unknown[]) => Promise<unknown>,
+>(
+  actionFn: T,
+  context: string,
+) => {
+  return async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
+    try {
+      return await actionFn(...args);
+    } catch (error: unknown) {
+      const appError = handleError(error, context);
+      throw new Error(
+        `Failed to ${context.toLowerCase()}: ${appError.message}`,
+      );
+    }
+  };
+};

@@ -1,8 +1,8 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { Message, streamText } from "ai";
-
+import { streamText } from "ai";
 import { serverEnv } from "@/lib/env.server"; // Import serverEnv
 import { apiErrorResponse, AppError } from "@/lib/utils";
+import { messagesSchema } from "@/lib/zod-schemas";
 
 // IMPORTANT! Set the runtime to edge
 export const runtime = "edge";
@@ -14,23 +14,26 @@ const groq = createOpenAI({
 
 export async function POST(req: Request) {
   try {
-    const { messages } = (await req.json()) as {
-      messages: Array<{ role: string; content: string }>;
-    };
-
     if (!serverEnv.GROQ_API_KEY) {
-      // Use serverEnv.GROQ_API_KEY for the check
       throw new AppError(
-        "GROQ_API_KEY is not set.",
+        "GROQ_API_KEY is not set. Please ensure it's configured in your environment variables.",
         "MISSING_API_KEY",
         {},
         500,
       );
     }
 
+    const { messages } = (await req.json()) as {
+      messages: Array<{ role: string; content: string }>;
+    };
+
+    const validatedMessages = messagesSchema.parse(messages);
+
+    const groqModel = serverEnv.GROQ_MODEL || "llama3-8b-8192";
+
     const result = streamText({
-      model: groq("llama3-8b-8192"), // You can choose other Groq models like 'mixtral-8x7b-32768'
-      messages: messages as Message[],
+      model: groq(groqModel),
+      messages: validatedMessages,
     });
 
     return result.toDataStreamResponse();

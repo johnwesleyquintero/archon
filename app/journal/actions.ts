@@ -5,35 +5,41 @@ import {
   updateJournalEntry as dbUpdateJournalEntry,
   deleteJournalEntry as dbDeleteJournalEntry,
 } from "@/lib/database/journal";
+import { revalidatePath } from "next/cache";
 import type { Database } from "@/lib/supabase/types";
+
+import {
+  journalEntryInsertSchema,
+  journalEntryUpdateSchema,
+} from "@/lib/zod-schemas";
+
+import { withErrorHandling } from "@/lib/utils";
 
 type JournalInsert = Database["public"]["Tables"]["journal_entries"]["Insert"];
 type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];
 
-export async function addJournalEntry(entry: JournalInsert) {
-  try {
-    const newEntry = await dbAddJournalEntry(entry);
+export const addJournalEntry = withErrorHandling(
+  async (entry: JournalInsert) => {
+    const validatedEntry = journalEntryInsertSchema.parse(entry);
+    const newEntry = await dbAddJournalEntry(validatedEntry);
+    revalidatePath("/journal");
     return newEntry;
-  } catch (error) {
-    console.error("Error adding journal entry:", error);
-    return null;
-  }
-}
+  },
+  "add journal entry",
+);
 
-export async function updateJournalEntry(id: string, patch: JournalUpdate) {
-  try {
-    const updatedEntry = await dbUpdateJournalEntry(id, patch);
+export const updateJournalEntry = withErrorHandling(
+  async (id: string, patch: JournalUpdate) => {
+    const validatedPatch = journalEntryUpdateSchema.parse(patch);
+    const updatedEntry = await dbUpdateJournalEntry(id, validatedPatch);
+    revalidatePath("/journal");
     return updatedEntry;
-  } catch (error) {
-    console.error("Error updating journal entry:", error);
-    return null;
-  }
-}
+  },
+  "update journal entry",
+);
 
-export async function deleteJournalEntry(id: string) {
-  try {
-    await dbDeleteJournalEntry(id);
-  } catch (error) {
-    console.error("Error deleting journal entry:", error);
-  }
-}
+export const deleteJournalEntry = withErrorHandling(async (id: string) => {
+  await dbDeleteJournalEntry(id);
+  revalidatePath("/journal");
+  return { success: true }; // Return success indicator
+}, "delete journal entry");
