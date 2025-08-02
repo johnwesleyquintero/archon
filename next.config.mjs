@@ -16,11 +16,11 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: new URL(process.env.NEXT_PUBLIC_APP_URL || "").hostname,
+        hostname: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://example.com").hostname,
       },
       {
         protocol: "https",
-        hostname: new URL(process.env.VERCEL_URL || "").hostname,
+        hostname: new URL(process.env.VERCEL_URL || "https://example.com").hostname,
       },
     ],
   },
