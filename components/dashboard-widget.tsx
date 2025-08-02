@@ -24,7 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { QuickTasksConfigModal } from "./quick-tasks-config-modal";
+import { WidgetConfigModal } from "./dashboard/controls/widget-config-modal";
 
 interface DashboardWidgetProps {
   title: string;
@@ -152,7 +152,7 @@ export function DashboardWidget({
                 </DropdownMenuItem>
               )}
 
-              {widgetId === "quick-tasks" && (
+              {onSaveConfig && ( // Show configure option if onSaveConfig is provided
                 <DropdownMenuItem onClick={() => setIsConfigModalOpen(true)}>
                   <Settings className="mr-2 h-4 w-4" />
                   Configure
@@ -188,8 +188,8 @@ export function DashboardWidget({
           </div>
         )}
       </CardContent>
-      {widgetId === "quick-tasks" && onSaveConfig && (
-        <QuickTasksConfigModal
+      {onSaveConfig && ( // Render the generic config modal if onSaveConfig is provided
+        <WidgetConfigModal
           isOpen={isConfigModalOpen}
           onClose={() => setIsConfigModalOpen(false)}
           onSave={onSaveConfig}

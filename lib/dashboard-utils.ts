@@ -5,6 +5,7 @@ import { DEFAULT_LAYOUT } from "@/lib/layouts";
 // This should match the DashboardLayoutItem in customizable-dashboard-layout.tsx
 export interface CustomLayout extends Layout {
   isVisible: boolean;
+  title: string; // Add title to custom layout
 }
 
 export function mergeLayouts(
@@ -18,6 +19,8 @@ export function mergeLayouts(
       ...storedWidget,
       // Ensure isVisible is always a boolean, defaulting to true.
       isVisible: storedWidget?.isVisible ?? defaultWidget.isVisible ?? true,
+      // Ensure title is preserved from stored layout, or fallback to default
+      title: storedWidget?.title ?? defaultWidget.title,
     };
   });
 }

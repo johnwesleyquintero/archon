@@ -20,23 +20,28 @@ export async function getDashboardSettings(
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching dashboard settings:", {
-      error: error.message,
+    logger.error(logger.fmt`Failed to fetch dashboard settings for user ${userId}: ${error.message}`, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
     });
     Sentry.captureException(error);
     return null;
   }
 
   if (!data?.layout) {
+    logger.info(logger.fmt`No existing dashboard settings found for user ${userId}.`);
     return null;
   }
 
   try {
     const parsedLayout = widgetLayoutsSchema.parse(data.layout as unknown);
+    logger.debug(logger.fmt`Successfully parsed dashboard settings for user ${userId}.`);
     return parsedLayout;
   } catch (e) {
-    logger.error("Error parsing dashboard settings:", {
-      error: e instanceof Error ? e.message : String(e),
+    logger.error(logger.fmt`Error parsing stored dashboard settings for user ${userId}: ${e instanceof Error ? e.message : String(e)}`, {
+      rawLayout: data.layout,
+      validationError: e,
     });
     Sentry.captureException(e);
     return null;
@@ -62,8 +67,11 @@ export async function updateDashboardSettings(
   }
 
   if (error) {
-    logger.error("Error updating dashboard settings:", {
-      error: error.message,
+    logger.error(logger.fmt`Failed to update dashboard settings for user ${userId}: ${error.message}`, {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      settings: settings,
     });
     Sentry.captureException(error);
     return null;

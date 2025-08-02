@@ -15,9 +15,10 @@ import { CustomizationHelpText } from "./dashboard/customization-help-text";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-// Define a type that extends Layout with isVisible
+// Define a type that extends Layout with isVisible and title
 type DashboardLayoutItem = Layout & {
   isVisible: boolean;
+  title: string; // Add title to layout item
 };
 
 // Widget type definitions
@@ -97,16 +98,11 @@ export function CustomizableDashboardLayout({
 
   const handleSaveWidgetConfig = (
     widgetId: string,
-    _config: { title: string },
+    config: { title: string },
   ) => {
-    // This is a placeholder. In a real app, you'd save this to a DB.
-
-    // For now, we'll just update the layout in memory.
     const newLayout = currentLayout.map((item) => {
       if (item.i === widgetId) {
-        // Here you could store the new title, but widgets define their own titles.
-        // This requires a more complex state management solution.
-        // For this example, we'll just log it.
+        return { ...item, title: config.title }; // Update the title in the layout item
       }
       return item;
     });
@@ -136,6 +132,7 @@ export function CustomizableDashboardLayout({
             w: widgetToAdd.minW || 4,
             h: widgetToAdd.minH || 2,
             isVisible: true,
+            title: widgetToAdd.title, // Initialize title for new widget
           };
           const updatedLayout = [...currentLayout, newLayoutItem];
           handleLayoutChange(updatedLayout);
@@ -224,10 +221,12 @@ export function CustomizableDashboardLayout({
           if (!widget) return null;
 
           const WidgetComponent = widget.component;
+          // Use the title from layoutItem if available, otherwise fallback to widget.title
+          const displayTitle = layoutItem.title || widget.title;
           return (
             <div key={widget.id} className="widget-container">
               <DashboardWidget
-                title={widget.title}
+                title={displayTitle} // Use the title from the layout item
                 isCustomizing={isCustomizing}
                 onRemove={() => {
                   // Handle widget removal if needed

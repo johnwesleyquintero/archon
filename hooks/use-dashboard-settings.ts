@@ -11,9 +11,10 @@ import { mergeLayouts } from "@/lib/dashboard-utils";
 import { DEFAULT_LAYOUT } from "@/lib/layouts";
 import * as Sentry from "@sentry/nextjs";
 
-// Define a type that extends Layout with isVisible
+// Define a type that extends Layout with isVisible and title
 interface DashboardLayoutItem extends Layout {
   isVisible: boolean;
+  title: string; // Add title to layout item
 }
 
 interface UseDashboardSettingsResult {
@@ -84,15 +85,16 @@ export function useDashboardSettings(
 
   const handleLayoutChange = useCallback(
     (newLayout: Layout[]) => {
-      // Merge with current visibility states
-      const updatedLayoutWithVisibility = newLayout.map((item) => {
+      // Merge with current visibility and title states
+      const updatedLayoutWithVisibilityAndTitle = newLayout.map((item) => {
         const existingItem = layout.find((l) => l.i === item.i);
         return {
           ...item,
           isVisible: existingItem?.isVisible ?? true, // Preserve visibility
+          title: existingItem?.title ?? "", // Preserve title, or provide a default
         };
       });
-      setLayout(updatedLayoutWithVisibility);
+      setLayout(updatedLayoutWithVisibilityAndTitle);
     },
     [layout],
   );
