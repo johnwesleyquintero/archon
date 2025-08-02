@@ -41,6 +41,7 @@ interface CustomizableDashboardLayoutProps {
   initialLayout?: DashboardLayoutItem[];
   className?: string;
   dashboardSettingsError?: string | null;
+  goalsError?: string | null;
 }
 
 export function CustomizableDashboardLayout({
@@ -48,6 +49,7 @@ export function CustomizableDashboardLayout({
   initialLayout = [],
   className = "",
   dashboardSettingsError = null,
+  goalsError = null,
 }: CustomizableDashboardLayoutProps) {
   const [isCustomizing, setIsCustomizing] = useState(false);
   const {
@@ -156,6 +158,16 @@ export function CustomizableDashboardLayout({
           <AlertTitle>Error Loading Dashboard Settings</AlertTitle>
           <AlertDescription>
             {dashboardSettingsError}. Using default layout.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {goalsError && (
+        <Alert variant="destructive">
+          <TriangleAlert className="h-4 w-4" />
+          <AlertTitle>Error Loading Goals</AlertTitle>
+          <AlertDescription>
+            {goalsError}. Goals might not be displayed correctly.
           </AlertDescription>
         </Alert>
       )}

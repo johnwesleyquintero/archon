@@ -33,7 +33,7 @@ export const journalEntryUpdateSchema = Zod.object({
 });
 
 export const messageSchema = Zod.object({
-  role: Zod.enum(["user", "assistant", "system", "function", "tool"]),
+  role: Zod.enum(["user", "assistant", "system"]),
   content: Zod.string(),
 });
 

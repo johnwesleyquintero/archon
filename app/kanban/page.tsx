@@ -99,7 +99,7 @@ const KanbanPage = () => {
             : (newColumnId as "low" | "medium" | "high");
         const isCompleted = newColumnId === "completed";
 
-        void updateTask(activeId, {
+        await updateTask(activeId, {
           priority: newPriority,
           is_completed: isCompleted,
         });
@@ -129,7 +129,7 @@ const KanbanPage = () => {
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
-        onDragEnd={handleDragEnd}
+        onDragEnd={(event) => void handleDragEnd(event)}
       >
         <KanbanBoard
           columns={columns.initialColumns}

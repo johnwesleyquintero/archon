@@ -177,12 +177,13 @@ export const getErrorMessage = (error: unknown): string => {
  * @returns A new asynchronous function that wraps the original action with error handling.
  */
 export const withErrorHandling = <
-  T extends (...args: unknown[]) => Promise<unknown>,
+  Args extends unknown[],
+  Return,
 >(
-  actionFn: T,
+  actionFn: (...args: Args) => Promise<Return>,
   context: string,
 ) => {
-  return async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
+  return async (...args: Args): Promise<Return> => {
     try {
       return await actionFn(...args);
     } catch (error: unknown) {

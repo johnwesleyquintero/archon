@@ -18,8 +18,19 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   let initialGoals: Goal[] = [];
-  if (user) {
-    initialGoals = await getGoals();
+  let goalsError: string | null = null;
+  try {
+    if (user) {
+      initialGoals = await getGoals();
+    }
+  } catch (error: unknown) {
+    goalsError = getErrorMessage(error);
+    Sentry.captureException(error, {
+      extra: {
+        context: "Goals Loading",
+        errorMessage: goalsError,
+      },
+    });
   }
   const availableWidgets = getAvailableWidgets(initialGoals);
 
@@ -48,6 +59,7 @@ export default async function DashboardPage() {
         widgets={availableWidgets}
         initialLayout={initialLayout}
         dashboardSettingsError={dashboardSettingsError}
+        goalsError={goalsError}
         className="min-h-screen"
       />
     </div>
