@@ -5,9 +5,11 @@ import { JournalList } from "@/components/journal-list";
 import { PlaceholderInfographics } from "@/components/placeholder-infographics";
 import { StatsGrid } from "@/components/stats-grid";
 import { TodoList } from "@/components/todo-list";
+import { GoalsDisplay } from "@/components/goals-display";
 import type { Widget } from "@/components/customizable-dashboard-layout";
 import type { Database } from "@/lib/supabase/types";
 import { GoalTrackerProps } from "@/components/goal-tracker";
+import { GoalsDisplayProps } from "@/components/goals-display";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 
@@ -52,6 +54,15 @@ export const getAvailableWidgets = (initialGoals: Goal[]): Widget[] => [
     title: "Goal Progress",
     component: GoalTracker as React.ComponentType<GoalTrackerProps>,
     minW: 4,
+    minH: 4,
+    defaultProps: { initialGoals },
+  },
+  {
+    id: "goals-display",
+    type: "goals",
+    title: "All Goals",
+    component: GoalsDisplay as React.ComponentType<GoalsDisplayProps>,
+    minW: 6,
     minH: 4,
     defaultProps: { initialGoals },
   },
