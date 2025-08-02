@@ -37,8 +37,8 @@ body {
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 90%; /* Adjusted for WCAG 2.1 AA contrast */
 
-  --border: 214.3 31.8% 85%; /* Adjusted for WCAG 2.1 AA contrast */
-  --input: 214.3 31.8% 85%; /* Adjusted for WCAG 2.1 AA contrast */
+    --border: 214.3 31.8% 85%; /* Adjusted for WCAG 2.1 AA contrast */
+    --input: 214.3 31.8% 85%; /* Adjusted for WCAG 2.1 AA contrast */
     --ring: 222.2 84% 4.9%;
 
     --chart-1: 12 76% 61%;

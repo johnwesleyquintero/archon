@@ -36,7 +36,6 @@ export function useTaskFetching(initialTasks: Task[] = []) {
     } catch (err) {
       console.error("Failed to fetch tasks:", err);
       setError("Failed to load tasks. Please try again.");
-
     } finally {
       setLoading(false);
     }

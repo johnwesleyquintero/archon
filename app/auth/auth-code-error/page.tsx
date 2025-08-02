@@ -12,8 +12,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-
-
 import { useSearchParams } from "next/navigation";
 
 export default function AuthCodeErrorPage() {

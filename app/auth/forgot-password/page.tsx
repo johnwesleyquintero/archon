@@ -25,13 +25,11 @@ export const metadata: Metadata = {
   description: "Reset your password",
 };
 
-interface ForgotPasswordPageProps {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
-
 export default function ForgotPasswordPage({
   searchParams,
-}: ForgotPasswordPageProps) {
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const forgotPassword = async (formData: FormData) => {
     "use server";
 

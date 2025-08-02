@@ -202,7 +202,6 @@ export function CustomizableDashboardLayout({
                 isCustomizing={isCustomizing}
                 onRemove={() => {
                   // Handle widget removal if needed
-              
                 }}
                 onToggleVisibility={() =>
                   handleToggleWidgetVisibility(widget.id)

@@ -1,5 +1,5 @@
-import { clientEnv } from '@/lib/env';
-import { serverEnv } from '@/lib/env.server';
+import { clientEnv } from "@/lib/env";
+import { serverEnv } from "@/lib/env.server";
 
 export default function DebugEnvPage() {
   return (

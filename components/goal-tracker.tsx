@@ -49,7 +49,6 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
       // This would ideally be a server action or API call to get fresh data
       // For now, we'll just simulate a refresh.
       // In a real app, you'd call getGoals() here.
-  
     } catch (err) {
       console.error("Error refreshing goals:", err);
     } finally {

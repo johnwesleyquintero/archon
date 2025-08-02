@@ -83,7 +83,8 @@ export function useTaskMutations({
           setError(err instanceof Error ? err.message : "Failed to add task.");
           toast({
             title: "Error",
-            description: err instanceof Error ? err.message : "Failed to add task.",
+            description:
+              err instanceof Error ? err.message : "Failed to add task.",
             variant: "destructive",
           });
           setTasks((prev) => prev.filter((task) => task.id !== tempId));

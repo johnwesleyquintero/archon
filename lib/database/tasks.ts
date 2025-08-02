@@ -11,8 +11,6 @@ type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
 async function createClient() {
   const cookieStore = await cookies();
 
-
-
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -61,7 +59,6 @@ export async function getTasks(): Promise<Task[]> {
     console.error("Error fetching tasks:", error);
     throw new Error(`Failed to fetch tasks: ${error.message}`);
   }
-
 
   // Map the data to ensure 'tags' is of type string[] | null
   const typedData: Task[] = data.map((task) => ({
