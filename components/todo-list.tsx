@@ -2,8 +2,8 @@
 
 import { useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TaskInput } from "./task-input.js";
-import { TaskList } from "./task-list.js";
+import { TaskInput } from "./task-input";
+import { TaskList } from "./task-list";
 import { useTasks } from "@/hooks/use-tasks";
 import { useAuth } from "@/contexts/auth-context";
 import type { Database } from "@/lib/supabase/types";

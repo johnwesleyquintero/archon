@@ -7,11 +7,11 @@ import { Responsive, type Layout, WidthProvider } from "react-grid-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
 
-import { AddWidgetDialog } from "./add-widget-dialog.js";
+import { AddWidgetDialog } from "./add-widget-dialog";
 
-import { DashboardWidget } from "./dashboard-widget.js";
-import { DashboardControlBar } from "./dashboard/dashboard-control-bar.js";
-import { CustomizationHelpText } from "./dashboard/customization-help-text.js";
+import { DashboardWidget } from "./dashboard-widget";
+import { DashboardControlBar } from "./dashboard/dashboard-control-bar";
+import { CustomizationHelpText } from "./dashboard/customization-help-text";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 

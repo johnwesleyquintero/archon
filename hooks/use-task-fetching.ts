@@ -34,7 +34,7 @@ const convertRawTaskToTask = (rawTask: RawTask): Task => {
 export function useTaskFetching(initialTasks: Task[] = []) {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [loading, setLoading] = useState(initialTasks.length === 0);
+  const [loading, setLoading] = useState(true); // Always start as loading
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const supabase = createClient();
@@ -65,14 +65,20 @@ export function useTaskFetching(initialTasks: Task[] = []) {
     }
   }, [user, toast]);
 
-  // Setup realtime subscription
+  // Setup realtime subscription and initial fetch
   useEffect(() => {
     if (!user) {
-      setLoading(false);
+      setLoading(false); // If no user, stop loading
       return;
     }
 
-    if (initialTasks.length === 0) {
+    // If initialTasks are provided, we assume they are already loaded
+    // and we don't need to fetch immediately.
+    // Otherwise, fetch tasks on mount.
+    if (initialTasks.length > 0) {
+      setLoading(false); // If initial tasks are present, we are not loading
+      setTasks(initialTasks); // Ensure tasks are set
+    } else {
       fetchTasks();
     }
 
@@ -96,7 +102,7 @@ export function useTaskFetching(initialTasks: Task[] = []) {
     return () => {
       client.removeChannel(channel);
     };
-  }, [fetchTasks, initialTasks.length, user?.id]);
+  }, [fetchTasks, initialTasks, user?.id]); // Added initialTasks to dependency array
 
   return {
     tasks,

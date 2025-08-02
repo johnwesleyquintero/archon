@@ -23,7 +23,7 @@ import type { Database } from "@/lib/supabase/types";
 import Image from "next/image";
 import { Spinner } from "@/components/ui/spinner";
 import { useDebounce } from "@/hooks/use-debounce";
-import { TipTapEditor, type TipTapEditorRef } from "./quill-editor.js"; // Renamed and updated import
+import { TipTapEditor, type TipTapEditorRef } from "./quill-editor"; // Renamed and updated import
 
 type Attachment = {
   url: string;

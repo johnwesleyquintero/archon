@@ -24,7 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { QuickTasksConfigModal } from "./quick-tasks-config-modal.js";
+import { QuickTasksConfigModal } from "./quick-tasks-config-modal";
 
 interface DashboardWidgetProps {
   title: string;

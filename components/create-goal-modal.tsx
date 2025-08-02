@@ -10,8 +10,8 @@ import type { z } from "zod";
 import { cn } from "@/lib/utils";
 import { goalSchema } from "@/lib/validators";
 
-import { Button } from "./ui/button.js";
-import { Calendar } from "./ui/calendar.js";
+import { Button } from "./ui/button";
+import { Calendar } from "./ui/calendar";
 import {
   Form,
   FormControl,
@@ -19,12 +19,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form.js";
-import { Input } from "./ui/input.js";
-import { Modal } from "./ui/modal.js";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.js";
-import { Spinner } from "./ui/spinner.js";
-import { Textarea } from "./ui/textarea.js";
+} from "./ui/form";
+import { Input } from "./ui/input";
+import { Modal } from "./ui/modal";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Spinner } from "./ui/spinner";
+import { Textarea } from "./ui/textarea";
 
 import type { Database } from "@/lib/supabase/types";
 
