@@ -176,7 +176,7 @@ export type Database = {
           due_date: string | null;
           priority: "low" | "medium" | "high" | null;
           category: string | null;
-          tags: Json | null; // Assuming tags can be a JSON array
+          tags: string[] | null; // Assuming tags can be a JSON array of strings
           status: string | null;
         };
         Insert: {
@@ -189,7 +189,7 @@ export type Database = {
           due_date?: string | null;
           priority?: "low" | "medium" | "high" | null;
           category?: string | null;
-          tags?: Json | null;
+          tags?: string[] | null;
           status?: string | null;
         };
         Update: {
@@ -202,7 +202,7 @@ export type Database = {
           due_date?: string | null;
           priority?: "low" | "medium" | "high" | null;
           category?: string | null;
-          tags?: Json | null;
+          tags?: string[] | null;
           status?: string | null;
         };
         Relationships: [

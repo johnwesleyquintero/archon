@@ -7,7 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Calendar, Trash2, Edit } from "lucide-react";
+import { Calendar as CalendarIcon, Trash2, Edit } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
@@ -46,14 +47,16 @@ interface TaskItemProps
     | "is_completed"
     | "due_date"
     | "priority"
-    
-    
-
-  
+    | "category"
+  > {
+  tags: string[] | null;
+  onToggle: (id: string, is_completed: boolean) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+  onUpdate: (id: string, updatedTask: Partial<Task>) => Promise<void>;
+  disabled?: boolean;
+}
 
 /**
- * TaskItem - Renders an individual task with toggle, edit, and delete functionality
- *
  * @component
  * @example
  * ```tsx
@@ -78,7 +81,7 @@ export const TaskItem = React.memo(function TaskItem({
   due_date,
   priority,
   category,
-  tags = [],
+  tags,
   onToggle,
   onDelete,
   onUpdate,
@@ -102,11 +105,9 @@ export const TaskItem = React.memo(function TaskItem({
     priority,
     category,
     tags,
+    onToggle,
     onDelete,
-    onUpdate: onUpdate as (
-      id: string,
-      updatedTask: Partial<Task>,
-    ) => Promise<void>,
+    onUpdate,
     disabled,
   });
 
@@ -158,7 +159,7 @@ export const TaskItem = React.memo(function TaskItem({
               )}
               disabled={disabled}
             >
-              <Calendar className="mr-1 h-3 w-3" />
+              <CalendarIcon className="mr-1 h-3 w-3" />
               {due_date ? format(new Date(due_date), "MMM d") : "Set Due Date"}
             </Button>
           </PopoverTrigger>
