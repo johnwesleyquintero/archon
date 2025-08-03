@@ -47,8 +47,8 @@ interface TaskItemProps
     | "due_date"
     | "priority"
     | "category"
-    | "status"
   > {
+  status: Task["status"];
   tags: string[] | null; // Explicitly define tags as string[]
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;

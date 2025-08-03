@@ -15,10 +15,9 @@ import { CustomizationHelpText } from "./dashboard/customization-help-text";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-// Define a type that extends Layout with isVisible and title
+// Define a type that extends Layout with isVisible
 type DashboardLayoutItem = Layout & {
   isVisible: boolean;
-  title: string; // Add title to layout item
 };
 
 // Widget type definitions
@@ -40,6 +39,7 @@ import { TriangleAlert, X } from "lucide-react";
 interface CustomizableDashboardLayoutProps {
   widgets: Widget[];
   initialLayout?: DashboardLayoutItem[];
+  initialWidgetConfigs?: Record<string, any>;
   className?: string;
   dashboardSettingsError?: string | null;
   goalsError?: string | null;
@@ -48,14 +48,16 @@ interface CustomizableDashboardLayoutProps {
 export function CustomizableDashboardLayout({
   widgets,
   initialLayout = [],
+  initialWidgetConfigs = {},
   className = "",
   dashboardSettingsError = null,
   goalsError = null,
 }: CustomizableDashboardLayoutProps) {
   const [isCustomizing, setIsCustomizing] = useState(false);
-  const [showDashboardSettingsError, setShowDashboardSettingsError] =
-    useState(true);
-  const [showGoalsError, setShowGoalsError] = useState(true);
+  const [widgetConfigs, setWidgetConfigs] = useState<Record<string, any>>(
+    initialWidgetConfigs,
+  );
+
   const {
     layout: currentLayout,
     isLoading,
@@ -63,11 +65,11 @@ export function CustomizableDashboardLayout({
     handleLayoutChange,
     toggleWidgetVisibility,
     resetLayout,
-  } = useDashboardSettings(initialLayout);
+  } = useDashboardSettings(initialLayout, initialWidgetConfigs);
 
   const handleSaveLayout = async () => {
     try {
-      await saveLayout(currentLayout);
+      await saveLayout(currentLayout, widgetConfigs);
       setIsCustomizing(false);
     } catch (error: unknown) {
       console.error(
@@ -79,6 +81,7 @@ export function CustomizableDashboardLayout({
 
   const handleResetLayout = async () => {
     await resetLayout();
+    setWidgetConfigs({}); // Reset widget configs as well
     setIsCustomizing(false); // Exit customization mode after reset
   };
 
@@ -96,18 +99,15 @@ export function CustomizableDashboardLayout({
     [currentLayout, toggleWidgetVisibility],
   );
 
-  const handleSaveWidgetConfig = (
-    widgetId: string,
-    config: { title: string },
-  ) => {
-    const newLayout = currentLayout.map((item) => {
-      if (item.i === widgetId) {
-        return { ...item, title: config.title }; // Update the title in the layout item
-      }
-      return item;
-    });
-    handleLayoutChange(newLayout);
-  };
+  const handleSaveWidgetConfig = useCallback(
+    (widgetId: string, config: { title: string }) => {
+      setWidgetConfigs((prevConfigs) => ({
+        ...prevConfigs,
+        [widgetId]: { ...prevConfigs[widgetId], ...config },
+      }));
+    },
+    [],
+  );
 
   const visibleWidgets = useMemo(() => {
     return currentLayout.filter((item) => item.isVisible || isCustomizing);
@@ -132,10 +132,16 @@ export function CustomizableDashboardLayout({
             w: widgetToAdd.minW || 4,
             h: widgetToAdd.minH || 2,
             isVisible: true,
-            title: widgetToAdd.title, // Initialize title for new widget
+            // title: widgetToAdd.title, // Title will now be managed in widgetConfigs
           };
           const updatedLayout = [...currentLayout, newLayoutItem];
           handleLayoutChange(updatedLayout);
+
+          // Initialize widget config with default title
+          setWidgetConfigs((prevConfigs) => ({
+            ...prevConfigs,
+            [widgetId]: { title: widgetToAdd.title },
+          }));
         } else {
           // If already added, make it visible if it's hidden
           const existingWidget = currentLayout.find(
@@ -152,37 +158,23 @@ export function CustomizableDashboardLayout({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {dashboardSettingsError && showDashboardSettingsError && (
-        <Alert variant="destructive" className="relative pr-8">
+      {dashboardSettingsError && (
+        <Alert variant="destructive">
           <TriangleAlert className="h-4 w-4" />
           <AlertTitle>Error Loading Dashboard Settings</AlertTitle>
           <AlertDescription>
-            {dashboardSettingsError}. Using default layout.
+            {dashboardSettingsError}. Please try refreshing the page. If the issue persists, contact support.
           </AlertDescription>
-          <button
-            onClick={() => setShowDashboardSettingsError(false)}
-            className="absolute right-2 top-2 p-1 rounded-md hover:bg-red-500/10"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-          </button>
         </Alert>
       )}
 
-      {goalsError && showGoalsError && (
-        <Alert variant="destructive" className="relative pr-8">
+      {goalsError && (
+        <Alert variant="destructive">
           <TriangleAlert className="h-4 w-4" />
           <AlertTitle>Error Loading Goals</AlertTitle>
           <AlertDescription>
-            {goalsError}. Goals might not be displayed correctly.
+            {goalsError}. Goals might not be displayed correctly. Please try refreshing the page. If the issue persists, contact support.
           </AlertDescription>
-          <button
-            onClick={() => setShowGoalsError(false)}
-            className="absolute right-2 top-2 p-1 rounded-md hover:bg-red-500/10"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-          </button>
         </Alert>
       )}
 
@@ -222,7 +214,7 @@ export function CustomizableDashboardLayout({
 
           const WidgetComponent = widget.component;
           // Use the title from layoutItem if available, otherwise fallback to widget.title
-          const displayTitle = layoutItem.title || widget.title;
+          const displayTitle = widgetConfigs[widget.id]?.title || widget.title;
           return (
             <div key={widget.id} className="widget-container">
               <DashboardWidget

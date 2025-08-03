@@ -8,14 +8,20 @@ const { logger } = Sentry;
 import { WidgetLayout } from "@/app/types";
 import { widgetLayoutsSchema } from "@/lib/zod-schemas";
 import { revalidatePath } from "next/cache";
+import { getErrorMessage } from "@/lib/error-utils";
+
+export type DashboardSettings = {
+  layout: WidgetLayout[];
+  widget_configs: Record<string, any>; // Using Record<string, any> for flexibility
+};
 
 export async function getDashboardSettings(
   userId: string,
-): Promise<WidgetLayout[] | null> {
+): Promise<DashboardSettings | null> {
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
-    .from("dashboard_settings")
-    .select("layout")
+    .from("user_dashboard_settings")
+    .select("settings")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -29,18 +35,22 @@ export async function getDashboardSettings(
     return null;
   }
 
-  if (!data?.layout) {
+  if (!data?.settings) {
     logger.info(logger.fmt`No existing dashboard settings found for user ${userId}.`);
     return null;
   }
 
   try {
-    const parsedLayout = widgetLayoutsSchema.parse(data.layout as unknown);
+    const parsedSettings = data.settings as unknown as DashboardSettings;
+    const parsedLayout = widgetLayoutsSchema.parse(parsedSettings.layout);
     logger.debug(logger.fmt`Successfully parsed dashboard settings for user ${userId}.`);
-    return parsedLayout;
+    return {
+      layout: parsedLayout,
+      widget_configs: parsedSettings.widget_configs || {},
+    };
   } catch (e) {
     logger.error(logger.fmt`Error parsing stored dashboard settings for user ${userId}: ${e instanceof Error ? e.message : String(e)}`, {
-      rawLayout: data.layout,
+      rawSettings: data.settings,
       validationError: e,
     });
     Sentry.captureException(e);
@@ -50,13 +60,13 @@ export async function getDashboardSettings(
 
 export async function updateDashboardSettings(
   userId: string,
-  settings: WidgetLayout[],
+  settings: DashboardSettings,
 ): Promise<DashboardSettingsRow | null> {
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
-    .from("dashboard_settings")
+    .from("user_dashboard_settings")
     .upsert(
-      { user_id: userId, layout: settings as unknown as Json }, // Cast to Json for Supabase
+      { user_id: userId, settings: settings as unknown as Json }, // Cast to Json for Supabase
       { onConflict: "user_id" },
     )
     .select()

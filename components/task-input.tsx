@@ -70,7 +70,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
         handleError(err, "TaskInput");
         // Set form error if needed, though onAddTask might handle it
         if (err instanceof Zod.ZodError) {
-          err.errors.forEach((error: Zod.ZodIssue) => {
+          err.issues.forEach((error: Zod.ZodIssue) => {
             // Explicitly type error as Zod.ZodIssue
             if (error.path.length > 0) {
               form.setError(error.path[0] as keyof TaskFormValues, {

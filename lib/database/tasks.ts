@@ -10,7 +10,7 @@ import { withErrorHandling, convertRawTaskToTask } from "@/lib/utils";
 import { taskInsertSchema, taskUpdateSchema } from "@/lib/zod-schemas";
 
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
-type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
+export type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
 
 async function createClient() {
   const cookieStore = await cookies();

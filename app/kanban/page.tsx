@@ -13,7 +13,7 @@ import {
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 import { KanbanBoard } from "@/components/kanban/kanban-board";
-import { getTasks, updateTask } from "@/lib/database/tasks";
+import { getTasks, updateTask, TaskUpdate } from "@/lib/database/tasks";
 import { Task } from "@/lib/types/task";
 
 const KanbanPage = () => {
@@ -80,9 +80,7 @@ const KanbanPage = () => {
       }
 
       // Determine if we are moving between columns or reordering within a column
-      const oldColumnId = activeTask.is_completed
-        ? "completed"
-        : activeTask.priority || "medium";
+      const oldColumnId = activeTask.status;
       const newColumnId =
         (over.data.current as SortableData)?.sortable?.containerId ||
         String(over.id);
@@ -93,7 +91,7 @@ const KanbanPage = () => {
 
         await updateTask(activeId, {
           status: newStatus,
-        });
+        } as Partial<TaskUpdate>);
 
         setTasks((prevTasks) =>
           prevTasks.map((task) =>
