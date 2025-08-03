@@ -46,8 +46,9 @@ interface TaskItemProps
     | "is_completed"
     | "due_date"
     | "priority"
-    | "category"
-  > {
+    
+    
+
   
 
 /**

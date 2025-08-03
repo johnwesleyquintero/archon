@@ -177,6 +177,7 @@ export type Database = {
           priority: "low" | "medium" | "high" | null;
           category: string | null;
           tags: Json | null; // Assuming tags can be a JSON array
+          status: string | null;
         };
         Insert: {
           created_at?: string;
@@ -189,6 +190,7 @@ export type Database = {
           priority?: "low" | "medium" | "high" | null;
           category?: string | null;
           tags?: Json | null;
+          status?: string | null;
         };
         Update: {
           created_at?: string;
@@ -201,6 +203,7 @@ export type Database = {
           priority?: "low" | "medium" | "high" | null;
           category?: string | null;
           tags?: Json | null;
+          status?: string | null;
         };
         Relationships: [
           {
