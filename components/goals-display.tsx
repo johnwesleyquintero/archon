@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 
-interface GoalsDisplayProps {
+export interface GoalsDisplayProps {
   initialGoals: Goal[];
 }
 
