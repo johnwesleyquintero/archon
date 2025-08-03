@@ -49,7 +49,6 @@ interface TaskItemProps
     | "category"
   > {
   status: Task["status"];
-  tags: string[] | null; // Explicitly define tags as string[]
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onUpdate: (
@@ -86,7 +85,6 @@ export const TaskItem = React.memo(function TaskItem({
   due_date,
   priority,
   category,
-  status,
   tags = [],
   onToggle,
   onDelete,
@@ -111,7 +109,6 @@ export const TaskItem = React.memo(function TaskItem({
     priority,
     category,
     tags,
-    onToggle,
     onDelete,
     onUpdate: onUpdate as (
       id: string,
