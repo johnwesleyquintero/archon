@@ -60,6 +60,9 @@ describe("useTasks", () => {
 
     const { result } = renderHook(() => useTasks());
 
+    // Advance timers by 0 to allow useEffect to run
+    jest.advanceTimersByTime(0);
+
     expect(result.current.loading).toBe(true);
     expect(result.current.tasks).toEqual([]);
 
