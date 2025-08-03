@@ -118,6 +118,6 @@
     "node-fetch": "^3.3.2",
     "postcss": "8.5",
     "supabase": "^2.33.9",
-    "typescript": "^5.9.2"
+    "typescript": "^5.8.3"
   }
 }
