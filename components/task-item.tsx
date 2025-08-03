@@ -213,20 +213,7 @@ export const TaskItem = React.memo(function TaskItem({
             </Select>
           </PopoverContent>
         </Popover>
-        <Select
-          value={status}
-          onValueChange={(newStatus) => onUpdate(id, { status: newStatus })}
-          disabled={disabled}
-        >
-          <SelectTrigger className="h-6 text-xs w-[100px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todo">To Do</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="done">Done</SelectItem>
-          </SelectContent>
-        </Select>
+        
         {isToggling && (
           <Spinner className="w-4 h-4 text-slate-400 dark:text-slate-600" />
         )}
