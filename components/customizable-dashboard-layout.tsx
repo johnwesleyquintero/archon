@@ -18,6 +18,7 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 // Define a type that extends Layout with isVisible
 type DashboardLayoutItem = Layout & {
   isVisible: boolean;
+  title: string;
 };
 
 // Widget type definitions
@@ -132,7 +133,7 @@ export function CustomizableDashboardLayout({
             w: widgetToAdd.minW || 4,
             h: widgetToAdd.minH || 2,
             isVisible: true,
-            // title: widgetToAdd.title, // Title will now be managed in widgetConfigs
+            title: widgetToAdd.title,
           };
           const updatedLayout = [...currentLayout, newLayoutItem];
           handleLayoutChange(updatedLayout);

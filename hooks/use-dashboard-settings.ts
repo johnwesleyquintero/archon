@@ -15,6 +15,7 @@ import * as Sentry from "@sentry/nextjs";
 // Define a type that extends Layout with isVisible
 interface DashboardLayoutItem extends Layout {
   isVisible: boolean;
+  title: string;
 }
 
 interface UseDashboardSettingsResult {
@@ -110,6 +111,7 @@ export function useDashboardSettings(
         return {
           ...item,
           isVisible: existingItem?.isVisible ?? true, // Preserve visibility
+          title: existingItem?.title ?? "", // Preserve title
         };
       });
       setLayout(updatedLayoutWithVisibility);
