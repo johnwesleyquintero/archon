@@ -48,15 +48,7 @@ interface TaskItemProps
     | "priority"
     | "category"
   > {
-  status: Task["status"];
-  onToggle: (id: string, is_completed: boolean) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
-  onUpdate: (
-    id: string,
-    updatedTask: Partial<Database["public"]["Tables"]["tasks"]["Update"]>,
-  ) => Promise<void>;
-  disabled?: boolean;
-}
+  
 
 /**
  * TaskItem - Renders an individual task with toggle, edit, and delete functionality
