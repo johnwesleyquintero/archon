@@ -1,27 +1,30 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { AuthError } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 
 export async function forgotPassword(formData: FormData) {
-  const origin = (await headers()).get("origin");
   const email = formData.get("email") as string;
   const supabase = await createServerSupabaseClient();
+  const cookieStore = await cookies();
 
-  const { error }: { error: AuthError | null } =
-    await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${origin}/auth/update-password`,
-    });
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/update-password`,
+  });
 
   if (error) {
-    return redirect(
-      `/auth/forgot-password?message=${encodeURIComponent(error.message)}`,
-    );
+    cookieStore.set("auth_error_message", error.message, {
+      path: "/auth/forgot-password",
+      maxAge: 60 * 5,
+    }); // 5 minutes
+    return redirect("/auth/forgot-password");
   }
 
-  return redirect(
-    "/auth/forgot-password?message=Password reset email sent. Please check your inbox.",
-  );
+  cookieStore.set(
+    "auth_success_message",
+    "Password reset email sent successfully.",
+    { path: "/auth/forgot-password", maxAge: 60 * 5 },
+  ); // 5 minutes
+  return redirect("/auth/forgot-password");
 }

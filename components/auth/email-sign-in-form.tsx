@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { createClient } from "@/lib/supabase/client";
 import { loginSchema, signupSchema } from "@/lib/validators";
+import * as Sentry from "@sentry/nextjs";
 
 type FormInputs = z.infer<typeof loginSchema> | z.infer<typeof signupSchema>;
 
@@ -78,7 +79,13 @@ export function EmailSignInForm({
         }
       }
     } catch (error: unknown) {
-      console.error("Authentication error:", error);
+      // Log to Sentry for production, console for development
+      if (process.env.NODE_ENV === "production") {
+        Sentry.captureException(error);
+      } else {
+        console.error("Authentication error:", error);
+      }
+
       const errorMessage =
         error instanceof Error
           ? error.message

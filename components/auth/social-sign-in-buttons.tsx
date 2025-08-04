@@ -2,11 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { createClient } from "@/lib/supabase/client";
 
 interface SocialSignInButtonsProps {
   isLoading: boolean;
@@ -15,44 +11,41 @@ interface SocialSignInButtonsProps {
 
 export function SocialSignInButtons({
   isLoading,
-  setIsLoading: _setIsLoading, // Renamed to _setIsLoading to satisfy ESLint's no-unused-vars rule
+  setIsLoading,
 }: SocialSignInButtonsProps) {
+  const supabase = createClient();
+
+  const handleOAuthSignIn = async (provider: "github" | "google") => {
+    setIsLoading(true);
+    await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+    // setIsLoading(false); // This line might not be reached due to redirect
+  };
+
   return (
     <div className="space-y-3">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="w-full">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              disabled={isLoading}
-            >
-              Continue with GitHub
-            </Button>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Coming soon</p>
-        </TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="w-full">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              disabled={isLoading}
-            >
-              Continue with Google
-            </Button>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Coming soon</p>
-        </TooltipContent>
-      </Tooltip>
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full"
+        disabled={isLoading}
+        onClick={() => handleOAuthSignIn("github")}
+      >
+        Continue with GitHub
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full"
+        disabled={isLoading}
+        onClick={() => handleOAuthSignIn("google")}
+      >
+        Continue with Google
+      </Button>
     </div>
   );
 }

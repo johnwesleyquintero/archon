@@ -16,19 +16,11 @@ import { loginSchema } from "@/lib/validators";
 
 type LoginFormInputs = z.infer<typeof loginSchema>;
 
-interface ForgotPasswordFormProps {
-  isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
-  onCancel: () => void;
-}
-
-export function ForgotPasswordForm({
-  isLoading,
-  setIsLoading,
-  onCancel,
-}: ForgotPasswordFormProps) {
+export function ForgotPasswordForm() {
   const supabase = createClient();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [showForm, setShowForm] = React.useState(true);
 
   const {
     register,
@@ -88,7 +80,7 @@ export function ForgotPasswordForm({
         title: "Password Reset Email Sent",
         description: "Check your inbox for further instructions.",
       });
-      onCancel(); // Go back to sign-in form on success
+      setShowForm(false); // Hide the form on success
     } catch (err) {
       console.error("Password reset error:", err);
       toast({
@@ -101,7 +93,7 @@ export function ForgotPasswordForm({
     }
   };
 
-  return (
+  return showForm ? (
     <form
       onSubmit={(event) => void handleSubmit(handleForgotPassword)(event)}
       className="space-y-4"
@@ -153,7 +145,7 @@ export function ForgotPasswordForm({
         <Button
           type="button"
           variant="outline"
-          onClick={onCancel}
+          onClick={() => setShowForm(false)} // Allow going back to sign-in form
           disabled={isLoading}
           className="border-white/20 text-white hover:bg-white/10"
         >
@@ -161,5 +153,20 @@ export function ForgotPasswordForm({
         </Button>
       </div>
     </form>
+  ) : (
+    <div className="text-center space-y-4">
+      <h3 className="text-lg font-semibold text-white">Email Sent!</h3>
+      <p className="text-sm text-gray-300">
+        Please check your inbox for instructions to reset your password.
+      </p>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => setShowForm(true)}
+        className="border-white/20 text-white hover:bg-white/10"
+      >
+        Go Back
+      </Button>
+    </div>
   );
 }

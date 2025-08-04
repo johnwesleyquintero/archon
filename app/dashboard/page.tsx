@@ -2,12 +2,14 @@ import { Suspense } from "react";
 import * as Sentry from "@sentry/nextjs";
 import { CustomizableDashboardLayout } from "@/components/customizable-dashboard-layout";
 import { DashboardErrorToaster } from "@/components/dashboard/dashboard-error-toaster";
+import { DashboardCriticalError } from "@/components/dashboard/dashboard-critical-error";
 import { getDashboardSettings } from "@/lib/database/dashboard-settings";
 import { getGoals } from "@/lib/database/goals";
 import { getAvailableWidgets } from "@/lib/constants";
 import { DEFAULT_LAYOUT } from "@/lib/layouts";
 import type { Database } from "@/lib/supabase/types";
 import { DashboardLoadingSkeleton } from "@/components/dashboard/dashboard-loading-skeleton";
+import { redirect } from "next/navigation";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 import { mergeLayouts } from "@/lib/dashboard-utils";
@@ -55,6 +57,18 @@ export default async function DashboardPage() {
     }
   }
   const availableWidgets = getAvailableWidgets(initialGoals);
+
+  if (goalsError && dashboardSettingsError) {
+    Sentry.captureException(goalsError);
+    Sentry.captureException(dashboardSettingsError);
+    return (
+      <DashboardCriticalError
+        title="Failed to load dashboard"
+        description="We encountered a critical error while loading your dashboard data. Please try again."
+        onRetry={() => redirect("/dashboard")}
+      />
+    );
+  }
 
   return (
     <div className="container mx-auto p-6">

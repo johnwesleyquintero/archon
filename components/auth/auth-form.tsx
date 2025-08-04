@@ -18,22 +18,12 @@ export function AuthForm({ mode = "signIn" }: AuthFormProps) {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const router = useRouter();
 
-  const handleCancelForgotPassword = () => {
-    setShowForgotPassword(false);
-  };
-
   const handleSignUpSuccess = () => {
     router.push("/auth/verify-email");
   };
 
   if (showForgotPassword) {
-    return (
-      <ForgotPasswordForm
-        isLoading={isLoading}
-        setIsLoading={setIsLoading}
-        onCancel={handleCancelForgotPassword}
-      />
-    );
+    return <ForgotPasswordForm />;
   }
 
   return (
