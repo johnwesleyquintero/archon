@@ -11,6 +11,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { GoalForm } from "@/components/goal-form";
+import { createGoal } from "@/app/goals/actions";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 
@@ -21,13 +25,33 @@ export interface GoalsDisplayProps extends Record<string, unknown> {
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
-  const { data: goals, error } = useSWR<Goal[], Error>("/api/goals", fetcher, {
+  const {
+    data: goals,
+    error,
+    mutate,
+  } = useSWR<Goal[], Error>("/api/goals", fetcher, {
     fallbackData: initialGoals,
   });
 
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const handleSaveGoal = async (newGoalData: {
+    title: string;
+    description: string;
+    target_date?: string;
+  }) => {
+    try {
+      await createGoal(newGoalData);
+      await mutate(); // Revalidate SWR cache to show new goal
+      setIsFormOpen(false);
+    } catch (error) {
+      console.error("Failed to save goal:", error);
+      // Optionally, show an error message to the user
+    }
+  };
 
   const filteredAndSortedGoals = useMemo(() => {
     if (!goals) return [];
@@ -70,7 +94,12 @@ export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
 
   return (
     <div className="mt-8">
-      <h2 className="text-2xl font-bold mb-4">Your Goals</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Your Goals</h2>
+        <Button onClick={() => setIsFormOpen(true)} className="ml-4">
+          <PlusCircle className="mr-2 h-4 w-4" /> Add Goal
+        </Button>
+      </div>
       <div className="flex space-x-4 mb-4">
         <Input
           placeholder="Search goals..."
@@ -114,6 +143,11 @@ export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
                   Target Date: {new Date(goal.target_date).toLocaleDateString()}
                 </p>
               )}
+              <GoalForm
+                isOpen={isFormOpen}
+                onClose={() => setIsFormOpen(false)}
+                onSave={handleSaveGoal}
+              />
             </li>
           ))}
         </ul>
