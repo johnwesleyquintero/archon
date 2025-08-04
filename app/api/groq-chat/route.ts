@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       messages: validatedMessages,
     });
 
-    return result.toDataStreamResponse();
+    return result.toTextStreamResponse();
   } catch (error) {
     return apiErrorResponse(error, "Groq Chat API");
   }

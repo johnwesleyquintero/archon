@@ -8,7 +8,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export function SocialSignInButtons() {
+interface SocialSignInButtonsProps {
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export function SocialSignInButtons({
+  isLoading,
+  setIsLoading: _setIsLoading, // Renamed to _setIsLoading to satisfy ESLint's no-unused-vars rule
+}: SocialSignInButtonsProps) {
   return (
     <div className="space-y-3">
       <Tooltip>
@@ -18,7 +26,7 @@ export function SocialSignInButtons() {
               type="button"
               variant="outline"
               className="w-full"
-              disabled={true}
+              disabled={isLoading}
             >
               Continue with GitHub
             </Button>
@@ -35,7 +43,7 @@ export function SocialSignInButtons() {
               type="button"
               variant="outline"
               className="w-full"
-              disabled={true}
+              disabled={isLoading}
             >
               Continue with Google
             </Button>

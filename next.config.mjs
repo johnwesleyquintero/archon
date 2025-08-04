@@ -26,6 +26,10 @@ const nextConfig = {
           `https://${process.env.VERCEL_URL}` || "https://example.com",
         ).hostname,
       },
+      {
+        protocol: "https",
+        hostname: "sourcemaps.io",
+      },
     ],
   },
 };
