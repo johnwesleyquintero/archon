@@ -21,7 +21,7 @@ import {
 
 type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
 
-interface JournalListProps {
+export interface JournalListProps extends Record<string, unknown> {
   entries?: JournalEntry[];
   selectedEntryId?: string | null;
   onSelectEntry?: (id: string) => void;

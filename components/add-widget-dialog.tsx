@@ -20,7 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { Widget } from "./customizable-dashboard-layout.js";
 
 interface AddWidgetDialogProps {
-  availableWidgets: Widget[];
+  availableWidgets: Widget<Record<string, unknown>>[];
   onAddWidget: (widgetId: string) => void;
 }
 

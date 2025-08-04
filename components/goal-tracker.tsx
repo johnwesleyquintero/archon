@@ -16,7 +16,7 @@ import { z } from "zod";
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 type GoalFormValues = z.infer<typeof goalSchema>;
 
-export interface GoalTrackerProps {
+export interface GoalTrackerProps extends Record<string, unknown> {
   initialGoals?: Goal[]; // Make initialGoals optional
 }
 

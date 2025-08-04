@@ -1,8 +1,11 @@
 import { Home, Target, ListTodo, BookOpen, LucideIcon } from "lucide-react";
 import { AdvancedStatsGrid } from "@/components/advanced-stats-grid";
 import { GoalTracker } from "@/components/goal-tracker";
-import { JournalList } from "@/components/journal-list";
-import { PlaceholderInfographics } from "@/components/placeholder-infographics";
+import { JournalList, JournalListProps } from "@/components/journal-list";
+import {
+  PlaceholderInfographics,
+  PlaceholderInfographicsProps,
+} from "@/components/placeholder-infographics";
 import { StatsGrid } from "@/components/stats-grid";
 import { TodoList } from "@/components/todo-list";
 import { GoalsDisplay } from "@/components/goals-display";
@@ -12,6 +15,8 @@ import { GoalTrackerProps } from "@/components/goal-tracker";
 import { GoalsDisplayProps } from "@/components/goals-display";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
+
+
 
 interface NavItem {
   href: string;
@@ -29,7 +34,9 @@ export const NAV_ITEMS: NavItem[] = [
 export const SIGN_OUT_LABEL = "Sign Out";
 export const SIGNING_OUT_LABEL = "Signing out...";
 
-export const getAvailableWidgets = (initialGoals: Goal[]): Widget[] => [
+export const getAvailableWidgets = (
+  initialGoals: Goal[],
+) => [
   {
     id: "stats-overview",
     type: "stats",
@@ -52,19 +59,19 @@ export const getAvailableWidgets = (initialGoals: Goal[]): Widget[] => [
     id: "goal-tracker",
     type: "goals",
     title: "Goal Progress",
-    component: GoalTracker as React.ComponentType<GoalTrackerProps>,
+    component: GoalTracker,
     minW: 4,
     minH: 4,
-    defaultProps: { initialGoals },
+    defaultProps: { initialGoals } as GoalTrackerProps,
   },
   {
     id: "goals-display",
     type: "goals",
     title: "All Goals",
-    component: GoalsDisplay as React.ComponentType<GoalsDisplayProps>,
+    component: GoalsDisplay,
     minW: 6,
     minH: 4,
-    defaultProps: { initialGoals },
+    defaultProps: { initialGoals } as GoalsDisplayProps,
   },
   {
     id: "recent-journal",
@@ -73,7 +80,7 @@ export const getAvailableWidgets = (initialGoals: Goal[]): Widget[] => [
     component: JournalList,
     minW: 4,
     minH: 4,
-    defaultProps: { limit: 3 },
+    defaultProps: { limit: 3 } as JournalListProps,
   },
   {
     id: "advanced-stats",
@@ -95,6 +102,6 @@ export const getAvailableWidgets = (initialGoals: Goal[]): Widget[] => [
       title: "Productivity Insights",
       description:
         "Charts and graphs detailing your productivity trends will be available here soon.",
-    },
+    } as PlaceholderInfographicsProps,
   },
 ];

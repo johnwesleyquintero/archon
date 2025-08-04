@@ -22,7 +22,7 @@ type DashboardLayoutItem = Layout & {
 };
 
 // Widget type definitions
-export interface Widget<P = any> {
+export interface Widget<P = Record<string, unknown>> {
   id: string;
   type: string;
   title: string;
@@ -38,7 +38,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TriangleAlert } from "lucide-react";
 
 interface CustomizableDashboardLayoutProps {
-  widgets: Widget[];
+  widgets: Widget<any>[];
   initialLayout?: DashboardLayoutItem[];
   initialWidgetConfigs?: Record<string, { title: string }>;
   className?: string;
@@ -68,7 +68,7 @@ export function CustomizableDashboardLayout({
   } = useDashboardSettings(initialLayout, initialWidgetConfigs);
 
   const handleSaveLayout = () => {
-    saveLayout(currentLayout, widgetConfigs)
+    void saveLayout(currentLayout, widgetConfigs)
       .then(() => setIsCustomizing(false))
       .catch((error: unknown) => {
         console.error(
@@ -79,7 +79,7 @@ export function CustomizableDashboardLayout({
   };
 
   const handleResetLayout = () => {
-    resetLayout()
+    void resetLayout()
       .then(() => {
         setWidgetConfigs({}); // Reset widget configs as well
         setIsCustomizing(false); // Exit customization mode after reset

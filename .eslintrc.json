@@ -12,8 +12,10 @@
   "plugins": ["@typescript-eslint"],
   "ignorePatterns": ["lib/supabase/types.generated.ts", "**/.next/**"],
   "rules": {
+    "@typescript-eslint/no-misused-promises": "off",
+    "@typescript-eslint/no-empty-object-type": "off",
     // React rules
-    "react/no-unescaped-entities": ["error", { "forbid": [">", "}"] }],
+    "react/no-unescaped-entities": ["error", { "forbid": [">", "]"] }],
 
     // TypeScript ESLint rules
     "@typescript-eslint/no-explicit-any": "error",

@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 
-export interface GoalsDisplayProps {
+export interface GoalsDisplayProps extends Record<string, unknown> {
   initialGoals: Goal[];
 }
 
