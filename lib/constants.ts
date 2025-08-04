@@ -9,14 +9,12 @@ import {
 import { StatsGrid } from "@/components/stats-grid";
 import { TodoList } from "@/components/todo-list";
 import { GoalsDisplay } from "@/components/goals-display";
-import type { Widget } from "@/components/customizable-dashboard-layout";
+
 import type { Database } from "@/lib/supabase/types";
 import { GoalTrackerProps } from "@/components/goal-tracker";
 import { GoalsDisplayProps } from "@/components/goals-display";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
-
-
 
 interface NavItem {
   href: string;
@@ -34,13 +32,12 @@ export const NAV_ITEMS: NavItem[] = [
 export const SIGN_OUT_LABEL = "Sign Out";
 export const SIGNING_OUT_LABEL = "Signing out...";
 
-export const getAvailableWidgets = (
-  initialGoals: Goal[],
-) => [
+export const getAvailableWidgets = (initialGoals: Goal[]) => [
   {
     id: "stats-overview",
     type: "stats",
     title: "Overview Stats",
+    description: "A summary of your key statistics.",
     component: StatsGrid,
     minW: 6,
     minH: 3,
@@ -50,6 +47,7 @@ export const getAvailableWidgets = (
     id: "todo-list",
     type: "tasks",
     title: "Quick Tasks",
+    description: "Your immediate to-do list.",
     component: TodoList,
     minW: 4,
     minH: 4,
@@ -59,6 +57,7 @@ export const getAvailableWidgets = (
     id: "goal-tracker",
     type: "goals",
     title: "Goal Progress",
+    description: "Track the progress of your active goals.",
     component: GoalTracker,
     minW: 4,
     minH: 4,
@@ -68,6 +67,7 @@ export const getAvailableWidgets = (
     id: "goals-display",
     type: "goals",
     title: "All Goals",
+    description: "View all your defined goals.",
     component: GoalsDisplay,
     minW: 6,
     minH: 4,
@@ -77,6 +77,7 @@ export const getAvailableWidgets = (
     id: "recent-journal",
     type: "journal",
     title: "Recent Journal Entries",
+    description: "A quick look at your latest journal entries.",
     component: JournalList,
     minW: 4,
     minH: 4,
@@ -86,6 +87,7 @@ export const getAvailableWidgets = (
     id: "advanced-stats",
     type: "analytics",
     title: "Advanced Analytics",
+    description: "Detailed analytical insights into your data.",
     component: AdvancedStatsGrid,
     minW: 6,
     minH: 4,
@@ -95,6 +97,8 @@ export const getAvailableWidgets = (
     id: "productivity-chart",
     type: "charts",
     title: "Productivity Insights",
+    description:
+      "Charts and graphs detailing your productivity trends will be available here soon.",
     component: PlaceholderInfographics,
     minW: 6,
     minH: 4,

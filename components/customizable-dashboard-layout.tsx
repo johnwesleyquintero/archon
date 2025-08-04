@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import { ComponentType } from "react";
 import { useCallback, useMemo, useState } from "react";
 import { Responsive, type Layout, WidthProvider } from "react-grid-layout";
 
@@ -22,11 +23,15 @@ type DashboardLayoutItem = Layout & {
 };
 
 // Widget type definitions
-export interface Widget<P = Record<string, unknown>> {
+export interface Widget<
+  P extends Record<string, unknown> = Record<string, unknown>,
+> {
   id: string;
   type: string;
   title: string;
-  component: React.ComponentType<P>;
+  description: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  component: ComponentType<any>;
   defaultProps?: P;
   minW?: number;
   minH?: number;
@@ -34,11 +39,13 @@ export interface Widget<P = Record<string, unknown>> {
   maxH?: number;
 }
 
+// Widget type definitions
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TriangleAlert } from "lucide-react";
 
-interface CustomizableDashboardLayoutProps {
-  widgets: Widget<any>[];
+interface CustomizableDashboardLayoutProps<P extends Record<string, unknown>> {
+  widgets: Widget<P>[];
   initialLayout?: DashboardLayoutItem[];
   initialWidgetConfigs?: Record<string, { title: string }>;
   className?: string;
@@ -46,14 +53,14 @@ interface CustomizableDashboardLayoutProps {
   goalsError?: string | null;
 }
 
-export function CustomizableDashboardLayout({
+export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
   widgets,
   initialLayout = [],
   initialWidgetConfigs = {},
   className = "",
   dashboardSettingsError = null,
   goalsError = null,
-}: CustomizableDashboardLayoutProps) {
+}: CustomizableDashboardLayoutProps<P>) {
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [widgetConfigs, setWidgetConfigs] =
     useState<Record<string, { title: string }>>(initialWidgetConfigs);
@@ -120,9 +127,19 @@ export function CustomizableDashboardLayout({
     return currentLayout.filter((item) => item.isVisible || isCustomizing);
   }, [currentLayout, isCustomizing]);
 
+  const availableWidgets = useMemo(() => {
+    return widgets.map((w: Widget<P>) => ({
+      id: w.id,
+      title: w.title,
+      description: w.description,
+      component: w.component,
+      defaultProps: w.defaultProps,
+    }));
+  }, [widgets]);
+
   const handleAddWidget = useCallback(
     (widgetId: string) => {
-      const widgetToAdd = widgets.find((w) => w.id === widgetId);
+      const widgetToAdd = widgets.find((w: Widget<P>) => w.id === widgetId);
       if (widgetToAdd) {
         // Check if the widget is already in the layout
         const isAlreadyAdded = currentLayout.some(
@@ -145,10 +162,13 @@ export function CustomizableDashboardLayout({
           // Assuming handleLayoutChange might be async and return a Promise
           handleLayoutChange(updatedLayout);
 
-          // Initialize widget config with default title
+          // Initialize widget config with default title and any other default props
           setWidgetConfigs((prevConfigs) => ({
             ...prevConfigs,
-            [widgetId]: { title: widgetToAdd.title },
+            [widgetId]: {
+              ...widgetToAdd.defaultProps,
+              title: widgetToAdd.title,
+            },
           }));
         } else {
           // If already added, make it visible if it's hidden
@@ -242,7 +262,7 @@ export function CustomizableDashboardLayout({
                   handleSaveWidgetConfig(widget.id, config)
                 }
               >
-                <WidgetComponent {...(widget.defaultProps || {})} />
+                <WidgetComponent {...(widget.defaultProps || ({} as P))} />
               </DashboardWidget>
             </div>
           );
@@ -253,9 +273,9 @@ export function CustomizableDashboardLayout({
       {isCustomizing && (
         <Card className="border-dashed border-2 border-gray-300 hover:border-gray-400 transition-colors">
           <CardContent className="flex items-center justify-center py-8">
-            <AddWidgetDialog
+            <AddWidgetDialog<P>
               availableWidgets={widgets}
-              onAddWidget={(widgetId) => void handleAddWidget(widgetId)}
+              onAddWidget={(widgetId: string) => void handleAddWidget(widgetId)}
             />
           </CardContent>
         </Card>

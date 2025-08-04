@@ -19,19 +19,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Widget } from "./customizable-dashboard-layout.js";
 
-interface AddWidgetDialogProps {
-  availableWidgets: Widget<Record<string, unknown>>[];
+interface AddWidgetDialogProps<P extends Record<string, unknown>> {
+  availableWidgets: Widget<P>[];
   onAddWidget: (widgetId: string) => void;
 }
 
-export function AddWidgetDialog({
+export function AddWidgetDialog<P extends Record<string, unknown>>({
   availableWidgets,
   onAddWidget,
-}: AddWidgetDialogProps) {
+}: AddWidgetDialogProps<P>) {
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
 
-  const filteredWidgets = availableWidgets.filter((widget) =>
+  const filteredWidgets = availableWidgets.filter((widget: Widget<P>) =>
     widget.title.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
@@ -68,7 +68,7 @@ export function AddWidgetDialog({
                   No widgets found.
                 </p>
               ) : (
-                filteredWidgets.map((widget) => (
+                filteredWidgets.map((widget: Widget<P>) => (
                   <React.Fragment key={widget.id}>
                     <div className="flex items-center justify-between py-2">
                       <Label htmlFor={widget.id}>{widget.title}</Label>
