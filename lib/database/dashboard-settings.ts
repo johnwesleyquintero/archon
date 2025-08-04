@@ -3,12 +3,11 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { DashboardSettingsRow, Json } from "@/lib/supabase/types";
 import * as Sentry from "@sentry/nextjs";
-// Removed unused import: const { logger } = Sentry;
+import { handleServerError } from "@/lib/error-utils";
 
 import { WidgetLayout } from "@/app/types";
 import { widgetLayoutsSchema } from "@/lib/zod-schemas";
 import { revalidatePath } from "next/cache";
-// Removed unused import: import { getErrorMessage } from "@/lib/error-utils";
 
 export type DashboardSettings = {
   layout: WidgetLayout[];
@@ -26,16 +25,11 @@ export async function getDashboardSettings(
     .maybeSingle();
 
   if (error) {
-    Sentry.logger.error(
-      Sentry.logger
-        .fmt`Failed to fetch dashboard settings for user ${userId}: ${error.message}`,
-      {
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-      },
+    handleServerError(
+      error,
+      { userId },
+      `Failed to fetch dashboard settings for user ${userId}`,
     );
-    Sentry.captureException(error);
     return null;
   }
 
@@ -67,15 +61,11 @@ export async function getDashboardSettings(
       widget_configs: parsedWidgetConfigs,
     };
   } catch (e) {
-    Sentry.logger.error(
-      Sentry.logger
-        .fmt`Error parsing stored dashboard settings for user ${userId}: ${e instanceof Error ? e.message : String(e)}`,
-      {
-        rawSettings: data.layout,
-        validationError: e,
-      },
+    handleServerError(
+      e,
+      { userId, rawSettings: data.layout },
+      `Error parsing stored dashboard settings for user ${userId}`,
     );
-    Sentry.captureException(e);
     return null;
   }
 }
@@ -99,17 +89,11 @@ export async function updateDashboardSettings(
   }
 
   if (error) {
-    Sentry.logger.error(
-      Sentry.logger
-        .fmt`Failed to update dashboard settings for user ${userId}: ${error.message}`,
-      {
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-        settings: settings,
-      },
+    handleServerError(
+      error,
+      { userId, settings },
+      `Failed to update dashboard settings for user ${userId}`,
     );
-    Sentry.captureException(error);
     return null;
   }
 

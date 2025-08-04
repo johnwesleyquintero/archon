@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
-import { handleError } from "@/lib/utils";
+import { handleServerError } from "@/lib/error-utils";
 import { getAuthenticatedUser } from "@/lib/supabase/auth-utils";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
@@ -13,24 +13,21 @@ type GoalUpdate = Database["public"]["Tables"]["goals"]["Update"];
 export async function getGoals(userId: string): Promise<Goal[]> {
   const supabase = await createServerSupabaseClient();
 
-  // Reverted select to '*' to potentially resolve TS2345 on user.id
-  const result = await supabase
+  const { data, error } = await supabase
     .from("goals")
-    .select("*")
+    .select(
+      "id, created_at, title, description, progress, status, target_date, attachments, user_id, updated_at",
+    ) // Explicitly select columns
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
-  const { data, error } = result;
-
   if (error) {
-    handleError(error, "Database:getGoals");
+    handleServerError(error, { userId }, "Failed to fetch goals");
     return [];
   }
 
-  // Explicitly cast to Goal[] to satisfy the return type,
-  // as the generated types might not perfectly align with the select statement.
-  // This cast might need adjustment if the underlying types are very different.
-  return data as Goal[];
+  // No explicit cast needed if select statement aligns with Goal type
+  return data;
 }
 
 export async function addGoal(
@@ -62,7 +59,7 @@ export async function addGoal(
     .single();
 
   if (error) {
-    handleError(error, "Database:addGoal");
+    handleServerError(error, { goalData: newGoal }, "Failed to add goal");
     throw new Error(`Failed to add goal: ${error.message}`);
   }
 
@@ -93,7 +90,7 @@ export async function updateGoal(
     .single();
 
   if (error) {
-    handleError(error, "Database:updateGoal");
+    handleServerError(error, { id, goalData }, "Failed to update goal");
     throw new Error(`Failed to update goal: ${error.message}`);
   }
 
@@ -116,7 +113,7 @@ export async function deleteGoal(id: string): Promise<void> {
     .eq("user_id", user.id); // Ensure user owns the goal
 
   if (error) {
-    handleError(error, "Database:deleteGoal");
+    handleServerError(error, { id }, "Failed to delete goal");
     throw new Error(`Failed to delete goal: ${error.message}`);
   }
 

@@ -77,7 +77,7 @@ describe("createGoal", () => {
     };
 
     await expect(createGoal(formData)).rejects.toThrow(
-      "User not authenticated."
+      "User not authenticated.",
     );
   });
 
@@ -98,7 +98,7 @@ describe("createGoal", () => {
     };
 
     await expect(createGoal(formData)).rejects.toThrow(
-      "Failed to create goal: Database error"
+      "Failed to create goal: Database error",
     );
   });
 });
