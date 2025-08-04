@@ -14,7 +14,7 @@ import { redirect } from "next/navigation";
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 import { mergeLayouts } from "@/lib/dashboard-utils";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getErrorMessage } from "@/lib/error-utils";
+import { getErrorMessage } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -22,40 +22,46 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Redirect unauthenticated users to the sign-in page
+  if (!user) {
+    redirect("/auth/signin");
+  }
+
   let initialGoals: Goal[] = [];
   let goalsError: string | null = null;
   let initialLayout = DEFAULT_LAYOUT;
   let initialWidgetConfigs: Record<string, { title: string }> = {};
   let dashboardSettingsError: string | null = null;
 
-  if (user) {
-    const [goalsResult, settingsResult] = await Promise.allSettled([
-      getGoals(user.id),
-      getDashboardSettings(user.id),
-    ]);
+  // The rest of the data fetching logic remains the same,
+  // but now it's guaranteed that `user` is not null.
+  const [goalsResult, settingsResult] = await Promise.allSettled([
+    getGoals(user.id),
+    getDashboardSettings(user.id),
+  ]);
 
-    if (goalsResult.status === "fulfilled") {
-      initialGoals = goalsResult.value;
-    } else {
-      goalsError = getErrorMessage(goalsResult.reason);
-      Sentry.captureException(goalsResult.reason, {
-        extra: { context: "Goals Loading" },
-      });
-    }
-
-    if (settingsResult.status === "fulfilled") {
-      const storedSettings = settingsResult.value;
-      if (storedSettings) {
-        initialLayout = mergeLayouts(storedSettings.layout, DEFAULT_LAYOUT);
-        initialWidgetConfigs = storedSettings.widget_configs || {};
-      }
-    } else {
-      dashboardSettingsError = getErrorMessage(settingsResult.reason);
-      Sentry.captureException(settingsResult.reason, {
-        extra: { context: "Dashboard Settings Loading" },
-      });
-    }
+  if (goalsResult.status === "fulfilled") {
+    initialGoals = goalsResult.value;
+  } else {
+    goalsError = getErrorMessage(goalsResult.reason);
+    Sentry.captureException(goalsResult.reason, {
+      extra: { context: "Goals Loading" },
+    });
   }
+
+  if (settingsResult.status === "fulfilled") {
+    const storedSettings = settingsResult.value;
+    if (storedSettings) {
+      initialLayout = mergeLayouts(storedSettings.layout, DEFAULT_LAYOUT);
+      initialWidgetConfigs = storedSettings.widget_configs || {};
+    }
+  } else {
+    dashboardSettingsError = getErrorMessage(settingsResult.reason);
+    Sentry.captureException(settingsResult.reason, {
+      extra: { context: "Dashboard Settings Loading" },
+    });
+  }
+
   const availableWidgets = getAvailableWidgets(initialGoals);
 
   if (goalsError && dashboardSettingsError) {

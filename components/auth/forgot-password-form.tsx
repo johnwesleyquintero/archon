@@ -11,13 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { createClient } from "@/lib/supabase/client";
+import { forgotPassword } from "@/app/auth/actions"; // Import the server action
 import { loginSchema } from "@/lib/validators";
 
 type LoginFormInputs = z.infer<typeof loginSchema>;
 
 export function ForgotPasswordForm() {
-  const supabase = createClient();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
   const [showForm, setShowForm] = React.useState(true);
@@ -28,57 +27,36 @@ export function ForgotPasswordForm() {
     formState: { errors },
     setError: setFormError,
     clearErrors,
-    getValues,
   } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
   });
 
-  const handleForgotPassword = async () => {
-    const email = getValues("email");
-    const emailValidationResult = loginSchema
-      .pick({ email: true })
-      .safeParse({ email });
-
-    if (!emailValidationResult.success) {
-      setFormError("email", {
-        type: "manual",
-        message: emailValidationResult.error.issues[0].message,
-      });
-      toast({
-        variant: "destructive",
-        title: "Validation Error",
-        description: emailValidationResult.error.issues[0].message,
-      });
-      return;
-    }
-
+  const handleForgotPassword = async (data: LoginFormInputs) => {
     setIsLoading(true);
     clearErrors();
 
     try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-        emailValidationResult.data.email,
-        {
-          redirectTo: `${window.location.origin}/auth/reset-password`,
-        },
-      );
+      const formData = new FormData();
+      formData.append("email", data.email);
 
-      if (resetError) {
+      const result = await forgotPassword(formData);
+
+      if (!result.success) {
         setFormError("email", {
           type: "manual",
-          message: resetError.message,
+          message: result.message,
         });
         toast({
           variant: "destructive",
           title: "Password Reset Error",
-          description: resetError.message,
+          description: result.message,
         });
         return;
       }
 
       toast({
         title: "Password Reset Email Sent",
-        description: "Check your inbox for further instructions.",
+        description: result.message,
       });
       setShowForm(false); // Hide the form on success
     } catch (err) {

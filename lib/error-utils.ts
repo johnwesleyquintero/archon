@@ -1,34 +1,78 @@
-import * as Sentry from "@sentry/nextjs";
+// lib/error-utils.ts
 
-export function getErrorMessage(error: unknown): string {
+/**
+ * A utility function for consistent error handling across the application.
+ * This can be expanded to include logging, reporting, and more sophisticated error processing.
+ *
+ * @param error The error object, can be an Error instance or a string.
+ * @param context Optional context for the error, e.g., function name or operation.
+ * @returns A standardized error message or object.
+ */
+export function handleError(
+  error: unknown,
+  context?: string,
+): { message: string; details?: string } {
+  let errorMessage = "An unknown error occurred.";
+  let errorDetails: string | undefined;
+
   if (error instanceof Error) {
-    return error.message;
+    errorMessage = error.message;
+    errorDetails = error.stack;
+  } else if (typeof error === "string") {
+    errorMessage = error;
   }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "An unknown error occurred.";
+
+  console.error(
+    `[ERROR]${context ? ` (${context})` : ""}: ${errorMessage}`,
+    errorDetails || error,
+  );
+
+  return {
+    message: errorMessage,
+    details: errorDetails,
+  };
 }
 
+/**
+ * A utility function specifically for handling server-side errors.
+ * It can be expanded to include server-specific logging, error reporting, etc.
+ *
+ * @param error The error object, can be an Error instance or a string.
+ * @param context Optional context for the error, e.g., function name or operation.
+ * @returns A standardized error message or object.
+ */
 export function handleServerError(
   error: unknown,
-  context: Record<string, unknown> = {},
-  message: string = "An unexpected server error occurred.",
-) {
-  const errorMessage = getErrorMessage(error);
-  const fullMessage = `${message} Details: ${errorMessage}`;
+  context?: Record<string, unknown>,
+  message?: string,
+): { message: string; details?: string } {
+  let fullContext = "Server Error";
+  if (message) {
+    fullContext += `: ${message}`;
+  }
+  if (context) {
+    fullContext += ` (Context: ${JSON.stringify(context)})`;
+  }
+  return handleError(error, fullContext);
+}
 
-  Sentry.logger.error(fullMessage, {
-    ...context,
-    error: errorMessage,
-    stack: error instanceof Error ? error.stack : undefined,
-  });
-  Sentry.captureException(error, {
-    extra: context,
-  });
+/**
+ * Custom error class for application-specific errors.
+ */
+export class AppError extends Error {
+  public readonly code: string;
+  public readonly originalError?: unknown;
 
-  // In a production environment, you might want to return a generic error message
-  // to the client to avoid exposing sensitive details.
-  // For now, we'll return the detailed message for debugging.
-  return { success: false, message: fullMessage };
+  constructor(
+    message: string,
+    code: string = "APP_ERROR",
+    originalError?: unknown,
+  ) {
+    super(message);
+    this.name = "AppError";
+    this.code = code;
+    this.originalError = originalError;
+    // Set the prototype explicitly to ensure instanceof works correctly
+    Object.setPrototypeOf(this, AppError.prototype);
+  }
 }

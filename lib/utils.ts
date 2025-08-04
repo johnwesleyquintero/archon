@@ -80,18 +80,22 @@ export class AppError extends Error {
   }
 }
 
-/**
- * Centralized utility for handling and logging errors across the Archon application.
- * It normalizes various error types into an `AppError` instance, logs them to the console,
- * and optionally captures them with Sentry in production environments.
- *
- * @param error - The error object to handle. Can be an `AppError`, a standard `Error`, or any unknown type.
- * @param context - An optional string indicating the context where the error occurred (e.g., "API", "Database", "UI").
- * @returns An `AppError` instance representing the handled error.
- */
+import * as Sentry from "@sentry/nextjs";
+
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  return "An unknown error occurred.";
+}
+
 export const handleError = (
   error: unknown,
   context: string = "Application",
+  messagePrefix: string = "An unexpected error occurred.",
 ): AppError => {
   let appError: AppError;
 
@@ -107,40 +111,25 @@ export const handleError = (
     });
   }
 
+  const fullMessage = `${messagePrefix} Details: ${appError.message}`;
   console.error(
-    `[${context} Error] Code: ${appError.code}, Message: ${appError.message}`,
+    `[${context} Error] Code: ${appError.code}, Message: ${fullMessage}`,
     appError.details || "",
   );
 
-  // Integrate Sentry for production error logging
   if (process.env.NODE_ENV === "production") {
-    // Only capture exceptions in production to avoid noise during development
-    // Sentry automatically captures unhandled exceptions, but this allows explicit capture
-    // and ensures custom AppError details are sent.
-    void import("@sentry/nextjs").then((Sentry) => {
-      Sentry.captureException(appError, {
-        extra: {
-          context: context,
-          details: appError.details,
-          httpStatus: appError.httpStatus,
-        },
-      });
+    Sentry.captureException(appError, {
+      extra: {
+        context: context,
+        details: appError.details,
+        httpStatus: appError.httpStatus,
+      },
     });
   }
 
   return appError;
 };
 
-/**
- * Generates a standardized API error response.
- * This function leverages `handleError` to process the incoming error,
- * determines an appropriate HTTP status code, and formats the error
- * into a JSON response suitable for API clients.
- *
- * @param error - The error object to be included in the API response.
- * @param context - An optional string indicating the context where the API error occurred.
- * @returns A `Response` object with a JSON payload detailing the error and an appropriate HTTP status.
- */
 export const apiErrorResponse = (
   error: unknown,
   context: string = "API",
@@ -157,33 +146,6 @@ export const apiErrorResponse = (
   );
 };
 
-/**
- * Extracts a user-friendly error message from an unknown error type.
- * This utility is useful for displaying error messages in the UI or logs
- * when the exact type of the error is not known.
- *
- * @param error - The unknown error object.
- * @returns A string representation of the error message.
- */
-export const getErrorMessage = (error: unknown): string => {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "An unexpected error occurred.";
-};
-
-/**
- * A higher-order function to wrap async server actions with centralized error handling.
- * It catches errors, logs them using `handleError`, and re-throws a new Error
- * with a user-friendly message, ensuring consistent error responses from server actions.
- *
- * @param actionFn - The asynchronous function (server action) to be wrapped.
- * @param context - A string describing the context of the action for logging purposes.
- * @returns A new asynchronous function that wraps the original action with error handling.
- */
 export const withErrorHandling = <Args extends unknown[], Return>(
   actionFn: (...args: Args) => Promise<Return>,
   context: string,
