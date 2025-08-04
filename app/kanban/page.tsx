@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   DndContext,
   closestCorners,
@@ -13,23 +14,17 @@ import {
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 import { KanbanBoard } from "@/components/kanban/kanban-board";
-import { getTasks } from "@/lib/database/tasks";
+
 import { updateTask, TaskUpdate } from "@/app/tasks/actions";
 import { Task } from "@/lib/types/task";
 
-const KanbanPage = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
+interface KanbanPageProps {
+  initialTasks: Task[];
+}
 
-  useEffect(() => {
-    const fetchTasksData = async () => {
-      setLoading(true);
-      const fetchedTasks = await getTasks();
-      setTasks(fetchedTasks);
-      setLoading(false);
-    };
-    void fetchTasksData(); // Explicitly mark as void
-  }, []);
+const KanbanPage = ({ initialTasks }: KanbanPageProps) => {
+  const router = useRouter();
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
   const columns = useMemo(() => {
     const initialColumns = [
@@ -99,17 +94,14 @@ const KanbanPage = () => {
             task.id === activeId ? { ...task, status: newStatus } : task,
           ),
         );
+        router.refresh();
       } else {
         // Reordering within the same column (not implemented yet, requires more complex state management)
         // For now, we only handle column changes.
       }
     },
-    [tasks],
+    [tasks, router],
   );
-
-  if (loading) {
-    return <div className="p-4">Loading Kanban Board...</div>;
-  }
 
   return (
     <div className="p-4">
@@ -128,4 +120,4 @@ const KanbanPage = () => {
   );
 };
 
-export default KanbanPage;
+export { KanbanPage };
