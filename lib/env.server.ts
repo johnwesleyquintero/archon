@@ -10,6 +10,13 @@ const serverEnvSchema = z.object({
   SENTRY_DSN: z.string().optional(),
 });
 
-export const serverEnv = serverEnvSchema.parse(
-  process.env as Record<string, string | undefined>,
-);
+let parsedEnv: z.infer<typeof serverEnvSchema>;
+
+function getParsedEnv() {
+  if (!parsedEnv) {
+    parsedEnv = serverEnvSchema.parse(process.env);
+  }
+  return parsedEnv;
+}
+
+export const serverEnv = getParsedEnv();
