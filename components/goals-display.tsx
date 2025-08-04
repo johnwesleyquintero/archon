@@ -143,15 +143,15 @@ export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
                   Target Date: {new Date(goal.target_date).toLocaleDateString()}
                 </p>
               )}
-              <GoalForm
-                isOpen={isFormOpen}
-                onClose={() => setIsFormOpen(false)}
-                onSave={handleSaveGoal}
-              />
             </li>
           ))}
         </ul>
       )}
+      <GoalForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSave={handleSaveGoal}
+      />
     </div>
   );
 };

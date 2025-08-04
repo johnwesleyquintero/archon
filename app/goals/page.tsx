@@ -1,13 +1,10 @@
 import { GoalsDisplay } from "@/components/goals-display";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { getGoals } from "@/lib/database/goals";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/supabase/auth-utils";
 
 export default async function GoalsPage() {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser();
 
   const initialGoals = user ? await getGoals(user.id) : [];
 

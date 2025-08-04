@@ -2,20 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { User } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
-import * as Sentry from "@sentry/nextjs";
-const { logger } = Sentry;
+import { handleError } from "@/lib/utils";
+import { getAuthenticatedUser } from "@/lib/supabase/auth-utils";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 type GoalInsert = Database["public"]["Tables"]["goals"]["Insert"];
 type GoalUpdate = Database["public"]["Tables"]["goals"]["Update"];
-
-async function getUser(): Promise<User | null> {
-  const client = await createServerSupabaseClient();
-  const authResponse = await client.auth.getUser();
-  return authResponse.data.user;
-}
 
 export async function getGoals(userId: string): Promise<Goal[]> {
   const supabase = await createServerSupabaseClient();
@@ -30,8 +23,7 @@ export async function getGoals(userId: string): Promise<Goal[]> {
   const { data, error } = result;
 
   if (error) {
-    logger.error("Error fetching goals:", { error: error.message });
-    Sentry.captureException(error);
+    handleError(error, "Database:getGoals");
     return [];
   }
 
@@ -45,7 +37,7 @@ export async function addGoal(
   goalData: Omit<GoalInsert, "user_id">,
 ): Promise<Goal | null> {
   const supabase = await createServerSupabaseClient();
-  const user = await getUser();
+  const user = await getAuthenticatedUser();
 
   if (!user) {
     throw new Error("User not authenticated.");
@@ -70,8 +62,7 @@ export async function addGoal(
     .single();
 
   if (error) {
-    logger.error("Error adding goal:", { error: error.message });
-    Sentry.captureException(error);
+    handleError(error, "Database:addGoal");
     throw new Error(`Failed to add goal: ${error.message}`);
   }
 
@@ -84,7 +75,7 @@ export async function updateGoal(
   goalData: GoalUpdate,
 ): Promise<Goal | null> {
   const supabase = await createServerSupabaseClient();
-  const user = await getUser();
+  const user = await getAuthenticatedUser();
 
   if (!user) {
     throw new Error("User not authenticated.");
@@ -102,8 +93,7 @@ export async function updateGoal(
     .single();
 
   if (error) {
-    logger.error("Error updating goal:", { error: error.message });
-    Sentry.captureException(error);
+    handleError(error, "Database:updateGoal");
     throw new Error(`Failed to update goal: ${error.message}`);
   }
 
@@ -113,7 +103,7 @@ export async function updateGoal(
 
 export async function deleteGoal(id: string): Promise<void> {
   const supabase = await createServerSupabaseClient();
-  const user = await getUser();
+  const user = await getAuthenticatedUser();
 
   if (!user) {
     throw new Error("User not authenticated.");
@@ -126,8 +116,7 @@ export async function deleteGoal(id: string): Promise<void> {
     .eq("user_id", user.id); // Ensure user owns the goal
 
   if (error) {
-    logger.error("Error deleting goal:", { error: error.message });
-    Sentry.captureException(error);
+    handleError(error, "Database:deleteGoal");
     throw new Error(`Failed to delete goal: ${error.message}`);
   }
 

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import * as Sentry from "@sentry/nextjs";
 import { CustomizableDashboardLayout } from "@/components/customizable-dashboard-layout";
+import { DashboardErrorToaster } from "@/components/dashboard/dashboard-error-toaster";
 import { getDashboardSettings } from "@/lib/database/dashboard-settings";
 import { getGoals } from "@/lib/database/goals";
 import { getAvailableWidgets } from "@/lib/constants";
@@ -12,7 +13,6 @@ type Goal = Database["public"]["Tables"]["goals"]["Row"];
 import { mergeLayouts } from "@/lib/dashboard-utils";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getErrorMessage } from "@/lib/error-utils";
-import { DashboardSettings } from "@/lib/database/dashboard-settings";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -22,42 +22,39 @@ export default async function DashboardPage() {
 
   let initialGoals: Goal[] = [];
   let goalsError: string | null = null;
-  try {
-    if (user) {
-      initialGoals = await getGoals(user.id);
-    }
-  } catch (error: unknown) {
-    goalsError = getErrorMessage(error);
-    Sentry.captureException(error, {
-      extra: {
-        context: "Goals Loading",
-        errorMessage: goalsError,
-      },
-    });
-  }
-  const availableWidgets = getAvailableWidgets(initialGoals);
-
   let initialLayout = DEFAULT_LAYOUT;
   let initialWidgetConfigs: Record<string, { title: string }> = {};
   let dashboardSettingsError: string | null = null;
-  try {
-    if (user) {
-      const storedSettings: DashboardSettings | null =
-        await getDashboardSettings(user.id);
+
+  if (user) {
+    const [goalsResult, settingsResult] = await Promise.allSettled([
+      getGoals(user.id),
+      getDashboardSettings(user.id),
+    ]);
+
+    if (goalsResult.status === "fulfilled") {
+      initialGoals = goalsResult.value;
+    } else {
+      goalsError = getErrorMessage(goalsResult.reason);
+      Sentry.captureException(goalsResult.reason, {
+        extra: { context: "Goals Loading" },
+      });
+    }
+
+    if (settingsResult.status === "fulfilled") {
+      const storedSettings = settingsResult.value;
       if (storedSettings) {
         initialLayout = mergeLayouts(storedSettings.layout, DEFAULT_LAYOUT);
         initialWidgetConfigs = storedSettings.widget_configs || {};
       }
+    } else {
+      dashboardSettingsError = getErrorMessage(settingsResult.reason);
+      Sentry.captureException(settingsResult.reason, {
+        extra: { context: "Dashboard Settings Loading" },
+      });
     }
-  } catch (error: unknown) {
-    dashboardSettingsError = getErrorMessage(error);
-    Sentry.captureException(error, {
-      extra: {
-        context: "Dashboard Settings Loading",
-        errorMessage: dashboardSettingsError,
-      },
-    });
   }
+  const availableWidgets = getAvailableWidgets(initialGoals);
 
   return (
     <div className="container mx-auto p-6">
@@ -66,9 +63,11 @@ export default async function DashboardPage() {
           widgets={availableWidgets}
           initialLayout={initialLayout}
           initialWidgetConfigs={initialWidgetConfigs}
-          dashboardSettingsError={dashboardSettingsError}
-          goalsError={goalsError}
           className="min-h-screen"
+        />
+        <DashboardErrorToaster
+          goalsError={goalsError}
+          dashboardSettingsError={dashboardSettingsError}
         />
       </Suspense>
     </div>

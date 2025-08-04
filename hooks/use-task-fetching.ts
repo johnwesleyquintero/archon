@@ -70,15 +70,30 @@ export function useTaskFetching(initialTasks: Task[] = []) {
           filter: `user_id=eq.${user?.id}`,
         },
         (payload) => {
-          fetchTasks(); // Refetch tasks on any change
+          // Handle different event types for granular updates
+          if (payload.eventType === "INSERT") {
+            const newTask = convertRawTaskToTask(payload.new as RawTask);
+            setTasks((prev) => [newTask, ...prev]);
+          } else if (payload.eventType === "UPDATE") {
+            const updatedTask = convertRawTaskToTask(payload.new as RawTask);
+            setTasks((prev) =>
+              prev.map((task) =>
+                task.id === updatedTask.id ? updatedTask : task,
+              ),
+            );
+          } else if (payload.eventType === "DELETE") {
+            setTasks((prev) =>
+              prev.filter((task) => task.id !== payload.old.id),
+            );
+          }
         },
       )
       .subscribe();
 
     return () => {
-      client.removeChannel(channel);
+      void client.removeChannel(channel);
     };
-  }, [fetchTasks, initialTasks, user?.id]); // Added initialTasks to dependency array
+  }, [initialTasks, user?.id, fetchTasks]);
 
   return {
     tasks,

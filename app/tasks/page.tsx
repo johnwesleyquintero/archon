@@ -2,16 +2,13 @@ import { TodoList } from "@/components/todo-list";
 import { Task } from "@/lib/types/task";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { getTasks } from "@/lib/database/tasks";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ErrorState } from "@/components/error-state";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { Suspense } from "react";
+import { getAuthenticatedUser } from "@/lib/supabase/auth-utils";
 
 export default async function TasksPage() {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser();
 
   let initialTasks: Task[] = [];
   let error: string | null = null;

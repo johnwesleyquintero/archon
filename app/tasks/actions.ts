@@ -6,7 +6,11 @@ import { cookies } from "next/headers";
 import type { Database } from "@/lib/supabase/types";
 import { Task } from "@/lib/types/task";
 
-import { withErrorHandling, convertRawTaskToTask } from "@/lib/utils";
+import {
+  withErrorHandling,
+  convertRawTaskToTask,
+  handleError,
+} from "@/lib/utils";
 import { taskInsertSchema, taskUpdateSchema } from "@/lib/zod-schemas";
 
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
@@ -73,7 +77,7 @@ export const addTask = withErrorHandling(
       .single();
 
     if (error) {
-      console.error("Error adding task:", error);
+      handleError(error, "Task:addTask");
       throw new Error(`Failed to add task: ${error.message}`);
     }
 
@@ -103,7 +107,7 @@ export const toggleTask = withErrorHandling(
       .single();
 
     if (error) {
-      console.error("Error toggling task:", error);
+      handleError(error, "Task:toggleTask");
       throw new Error(`Failed to toggle task: ${error.message}`);
     }
 
@@ -131,7 +135,7 @@ export const deleteTask = withErrorHandling(
       .eq("user_id", user.id); // Ensure user owns the task
 
     if (error) {
-      console.error("Error deleting task:", error);
+      handleError(error, "Task:deleteTask");
       throw new Error(`Failed to delete task: ${error.message}`);
     }
 
@@ -166,7 +170,7 @@ export const updateTask = withErrorHandling(
       .single();
 
     if (error) {
-      console.error("Error updating task:", error);
+      handleError(error, "Task:updateTask");
       throw new Error(`Failed to update task: ${error.message}`);
     }
 
