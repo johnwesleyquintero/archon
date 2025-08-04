@@ -130,6 +130,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
   const availableWidgets = useMemo(() => {
     return widgets.map((w: Widget<P>) => ({
       id: w.id,
+      type: w.type,
       title: w.title,
       description: w.description,
       component: w.component,
@@ -274,7 +275,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
         <Card className="border-dashed border-2 border-gray-300 hover:border-gray-400 transition-colors">
           <CardContent className="flex items-center justify-center py-8">
             <AddWidgetDialog<P>
-              availableWidgets={widgets}
+              availableWidgets={availableWidgets}
               onAddWidget={(widgetId: string) => void handleAddWidget(widgetId)}
             />
           </CardContent>
