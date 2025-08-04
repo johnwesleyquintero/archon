@@ -44,6 +44,7 @@ export function MobileNavSheet() {
           <Link
             href="/dashboard"
             className="flex items-center gap-2 text-lg font-semibold"
+            aria-label="Archon Dashboard Home"
           >
             <ArchonLogoSVG className="h-6 w-6" />
             Archon
@@ -51,6 +52,7 @@ export function MobileNavSheet() {
           <Link
             href="/dashboard"
             className="flex items-center gap-4 px-2.5 text-slate-600 hover:text-slate-900"
+            aria-label="Go to Dashboard"
           >
             <Home className="h-5 w-5" />
             Dashboard
@@ -58,6 +60,7 @@ export function MobileNavSheet() {
           <Link
             href="/goals"
             className="flex items-center gap-4 px-2.5 text-slate-600 hover:text-slate-900"
+            aria-label="Go to Goals"
           >
             <Target className="h-5 w-5" />
             Goals
@@ -65,6 +68,7 @@ export function MobileNavSheet() {
           <Link
             href="/tasks"
             className="flex items-center gap-4 px-2.5 text-slate-600 hover:text-slate-900"
+            aria-label="Go to Tasks"
           >
             <ListTodo className="h-5 w-5" />
             Tasks
@@ -72,6 +76,7 @@ export function MobileNavSheet() {
           <Link
             href="/journal"
             className="flex items-center gap-4 px-2.5 text-slate-600 hover:text-slate-900"
+            aria-label="Go to Journal"
           >
             <BookOpen className="h-5 w-5" />
             Journal
@@ -79,6 +84,7 @@ export function MobileNavSheet() {
           <Link
             href="/settings"
             className="flex items-center gap-4 px-2.5 text-slate-600 hover:text-slate-900"
+            aria-label="Go to Settings"
           >
             <Settings className="h-5 w-5" />
             Settings
@@ -88,6 +94,7 @@ export function MobileNavSheet() {
             className="flex items-center gap-4 px-2.5 text-slate-600 hover:text-slate-900 justify-start"
             onClick={() => void handleSignOut()}
             disabled={isSigningOut}
+            aria-label={isSigningOut ? "Signing out..." : "Sign Out"}
           >
             <LogOut className="h-5 w-5" />
             {isSigningOut ? "Signing out..." : "Sign Out"}

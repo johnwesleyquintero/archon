@@ -24,7 +24,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { WidgetConfigModal } from "./dashboard/controls/widget-config-modal";
+import dynamic from "next/dynamic";
+
+const DynamicWidgetConfigModal = dynamic(
+  () =>
+    import("./dashboard/controls/widget-config-modal").then(
+      (mod) => mod.WidgetConfigModal,
+    ),
+  { ssr: false }, // Ensure it's client-side rendered
+);
 
 interface DashboardWidgetProps {
   title: string;
@@ -189,7 +197,7 @@ export function DashboardWidget({
         )}
       </CardContent>
       {onSaveConfig && ( // Render the generic config modal if onSaveConfig is provided
-        <WidgetConfigModal
+        <DynamicWidgetConfigModal
           isOpen={isConfigModalOpen}
           onClose={() => setIsConfigModalOpen(false)}
           onSave={onSaveConfig}

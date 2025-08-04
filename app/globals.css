@@ -35,10 +35,10 @@ body {
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 90%; /* Adjusted for WCAG 2.1 AA contrast */
+    --destructive-foreground: 210 40% 20%; /* Adjusted for WCAG 2.1 AA contrast */
 
-    --border: 214.3 31.8% 85%; /* Adjusted for WCAG 2.1 AA contrast */
-    --input: 214.3 31.8% 85%; /* Adjusted for WCAG 2.1 AA contrast */
+    --border: 214.3 31.8% 50%; /* Adjusted for WCAG 2.1 AA contrast */
+    --input: 214.3 31.8% 50%; /* Adjusted for WCAG 2.1 AA contrast */
     --ring: 222.2 84% 4.9%;
 
     --chart-1: 12 76% 61%;
@@ -82,8 +82,8 @@ body {
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 25%; /* Adjusted for WCAG 2.1 AA contrast */
-    --input: 217.2 32.6% 25%; /* Adjusted for WCAG 2.1 AA contrast */
+    --border: 217.2 32.6% 40%; /* Adjusted for WCAG 2.1 AA contrast */
+    --input: 217.2 32.6% 40%; /* Adjusted for WCAG 2.1 AA contrast */
     --ring: 212.7 26.8% 83.9%;
 
     --chart-1: 220 70% 50%;

@@ -54,11 +54,19 @@ export function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/settings">Settings</Link>
+          <Link href="/settings" aria-label="Go to Settings">
+            Settings
+          </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem>Support</DropdownMenuItem>
+        <DropdownMenuItem aria-label="Contact Support">
+          Support
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={void handleSignOut} disabled={isSigningOut}>
+        <DropdownMenuItem
+          onClick={void handleSignOut}
+          disabled={isSigningOut}
+          aria-label={isSigningOut ? "Signing out..." : "Logout"}
+        >
           {isSigningOut ? "Signing out..." : "Logout"}
         </DropdownMenuItem>
       </DropdownMenuContent>
