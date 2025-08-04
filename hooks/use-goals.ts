@@ -23,10 +23,16 @@ export function useGoals(initialGoals: Goal[] = []) {
   const [isPending, startTransition] = useTransition();
 
   const fetchGoals = useCallback(async () => {
+    if (!user?.id) {
+      setGoals([]);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getGoals();
+      const data = await getGoals(user.id);
       setGoals(data || []);
     } catch (err) {
       const error =
@@ -35,10 +41,11 @@ export function useGoals(initialGoals: Goal[] = []) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
-    if (initialGoals.length === 0) {
+    if (initialGoals.length === 0 || user?.id) {
+      // Fetch if no initial goals or user changes
       fetchGoals();
     }
 

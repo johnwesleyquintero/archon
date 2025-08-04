@@ -6,7 +6,7 @@ import {
   toggleTask as toggleTaskInDb,
   deleteTask as deleteTaskFromDb,
   updateTask as updateTaskInDb,
-} from "@/lib/database/tasks";
+} from "@/app/tasks/actions";
 import type { Database } from "@/lib/supabase/types";
 import type { Task } from "@/lib/types/task";
 import { useAuth } from "@/contexts/auth-context";

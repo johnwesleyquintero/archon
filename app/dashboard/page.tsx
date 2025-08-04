@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   let goalsError: string | null = null;
   try {
     if (user) {
-      initialGoals = await getGoals();
+      initialGoals = await getGoals(user.id);
     }
   } catch (error: unknown) {
     goalsError = getErrorMessage(error);

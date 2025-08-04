@@ -9,7 +9,7 @@ export default async function GoalsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const initialGoals = user ? await getGoals() : [];
+  const initialGoals = user ? await getGoals(user.id) : [];
 
   return (
     <DashboardLayout>

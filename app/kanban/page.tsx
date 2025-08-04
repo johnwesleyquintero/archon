@@ -13,7 +13,8 @@ import {
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 import { KanbanBoard } from "@/components/kanban/kanban-board";
-import { getTasks, updateTask, TaskUpdate } from "@/lib/database/tasks";
+import { getTasks } from "@/lib/database/tasks";
+import { updateTask, TaskUpdate } from "@/app/tasks/actions";
 import { Task } from "@/lib/types/task";
 
 const KanbanPage = () => {

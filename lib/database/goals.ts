@@ -17,19 +17,14 @@ async function getUser(): Promise<User | null> {
   return authResponse.data.user;
 }
 
-export async function getGoals(): Promise<Goal[]> {
+export async function getGoals(userId: string): Promise<Goal[]> {
   const supabase = await createServerSupabaseClient();
-  const user = await getUser();
-
-  if (!user) {
-    return [];
-  }
 
   // Reverted select to '*' to potentially resolve TS2345 on user.id
   const result = await supabase
     .from("goals")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
   const { data, error } = result;
