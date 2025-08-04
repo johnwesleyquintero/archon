@@ -40,7 +40,7 @@ export default withSentryConfig(nextConfig, {
   // Upload a larger set of source maps for prettier stack traces (useful for debugging, but creates larger builds).
   // Set this to false when you're ready to deploy to production.
   // This option cannot be configured via the environment variable SENTRY_INCLUDE_SERVER_SCHEMAS.
-  includeServerSchemas: true,
+  includeServerSchemas: false,
 
   // For all available options, see: https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
