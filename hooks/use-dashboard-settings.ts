@@ -37,9 +37,8 @@ export function useDashboardSettings(
 ): UseDashboardSettingsResult {
   const { user } = useAuth();
   const [layout, setLayout] = useState<DashboardLayoutItem[]>(initialLayout);
-  const [widgetConfigs, setWidgetConfigs] = useState<Record<string, any>>(
-    initialWidgetConfigs,
-  );
+  const [widgetConfigs, setWidgetConfigs] =
+    useState<Record<string, any>>(initialWidgetConfigs);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -53,7 +52,8 @@ export function useDashboardSettings(
 
       setIsLoading(true);
       try {
-        const storedSettings: DashboardSettings | null = await getDashboardSettings(user.id);
+        const storedSettings: DashboardSettings | null =
+          await getDashboardSettings(user.id);
         if (storedSettings) {
           // Merge stored settings with default layout to handle new widgets or removed ones
           setLayout(mergeLayouts(storedSettings.layout, DEFAULT_LAYOUT));

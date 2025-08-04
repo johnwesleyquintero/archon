@@ -36,7 +36,7 @@ interface DashboardWidgetProps {
   onSaveConfig?: (config: { title: string }) => void;
   isVisible?: boolean;
   className?: string;
-  widgetId?: string;
+  _widgetId?: string;
 }
 
 export function DashboardWidget({
@@ -49,7 +49,7 @@ export function DashboardWidget({
   onSaveConfig,
   isVisible = true,
   className = "",
-  widgetId,
+  _widgetId,
 }: DashboardWidgetProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);

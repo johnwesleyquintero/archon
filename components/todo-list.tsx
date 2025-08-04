@@ -2,8 +2,7 @@
 
 import { useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+
 import { TaskInput } from "./task-input";
 import { TaskList } from "./task-list";
 import { useTasks } from "@/hooks/use-tasks";
@@ -31,7 +30,6 @@ export function TodoList({ initialTasks }: TodoListProps) {
         <CardTitle>Todo List</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-4">
-
         <TaskList onAddTaskClick={handleAddTaskClick} />
         <TaskInput
           ref={taskInputRef}

@@ -8,7 +8,6 @@ import { DEFAULT_LAYOUT } from "@/lib/layouts";
 import type { Database } from "@/lib/supabase/types";
 import { DashboardLoadingSkeleton } from "@/components/dashboard/dashboard-loading-skeleton";
 
-
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 import { mergeLayouts } from "@/lib/dashboard-utils";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -27,8 +26,7 @@ export default async function DashboardPage() {
     if (user) {
       initialGoals = await getGoals();
     }
-  }
-  catch (error: unknown) {
+  } catch (error: unknown) {
     goalsError = getErrorMessage(error);
     Sentry.captureException(error, {
       extra: {
@@ -40,18 +38,18 @@ export default async function DashboardPage() {
   const availableWidgets = getAvailableWidgets(initialGoals);
 
   let initialLayout = DEFAULT_LAYOUT;
-  let initialWidgetConfigs: Record<string, any> = {};
+  let initialWidgetConfigs: Record<string, { title: string }> = {};
   let dashboardSettingsError: string | null = null;
   try {
     if (user) {
-      const storedSettings: DashboardSettings | null = await getDashboardSettings(user.id);
+      const storedSettings: DashboardSettings | null =
+        await getDashboardSettings(user.id);
       if (storedSettings) {
         initialLayout = mergeLayouts(storedSettings.layout, DEFAULT_LAYOUT);
         initialWidgetConfigs = storedSettings.widget_configs || {};
       }
     }
-  }
-  catch (error: unknown) {
+  } catch (error: unknown) {
     dashboardSettingsError = getErrorMessage(error);
     Sentry.captureException(error, {
       extra: {

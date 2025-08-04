@@ -22,7 +22,7 @@ type DashboardLayoutItem = Layout & {
 };
 
 // Widget type definitions
-export interface Widget<P = Record<string, unknown>> {
+export interface Widget<P = any> {
   id: string;
   type: string;
   title: string;
@@ -35,12 +35,12 @@ export interface Widget<P = Record<string, unknown>> {
 }
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { TriangleAlert, X } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 
 interface CustomizableDashboardLayoutProps {
   widgets: Widget[];
   initialLayout?: DashboardLayoutItem[];
-  initialWidgetConfigs?: Record<string, any>;
+  initialWidgetConfigs?: Record<string, { title: string }>;
   className?: string;
   dashboardSettingsError?: string | null;
   goalsError?: string | null;
@@ -55,9 +55,8 @@ export function CustomizableDashboardLayout({
   goalsError = null,
 }: CustomizableDashboardLayoutProps) {
   const [isCustomizing, setIsCustomizing] = useState(false);
-  const [widgetConfigs, setWidgetConfigs] = useState<Record<string, any>>(
-    initialWidgetConfigs,
-  );
+  const [widgetConfigs, setWidgetConfigs] =
+    useState<Record<string, { title: string }>>(initialWidgetConfigs);
 
   const {
     layout: currentLayout,
@@ -68,22 +67,29 @@ export function CustomizableDashboardLayout({
     resetLayout,
   } = useDashboardSettings(initialLayout, initialWidgetConfigs);
 
-  const handleSaveLayout = async () => {
-    try {
-      await saveLayout(currentLayout, widgetConfigs);
-      setIsCustomizing(false);
-    } catch (error: unknown) {
-      console.error(
-        "Failed to save layout:",
-        error instanceof Error ? error.message : String(error),
-      );
-    }
+  const handleSaveLayout = () => {
+    saveLayout(currentLayout, widgetConfigs)
+      .then(() => setIsCustomizing(false))
+      .catch((error: unknown) => {
+        console.error(
+          "Failed to save layout:",
+          error instanceof Error ? error.message : String(error),
+        );
+      });
   };
 
-  const handleResetLayout = async () => {
-    await resetLayout();
-    setWidgetConfigs({}); // Reset widget configs as well
-    setIsCustomizing(false); // Exit customization mode after reset
+  const handleResetLayout = () => {
+    resetLayout()
+      .then(() => {
+        setWidgetConfigs({}); // Reset widget configs as well
+        setIsCustomizing(false); // Exit customization mode after reset
+      })
+      .catch((error: unknown) => {
+        console.error(
+          "Failed to reset layout:",
+          error instanceof Error ? error.message : String(error),
+        );
+      });
   };
 
   const toggleCustomization = () => {
@@ -136,6 +142,7 @@ export function CustomizableDashboardLayout({
             title: widgetToAdd.title,
           };
           const updatedLayout = [...currentLayout, newLayoutItem];
+          // Assuming handleLayoutChange might be async and return a Promise
           handleLayoutChange(updatedLayout);
 
           // Initialize widget config with default title
@@ -164,7 +171,8 @@ export function CustomizableDashboardLayout({
           <TriangleAlert className="h-4 w-4" />
           <AlertTitle>Error Loading Dashboard Settings</AlertTitle>
           <AlertDescription>
-            {dashboardSettingsError}. Please try refreshing the page. If the issue persists, contact support.
+            {dashboardSettingsError}. Please try refreshing the page. If the
+            issue persists, contact support.
           </AlertDescription>
         </Alert>
       )}
@@ -174,7 +182,8 @@ export function CustomizableDashboardLayout({
           <TriangleAlert className="h-4 w-4" />
           <AlertTitle>Error Loading Goals</AlertTitle>
           <AlertDescription>
-            {goalsError}. Goals might not be displayed correctly. Please try refreshing the page. If the issue persists, contact support.
+            {goalsError}. Goals might not be displayed correctly. Please try
+            refreshing the page. If the issue persists, contact support.
           </AlertDescription>
         </Alert>
       )}
@@ -215,7 +224,7 @@ export function CustomizableDashboardLayout({
 
           const WidgetComponent = widget.component;
           // Use the title from layoutItem if available, otherwise fallback to widget.title
-          const displayTitle = widgetConfigs[widget.id]?.title || widget.title;
+          const displayTitle = widgetConfigs[widget.id]?.title ?? widget.title;
           return (
             <div key={widget.id} className="widget-container">
               <DashboardWidget
@@ -228,7 +237,7 @@ export function CustomizableDashboardLayout({
                   handleToggleWidgetVisibility(widget.id)
                 }
                 isVisible={layoutItem.isVisible}
-                widgetId={widget.id}
+                _widgetId={widget.id}
                 onSaveConfig={(config) =>
                   handleSaveWidgetConfig(widget.id, config)
                 }
@@ -246,7 +255,7 @@ export function CustomizableDashboardLayout({
           <CardContent className="flex items-center justify-center py-8">
             <AddWidgetDialog
               availableWidgets={widgets}
-              onAddWidget={handleAddWidget}
+              onAddWidget={(widgetId) => void handleAddWidget(widgetId)}
             />
           </CardContent>
         </Card>

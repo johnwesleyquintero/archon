@@ -20,7 +20,7 @@ export interface GoalsDisplayProps {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export function GoalsDisplay({ initialGoals }: GoalsDisplayProps) {
+export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
   const { data: goals, error } = useSWR<Goal[], Error>("/api/goals", fetcher, {
     fallbackData: initialGoals,
   });
@@ -120,4 +120,4 @@ export function GoalsDisplay({ initialGoals }: GoalsDisplayProps) {
       )}
     </div>
   );
-}
+};

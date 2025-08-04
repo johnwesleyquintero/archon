@@ -42,12 +42,7 @@ type Task = Database["public"]["Tables"]["tasks"]["Row"];
 interface TaskItemProps
   extends Pick<
     Task,
-    | "id"
-    | "title"
-    | "is_completed"
-    | "due_date"
-    | "priority"
-    | "category"
+    "id" | "title" | "is_completed" | "due_date" | "priority" | "category"
   > {
   tags: string[] | null;
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
@@ -125,14 +120,18 @@ export const TaskItem = React.memo(function TaskItem({
           id={`task-${id}`}
           checked={is_completed}
           disabled={disabled || isToggling}
-          onCheckedChange={(checked) => void handleToggle(!!checked)}
+          onCheckedChange={(checked) => {
+            void handleToggle(!!checked);
+          }}
           className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900 dark:border-slate-600 dark:data-[state=checked]:bg-slate-50 dark:data-[state=checked]:border-slate-50"
         />
         {isEditing ? (
           <Input
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            onBlur={() => void handleUpdate()}
+            onBlur={() => {
+              void handleUpdate();
+            }}
             onKeyDown={handleKeyDown}
             className="flex-1 text-sm h-8"
             autoFocus
@@ -168,7 +167,9 @@ export const TaskItem = React.memo(function TaskItem({
               mode="single"
               selected={due_date ? new Date(due_date) : undefined}
               onSelect={(date) => {
-                onUpdate(id, { due_date: date ? date.toISOString() : null });
+                void onUpdate(id, {
+                  due_date: date ? date.toISOString() : null,
+                });
               }}
               initialFocus
             />
@@ -189,9 +190,11 @@ export const TaskItem = React.memo(function TaskItem({
           <PopoverContent className="w-[160px] p-0" align="start">
             <Select
               value={priority || ""}
-              onValueChange={(newPriority) =>
-                onUpdate(id, { priority: newPriority as Task["priority"] })
-              }
+              onValueChange={(newPriority) => {
+                void onUpdate(id, {
+                  priority: newPriority as Task["priority"],
+                });
+              }}
             >
               <SelectTrigger className="h-8 text-sm">
                 <SelectValue placeholder="Select Priority" />
@@ -204,7 +207,7 @@ export const TaskItem = React.memo(function TaskItem({
             </Select>
           </PopoverContent>
         </Popover>
-        
+
         {isToggling && (
           <Spinner className="w-4 h-4 text-slate-400 dark:text-slate-600" />
         )}
@@ -244,11 +247,7 @@ export const TaskItem = React.memo(function TaskItem({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  void handleDelete();
-                }}
-              >
+              <AlertDialogAction onClick={handleDelete}>
                 Continue
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -269,8 +268,8 @@ export const TaskItem = React.memo(function TaskItem({
             <PopoverContent className="w-[160px] p-0" align="start">
               <Select
                 value={category || ""}
-                onValueChange={(newCategory) =>
-                  onUpdate(id, {
+                onValueChange={async (newCategory) =>
+                  await onUpdate(id, {
                     category: newCategory === "__none__" ? null : newCategory,
                   })
                 }
@@ -309,10 +308,10 @@ export const TaskItem = React.memo(function TaskItem({
                     >
                       {tag}
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           const newTags = [...tags];
                           newTags.splice(index, 1);
-                          onUpdate(id, { tags: newTags });
+                          await onUpdate(id, { tags: newTags });
                         }}
                         className="text-muted-foreground hover:text-foreground"
                       >
@@ -324,13 +323,15 @@ export const TaskItem = React.memo(function TaskItem({
                 <div className="flex gap-2">
                   <Input
                     placeholder="Add tag"
-                    onKeyDown={(e) => {
+                    onKeyDown={async (e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
                         const input = e.currentTarget;
                         const value = input.value.trim();
                         if (value && !tags?.includes(value)) {
-                          onUpdate(id, { tags: [...(tags || []), value] });
+                          await onUpdate(id, {
+                            tags: [...(tags || []), value],
+                          });
                           input.value = "";
                         }
                       }

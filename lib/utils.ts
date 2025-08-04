@@ -41,9 +41,17 @@ export const convertRawTaskToTask = (rawTask: RawTask): Task => {
     }
   }
 
+  const processedStatus: Task["status"] =
+    rawTask.status === "todo" ||
+    rawTask.status === "in-progress" ||
+    rawTask.status === "done"
+      ? rawTask.status
+      : "todo"; // Default to 'todo' if status is null or invalid
+
   return {
     ...rawTask,
     tags: processedTags,
+    status: processedStatus,
   };
 };
 
