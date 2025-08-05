@@ -11,6 +11,7 @@ export function useTaskItem({
   priority,
   category,
   tags,
+  status, // Added status
   onToggle,
   onDelete,
   onUpdate,
@@ -22,6 +23,7 @@ export function useTaskItem({
   priority: "low" | "medium" | "high" | null;
   category: string | null;
   tags: string[] | null;
+  status: "todo" | "in-progress" | "done"; // Added status type
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onUpdate: (id: string, updatedTask: Partial<Task>) => Promise<void>;
@@ -35,6 +37,7 @@ export function useTaskItem({
   const [newPriority, setNewPriority] = useState(priority);
   const [newCategory, setNewCategory] = useState(category);
   const [newTags, setNewTags] = useState(tags);
+  const [newStatus, setNewStatus] = useState(status); // Added newStatus state
 
   const handleToggle = async (is_completed: boolean) => {
     if (disabled) return;
@@ -78,6 +81,10 @@ export function useTaskItem({
     if (newCategory !== category) {
       updates.category = newCategory;
     }
+    if (newStatus !== status) {
+      // Added status to updates
+      updates.status = newStatus;
+    }
     // Deep comparison for tags
     if (JSON.stringify(newTags) !== JSON.stringify(tags)) {
       updates.tags = newTags;
@@ -107,6 +114,7 @@ export function useTaskItem({
       setNewPriority(priority);
       setNewCategory(category);
       setNewTags(tags);
+      setNewStatus(status); // Reset newStatus on escape
     }
   };
 
@@ -129,5 +137,7 @@ export function useTaskItem({
     setNewCategory,
     newTags,
     setNewTags,
+    newStatus, // Return newStatus
+    setNewStatus, // Return setNewStatus
   };
 }

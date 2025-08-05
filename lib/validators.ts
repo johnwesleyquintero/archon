@@ -50,6 +50,12 @@ export const signupSchema = Zod.object({
 export const taskPriorityEnum = Zod.enum(["low", "medium", "high"]);
 
 /**
+ * Zod enum for defining task statuses.
+ * Validates that a task's status is one of "todo", "in-progress", or "done".
+ */
+export const taskStatusEnum = Zod.enum(["todo", "in-progress", "done"]); // New enum for task status
+
+/**
  * Zod schema for task validation.
  * Validates task properties such as title, due date, priority, category, and tags.
  * Ensures required fields are present and string lengths are within limits.
@@ -68,11 +74,13 @@ export const taskSchema = Zod.object({
     .optional()
     .nullable(),
   tags: Zod.array(Zod.string().max(30, { message: "Tag is too long." })),
+  status: taskStatusEnum, // Added status to task schema
 })
   .required({
     title: true,
     priority: true,
     tags: true,
+    status: true, // Status is now required
   })
   .strict();
 

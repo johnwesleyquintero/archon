@@ -35,16 +35,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import type { Database } from "@/lib/supabase/types";
+import type { Task } from "@/lib/types/task";
 
-type Task = Database["public"]["Tables"]["tasks"]["Row"];
-
-interface TaskItemProps
-  extends Pick<
-    Task,
-    "id" | "title" | "is_completed" | "due_date" | "priority" | "category"
-  > {
-  tags: string[] | null;
+interface TaskItemProps extends Task {
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onUpdate: (id: string, updatedTask: Partial<Task>) => Promise<void>;
@@ -77,6 +70,7 @@ export const TaskItem = React.memo(function TaskItem({
   priority,
   category,
   tags,
+  status, // Destructure status
   onToggle,
   onDelete,
   onUpdate,
@@ -100,6 +94,7 @@ export const TaskItem = React.memo(function TaskItem({
     priority,
     category,
     tags,
+    status: status || "todo", // Pass status to hook, default to "todo" if null
     onToggle,
     onDelete,
     onUpdate,
@@ -111,6 +106,13 @@ export const TaskItem = React.memo(function TaskItem({
     medium:
       "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
     high: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  };
+
+  const statusColors: Record<NonNullable<Task["status"]>, string> = {
+    todo: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
+    "in-progress":
+      "bg-purple-100 text-purple-800 dark:bg-purple-700 dark:text-purple-200",
+    done: "bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-200",
   };
 
   return (
@@ -203,6 +205,40 @@ export const TaskItem = React.memo(function TaskItem({
                 <SelectItem value="low">Low</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="high">High</SelectItem>
+              </SelectContent>
+            </Select>
+          </PopoverContent>
+        </Popover>
+
+        {/* Status Select */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Badge
+              variant="secondary"
+              className={cn(
+                "text-xs font-medium cursor-pointer",
+                status ? statusColors[status] : "",
+              )}
+            >
+              {status || "Set Status"}
+            </Badge>
+          </PopoverTrigger>
+          <PopoverContent className="w-[160px] p-0" align="start">
+            <Select
+              value={status || "todo"}
+              onValueChange={(newStatusValue) => {
+                void onUpdate(id, {
+                  status: newStatusValue as Task["status"],
+                });
+              }}
+            >
+              <SelectTrigger className="h-8 text-sm">
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todo">Todo</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="done">Done</SelectItem>
               </SelectContent>
             </Select>
           </PopoverContent>

@@ -1,13 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Database } from "@/lib/supabase/types";
-
-// Ensure Task type includes all filterable/sortable properties with correct types
-type Task = Omit<Database["public"]["Tables"]["tasks"]["Row"], "tags"> & {
-  tags: string[] | null; // Explicitly define tags as string[] | null
-  // priority, due_date, category should be inferred from the base type
-};
+import { Task } from "@/lib/types/task"; // Import the Task type from lib/types/task
 
 export type TaskSort = {
   field: "due_date" | "priority" | "created_at" | "updated_at" | "title";
@@ -15,7 +9,7 @@ export type TaskSort = {
 };
 
 export type TaskFilters = {
-  status: "all" | "active" | "completed";
+  status: "all" | "todo" | "in-progress" | "done"; // Added status filter
   priority: "all" | "high" | "medium" | "low";
   dueDate: "all" | "overdue" | "today" | "week";
   category: string | null;
@@ -34,7 +28,7 @@ export function useTaskFiltersAndSort(tasks: Task[]) {
     direction: "desc",
   });
   const [filters, setFilters] = useState<TaskFilters>({
-    status: "all",
+    status: "all", // Default status filter
     priority: "all",
     dueDate: "all",
     category: null,
@@ -45,8 +39,8 @@ export function useTaskFiltersAndSort(tasks: Task[]) {
     // First, apply filters
     let result = tasks.filter((task) => {
       // Status filter
-      if (filters.status === "active" && task.is_completed) return false;
-      if (filters.status === "completed" && !task.is_completed) return false;
+      if (filters.status !== "all" && task.status !== filters.status)
+        return false;
 
       // Priority filter
       if (filters.priority !== "all" && task.priority !== filters.priority)

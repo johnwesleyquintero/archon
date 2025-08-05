@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { taskSchema } from "@/lib/validators";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as Zod from "zod"; // Changed from import type { z } from "zod";
+import * as Zod from "zod";
 import { handleError } from "@/lib/utils";
 import {
   Form,
@@ -31,7 +31,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-type TaskFormValues = Zod.infer<typeof taskSchema>; // Changed from z.infer
+type TaskFormValues = Zod.infer<typeof taskSchema>;
 
 interface TaskInputProps {
   onAddTask: (input: TaskFormValues) => Promise<void>;
@@ -50,8 +50,9 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
         tags: [],
         category: null,
         dueDate: null,
+        status: "todo", // Default status
       },
-      mode: "onBlur", // Enable real-time validation on blur
+      mode: "onBlur",
     });
 
     const handleAddTaskSubmit = async (data: TaskFormValues) => {
@@ -63,15 +64,13 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
           tags: data.tags,
           category: data.category,
           dueDate: data.dueDate,
+          status: data.status, // Include status
         });
-        form.reset(); // Reset form after successful submission
+        form.reset();
       } catch (err: unknown) {
-        // Explicitly type err as unknown
         handleError(err, "TaskInput");
-        // Set form error if needed, though onAddTask might handle it
         if (err instanceof Zod.ZodError) {
           err.issues.forEach((error: Zod.ZodIssue) => {
-            // Explicitly type error as Zod.ZodIssue
             if (error.path.length > 0) {
               form.setError(error.path[0] as keyof TaskFormValues, {
                 type: "manual",
@@ -214,6 +213,28 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                       <SelectItem value="personal">Personal</SelectItem>
                       <SelectItem value="shopping">Shopping</SelectItem>
                       <SelectItem value="health">Health</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="status" // New status field
+              render={({ field }) => (
+                <FormItem className="flex-none">
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={disabled || isAdding}
+                  >
+                    <SelectTrigger className="h-9 w-[120px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todo">Todo</SelectItem>
+                      <SelectItem value="in-progress">In Progress</SelectItem>
+                      <SelectItem value="done">Done</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormItem>

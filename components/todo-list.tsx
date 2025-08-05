@@ -7,12 +7,10 @@ import { TaskInput } from "./task-input";
 import { TaskList } from "./task-list";
 import { useTasks } from "@/hooks/use-tasks";
 import { useAuth } from "@/contexts/auth-context";
-import type { Database } from "@/lib/supabase/types";
-
-type Task = Database["public"]["Tables"]["tasks"]["Row"];
+import { Task as TaskType } from "@/lib/types/task"; // Import Task as TaskType to avoid conflict
 
 interface TodoListProps {
-  initialTasks?: Task[];
+  initialTasks?: TaskType[]; // Use TaskType here
 }
 
 export function TodoList({ initialTasks }: TodoListProps) {
@@ -46,6 +44,7 @@ export function TodoList({ initialTasks }: TodoListProps) {
                 priority: input.priority,
                 category: input.category,
                 tags: input.tags,
+                status: input.status, // Added status
                 user_id: user.id,
               });
             }

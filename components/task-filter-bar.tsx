@@ -1,5 +1,4 @@
 "use client";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Filter, Calendar, Flag } from "lucide-react";
 import {
   Select,
@@ -8,16 +7,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TaskFilters } from "@/hooks/use-task-filters-and-sort"; // Import TaskFilters
 
 interface TaskFilterBarProps {
-  currentFilter: "all" | "active" | "completed";
-  onFilterChange: (filter: "all" | "active" | "completed") => void;
-  priorityFilter: "all" | "low" | "medium" | "high";
-  onPriorityFilterChange: (priority: "all" | "low" | "medium" | "high") => void;
-  dueDateFilter: "all" | "today" | "week" | "overdue";
-  onDueDateFilterChange: (
-    dueDate: "all" | "today" | "week" | "overdue",
-  ) => void;
+  currentFilter: TaskFilters["status"]; // Use TaskFilters for status
+  onFilterChange: (filter: TaskFilters["status"]) => void; // Use TaskFilters for status
+  priorityFilter: TaskFilters["priority"];
+  onPriorityFilterChange: (priority: TaskFilters["priority"]) => void;
+  dueDateFilter: TaskFilters["dueDate"];
+  onDueDateFilterChange: (dueDate: TaskFilters["dueDate"]) => void;
 }
 
 export function TaskFilterBar({
@@ -40,38 +38,24 @@ export function TaskFilterBar({
         {/* Status filter */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-slate-500">Status:</span>
-          <ToggleGroup
-            type="single"
+          <Select
             value={currentFilter}
-            onValueChange={(value: "all" | "active" | "completed") => {
+            onValueChange={(value: TaskFilters["status"]) => {
               if (value) {
                 onFilterChange(value);
               }
             }}
-            className="gap-1"
           >
-            <ToggleGroupItem
-              value="all"
-              aria-label="Show all tasks"
-              className="px-2.5 py-1 text-xs rounded-md data-[state=on]:bg-slate-200 data-[state=on]:text-slate-900 dark:data-[state=on]:bg-slate-800 dark:data-[state=on]:text-slate-50"
-            >
-              All
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="active"
-              aria-label="Show active tasks"
-              className="px-2.5 py-1 text-xs rounded-md data-[state=on]:bg-slate-200 data-[state=on]:text-slate-900 dark:data-[state=on]:bg-slate-800 dark:data-[state=on]:text-slate-50"
-            >
-              Active
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="completed"
-              aria-label="Show completed tasks"
-              className="px-2.5 py-1 text-xs rounded-md data-[state=on]:bg-slate-200 data-[state=on]:text-slate-900 dark:data-[state=on]:bg-slate-800 dark:data-[state=on]:text-slate-50"
-            >
-              Completed
-            </ToggleGroupItem>
-          </ToggleGroup>
+            <SelectTrigger className="h-8 w-[120px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="todo">Todo</SelectItem>
+              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="done">Done</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Priority filter */}
