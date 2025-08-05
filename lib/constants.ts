@@ -1,5 +1,6 @@
 import { Home, Target, ListTodo, BookOpen, LucideIcon } from "lucide-react";
 import { AdvancedStatsGrid } from "@/components/advanced-stats-grid";
+import { WelcomeWidget } from "@/components/dashboard/welcome-widget";
 import { GoalTracker } from "@/components/goal-tracker";
 import { JournalList, JournalListProps } from "@/components/journal-list";
 import {
@@ -107,5 +108,15 @@ export const getAvailableWidgets = (initialGoals: Goal[]) => [
       description:
         "Charts and graphs detailing your productivity trends will be available here soon.",
     } as PlaceholderInfographicsProps,
+  },
+  {
+    id: "welcome-message",
+    type: "utility",
+    title: "Welcome Message",
+    description: "A personalized welcome message.",
+    component: WelcomeWidget,
+    minW: 2,
+    minH: 1,
+    defaultProps: {},
   },
 ];

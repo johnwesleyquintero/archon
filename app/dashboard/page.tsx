@@ -22,6 +22,9 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const userName =
+    (user?.user_metadata?.full_name as string) || user?.email || "User";
+
   // Redirect unauthenticated users to the sign-in page
   if (!user) {
     redirect("/auth/signin");
@@ -53,7 +56,9 @@ export default async function DashboardPage() {
     const storedSettings = settingsResult.value;
     if (storedSettings) {
       initialLayout = mergeLayouts(storedSettings.layout, DEFAULT_LAYOUT);
-      initialWidgetConfigs = storedSettings.widget_configs || {};
+      initialWidgetConfigs =
+        (storedSettings.widget_configs as Record<string, { title: string }>) ||
+        {};
     }
   } else {
     dashboardSettingsError = getErrorMessage(settingsResult.reason);
@@ -84,6 +89,7 @@ export default async function DashboardPage() {
           initialLayout={initialLayout}
           initialWidgetConfigs={initialWidgetConfigs}
           className="min-h-screen"
+          userName={userName}
         />
         <DashboardErrorToaster
           goalsError={goalsError}

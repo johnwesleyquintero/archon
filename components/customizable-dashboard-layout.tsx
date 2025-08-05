@@ -51,6 +51,7 @@ interface CustomizableDashboardLayoutProps<P extends Record<string, unknown>> {
   className?: string;
   dashboardSettingsError?: string | null;
   goalsError?: string | null;
+  userName?: string;
 }
 
 export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
@@ -60,6 +61,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
   className = "",
   dashboardSettingsError = null,
   goalsError = null,
+  userName,
 }: CustomizableDashboardLayoutProps<P>) {
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [widgetConfigs, setWidgetConfigs] =
@@ -263,7 +265,10 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
                   handleSaveWidgetConfig(widget.id, config)
                 }
               >
-                <WidgetComponent {...(widget.defaultProps || ({} as P))} />
+                <WidgetComponent
+                  {...(widget.defaultProps || ({} as P))}
+                  userName={userName}
+                />
               </DashboardWidget>
             </div>
           );
