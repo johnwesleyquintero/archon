@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { loginSchema, signupSchema } from "@/lib/validators";
-import { handleAuthAction } from "@/lib/auth/actions";
+import { handleAuthAction as handleAuthActionType } from "@/lib/auth/actions"; // Import only for type definition
 
 type FormInputs = z.infer<typeof loginSchema> | z.infer<typeof signupSchema>;
 
@@ -23,6 +23,7 @@ interface EmailSignInFormProps {
   setIsLoading: (loading: boolean) => void;
   onForgotPasswordClick: () => void;
   onSignUpSuccess?: () => void;
+  handleAuthAction: typeof handleAuthActionType; // Add the new prop
 }
 
 export function EmailSignInForm({
@@ -31,6 +32,7 @@ export function EmailSignInForm({
   setIsLoading,
   onForgotPasswordClick,
   onSignUpSuccess,
+  handleAuthAction, // Destructure the prop
 }: EmailSignInFormProps) {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
@@ -54,7 +56,7 @@ export function EmailSignInForm({
     setIsLoading(true);
     clearErrors();
 
-    const result = await handleAuthAction(data, mode);
+    const result = await handleAuthAction(data, mode); // Use the prop
 
     if (result.success) {
       if (mode === "signIn") {
