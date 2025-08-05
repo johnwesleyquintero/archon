@@ -53,7 +53,7 @@ export function EmailSignInForm({
   const signUpErrors = errors as FieldErrors<z.infer<typeof signupSchema>>;
 
   const handleAuthAction = async (data: FormInputs) => {
-    'use server';
+    "use server";
     setIsLoading(true);
     clearErrors();
 
