@@ -1,5 +1,5 @@
 // @ts-nocheck
-import "@testing-library/jest-dom";
+import "@testing-library/jest-dom"; // For extended Jest matchers
 import * as React from "react";
 import { TextEncoder, TextDecoder } from "util"; // Node.js 'util' module for polyfill
 import ResizeObserverPolyfill from "resize-observer-polyfill";
