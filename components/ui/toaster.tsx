@@ -4,10 +4,13 @@ import { Toaster as Sonner } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
+const TOAST_REMOVE_DELAY = 5000;
+
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       className="toaster group"
+      duration={TOAST_REMOVE_DELAY}
       toastOptions={{
         classNames: {
           toast:

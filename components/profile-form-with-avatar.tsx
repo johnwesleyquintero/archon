@@ -30,7 +30,7 @@ import { profileSchema } from "@/lib/validators";
 import type { z } from "zod";
 import { User } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
@@ -71,38 +71,23 @@ export function ProfileFormWithAvatar() {
           shouldDirty: true,
           shouldValidate: true,
         });
-        toast({
-          title: "Success!",
-          description:
-            "Avatar uploaded successfully! Click Save Changes to apply.",
-        });
+        toast(
+          "Avatar uploaded successfully! Click Save Changes to apply.",
+          "success",
+        );
         return { success: true, url: result.url };
       } else {
         throw new Error(result.error?.message || "Failed to upload avatar.");
       }
     } catch (err: unknown) {
-      let errorMessageText = "Failed to upload avatar.";
-      let errorToReturn: Error | undefined = undefined;
-      if (err instanceof Error) {
-        errorMessageText = err.message;
-        errorToReturn = err;
-      } else if (
-        typeof err === "object" &&
-        err !== null &&
-        "message" in err &&
-        typeof (err as { message: unknown }).message === "string"
-      ) {
-        errorMessageText = (err as { message: string }).message;
-        errorToReturn = new Error((err as { message: string }).message);
-      } else {
-        errorToReturn = new Error("An unknown error occurred.");
-      }
-      toast({
-        title: "Error",
-        description: errorMessageText,
-        variant: "destructive",
-      });
-      return { success: false, error: errorToReturn };
+      const errorMessageText =
+        err instanceof Error ? err.message : "Failed to upload avatar.";
+      toast(errorMessageText, "error");
+      return {
+        success: false,
+        error:
+          err instanceof Error ? err : new Error("An unknown error occurred."),
+      };
     }
   };
 
@@ -114,27 +99,11 @@ export function ProfileFormWithAvatar() {
         username: data.username,
         avatar_url: data.avatar,
       });
-      toast({
-        title: "Success!",
-        description: "Profile updated successfully.",
-      });
+      toast("Profile updated successfully.", "success");
     } catch (err: unknown) {
-      let errorMessageText = "Failed to update profile.";
-      if (err instanceof Error) {
-        errorMessageText = err.message;
-      } else if (
-        typeof err === "object" &&
-        err !== null &&
-        "message" in err &&
-        typeof (err as { message: unknown }).message === "string"
-      ) {
-        errorMessageText = (err as { message: string }).message;
-      }
-      toast({
-        title: "Error",
-        description: errorMessageText,
-        variant: "destructive",
-      });
+      const errorMessageText =
+        err instanceof Error ? err.message : "Failed to update profile.";
+      toast(errorMessageText, "error");
     } finally {
       setIsSaving(false);
     }
