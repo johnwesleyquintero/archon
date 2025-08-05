@@ -30,8 +30,7 @@ export interface Widget<
   type: string;
   title: string;
   description: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  component: ComponentType<any>;
+  componentId: string; // Changed from 'component' to 'componentId'
   defaultProps?: P;
   minW?: number;
   minH?: number;
@@ -42,9 +41,10 @@ export interface Widget<
 // Widget type definitions
 
 import { TriangleAlert } from "lucide-react";
+import { WelcomeWidget } from "./dashboard/welcome-widget"; // Import WelcomeWidget
 
 interface CustomizableDashboardLayoutProps<P extends Record<string, unknown>> {
-  widgets: Widget<P>[];
+  widgets: Widget<P>[]; // Revert to original Widget<P>[] type as Widget interface now has componentId
   initialLayout?: DashboardLayoutItem[];
   initialWidgetConfigs?: Record<string, { title: string }>;
   className?: string;
@@ -123,20 +123,31 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
     return currentLayout.filter((item) => item.isVisible || isCustomizing);
   }, [currentLayout, isCustomizing]);
 
+  const widgetComponentsMap: Record<string, ComponentType<any>> = useMemo(() => {
+    return {
+      "welcome-widget": WelcomeWidget,
+      // Add other widgets here as they are defined
+    };
+  }, []);
+
   const availableWidgets = useMemo(() => {
-    return widgets.map((w: Widget<P>) => ({
+    return widgets.map((w) => ({
       id: w.id,
       type: w.type,
       title: w.title,
       description: w.description,
-      component: w.component,
+      componentId: w.componentId,
       defaultProps: w.defaultProps,
+      minW: w.minW,
+      minH: w.minH,
+      maxW: w.maxW,
+      maxH: w.maxH,
     }));
   }, [widgets]);
 
   const handleAddWidget = useCallback(
     (widgetId: string) => {
-      const widgetToAdd = widgets.find((w: Widget<P>) => w.id === widgetId);
+      const widgetToAdd = widgets.find((w) => w.id === widgetId);
       if (widgetToAdd) {
         // Check if the widget is already in the layout
         const isAlreadyAdded = currentLayout.some(
@@ -225,9 +236,11 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
             );
           }
 
+          const WidgetComponent = widgetComponentsMap[widget.componentId]; // Get the actual component
+
           return (
             <div key={item.i} className="relative">
-              {widget.component && (
+              {WidgetComponent && (
                 <DashboardWidget
                   key={widget.id}
                   title={widgetConfigs[widget.id]?.title || widget.title}
@@ -237,7 +250,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
                     handleSaveWidgetConfig(widget.id, config)
                   }
                 >
-                  <widget.component
+                  <WidgetComponent
                     {...(widget.defaultProps ? widget.defaultProps : {})}
                     // Pass any additional props needed by the widget component
                   />
