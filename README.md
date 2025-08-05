@@ -25,7 +25,7 @@
 
 🚀 [Live Demo](https://archon-hub.vercel.app)
 
-<img width="585" height="487" alt="image" src="https://github.com/user-attachments/assets/fa96472f-7c6d-4743-a9f9-b5f95618eeca" />
+<img width="1088" height="846" alt="image" src="https://github.com/user-attachments/assets/b5646b3a-724a-4011-84dd-e4a08a621492" />
 
 ## Overview
 
