@@ -2,12 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { withErrorHandling } from "@/lib/error-utils";
 
-export async function createGoal(formData: {
+export const createGoal = withErrorHandling(async (formData: {
   title: string;
   description: string;
   target_date?: string;
-}) {
+}) => {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
@@ -35,4 +36,4 @@ export async function createGoal(formData: {
 
   revalidatePath("/goals");
   return data;
-}
+});
