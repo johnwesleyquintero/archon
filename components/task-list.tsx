@@ -6,6 +6,7 @@ import { useTasks } from "@/hooks/use-tasks";
 import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ListTodo, Filter } from "lucide-react";
+import type { TaskUpdate } from "@/lib/supabase/types";
 
 interface TaskListProps {
   onAddTaskClick: () => void;
@@ -17,6 +18,21 @@ export function TaskList({ onAddTaskClick }: TaskListProps) {
 
   const { filteredAndSortedTasks, sort, setSort, filters, setFilters } =
     useTaskFiltersAndSort(tasks);
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  const handleToggle = async (id: string, is_completed: boolean) => {
+    toggleTask(id, is_completed);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  const handleDelete = async (id: string) => {
+    deleteTask(id);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  const handleUpdate = async (id: string, updatedTask: Partial<TaskUpdate>) => {
+    updateTask(id, updatedTask);
+  };
 
   if (loading) {
     return (
@@ -86,9 +102,9 @@ export function TaskList({ onAddTaskClick }: TaskListProps) {
               <li key={task.id}>
                 <TaskItem
                   {...task}
-                  onToggle={toggleTask}
-                  onDelete={deleteTask}
-                  onUpdate={updateTask}
+                  onToggle={handleToggle}
+                  onDelete={handleDelete}
+                  onUpdate={handleUpdate}
                   disabled={isMutating}
                 />
               </li>

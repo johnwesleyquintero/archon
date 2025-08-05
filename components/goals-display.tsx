@@ -150,7 +150,7 @@ export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
       <GoalForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        onSave={handleSaveGoal}
+        onSave={(goal) => void handleSaveGoal(goal)}
       />
     </div>
   );

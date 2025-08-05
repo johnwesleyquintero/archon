@@ -33,9 +33,10 @@ export function TodoList({ initialTasks }: TodoListProps) {
         <TaskList onAddTaskClick={handleAddTaskClick} />
         <TaskInput
           ref={taskInputRef}
+          // eslint-disable-next-line @typescript-eslint/require-await
           onAddTask={async (input) => {
             if (user) {
-              await addTask({
+              addTask({
                 title: input.title,
                 due_date: input.dueDate,
                 priority: input.priority,

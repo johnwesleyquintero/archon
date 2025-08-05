@@ -1,17 +1,16 @@
-export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(
-  fn: T,
-): (
-  ...args: Parameters<T>
-) => Promise<Awaited<ReturnType<T>> | { error: string }> {
-  return async (...args: Parameters<T>) => {
+export function withErrorHandling<TArgs extends unknown[], TReturn>(
+  fn: (...args: TArgs) => Promise<TReturn>,
+): (...args: TArgs) => Promise<TReturn | { error: string }> {
+  return async (...args: TArgs) => {
     try {
       const result = await fn(...args);
       return result;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Error in async operation:", e);
-      // In a real app, you'd log this to a service like Sentry
-      // and potentially show a toast on the client-side if this is a client-callable function.
-      return { error: e.message || "An unknown error occurred." };
+      if (e instanceof Error) {
+        return { error: e.message };
+      }
+      return { error: "An unknown error occurred." };
     }
   };
 }

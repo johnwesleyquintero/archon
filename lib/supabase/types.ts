@@ -318,3 +318,11 @@ export type JournalEntriesRow =
   Database["public"]["Tables"]["journal_entries"]["Row"];
 export type DashboardSettingsRow =
   Database["public"]["Tables"]["dashboard_settings"]["Row"];
+
+export type GoalInsert = Database["public"]["Tables"]["goals"]["Insert"];
+export type JournalEntryInsert =
+  Database["public"]["Tables"]["journal_entries"]["Insert"];
+export type JournalEntryUpdate =
+  Database["public"]["Tables"]["journal_entries"]["Update"];
+export type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
+export type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];

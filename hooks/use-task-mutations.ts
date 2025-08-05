@@ -7,13 +7,17 @@ import {
   deleteTask as deleteTaskFromDb,
   updateTask as updateTaskInDb,
 } from "@/app/tasks/actions";
-import type { Database } from "@/lib/supabase/types";
+import type { Database, TaskUpdate } from "@/lib/supabase/types";
 import type { Task } from "@/lib/types/task";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/use-toast";
-import { convertRawTaskToTask } from "@/lib/utils";
 
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
+type TaskStatus = "todo" | "in-progress" | "done";
+
+const isValidStatus = (status: any): status is TaskStatus => {
+  return ["todo", "in-progress", "done"].includes(status);
+};
 
 export function useTaskMutations({
   setTasks,
@@ -26,29 +30,16 @@ export function useTaskMutations({
   const { toast } = useToast();
 
   const handleAddTask = useCallback(
-    async (input: TaskInsert) => {
+    (input: TaskInsert) => {
       if (!user) {
-        setError("You must be logged in to add tasks.");
-        toast({
-          title: "Error",
-          description: "You must be logged in to add tasks.",
-          variant: "destructive",
-        });
+        const msg = "You must be logged in to add tasks.";
+        setError(msg);
+        toast({ title: "Error", description: msg, variant: "destructive" });
         return;
       }
       setError(null);
       const tempId = `temp-${Date.now()}`;
       startTransition(async () => {
-        // Process tags to ensure they're in the correct format
-        let processedTags: string[] | null = null;
-        if (input.tags !== null && input.tags !== undefined) {
-          if (Array.isArray(input.tags)) {
-            processedTags = input.tags.filter((tag) => typeof tag === "string");
-          } else if (typeof input.tags === "string") {
-            processedTags = [input.tags];
-          }
-        }
-
         const newTask: Task = {
           id: tempId,
           title: input.title,
@@ -59,35 +50,30 @@ export function useTaskMutations({
           due_date: input.due_date || null,
           priority: input.priority || null,
           category: input.category || null,
-          tags: processedTags,
-          status: (input.status || "todo") as Task["status"],
+          tags: (input.tags as string[]) || null,
+          status: isValidStatus(input.status) ? input.status : "todo",
         };
         setTasks((prev) => [newTask, ...prev]);
 
-        try {
-          const rawAddedTask = await addTaskToDb(input);
-          if (rawAddedTask) {
-            // Convert the raw task to our Task type
-            const processedTask = convertRawTaskToTask(rawAddedTask);
-            setTasks((prev) =>
-              prev.map((task) => (task.id === tempId ? processedTask : task)),
-            );
-            toast({
-              title: "Success!",
-              description: "Task added successfully.",
-            });
-          } else {
-            throw new Error("Failed to add task.");
-          }
-        } catch (err: unknown) {
-          console.error("Error adding task:", err);
-          setError(err instanceof Error ? err.message : "Failed to add task.");
+        const result = await addTaskToDb(input);
+
+        if (result && "error" in result) {
+          setError(result.error);
           toast({
             title: "Error",
-            description:
-              err instanceof Error ? err.message : "Failed to add task.",
+            description: result.error,
             variant: "destructive",
           });
+          setTasks((prev) => prev.filter((task) => task.id !== tempId));
+        } else if (result) {
+          setTasks((prev) =>
+            prev.map((task) => (task.id === tempId ? result : task)),
+          );
+          toast({ title: "Success!", description: "Task added successfully." });
+        } else {
+          const msg = "Failed to add task.";
+          setError(msg);
+          toast({ title: "Error", description: msg, variant: "destructive" });
           setTasks((prev) => prev.filter((task) => task.id !== tempId));
         }
       });
@@ -96,7 +82,7 @@ export function useTaskMutations({
   );
 
   const handleToggleTask = useCallback(
-    async (id: string, completed: boolean) => {
+    (id: string, completed: boolean) => {
       if (!user) return;
       startTransition(async () => {
         setTasks((prev) =>
@@ -104,13 +90,9 @@ export function useTaskMutations({
             task.id === id ? { ...task, is_completed: completed } : task,
           ),
         );
-        try {
-          await toggleTaskInDb(id, completed);
-          toast({
-            title: "Success!",
-            description: "Task status updated.",
-          });
-        } catch (err) {
+        const result = await toggleTaskInDb(id, completed);
+
+        if (result && "error" in result) {
           setTasks((prev) =>
             prev.map((task) =>
               task.id === id ? { ...task, is_completed: !completed } : task,
@@ -118,9 +100,11 @@ export function useTaskMutations({
           );
           toast({
             title: "Error",
-            description: "Failed to update task.",
+            description: result.error,
             variant: "destructive",
           });
+        } else {
+          toast({ title: "Success!", description: "Task status updated." });
         }
       });
     },
@@ -128,7 +112,7 @@ export function useTaskMutations({
   );
 
   const handleDeleteTask = useCallback(
-    async (id: string) => {
+    (id: string) => {
       if (!user) return;
       let originalTasks: Task[] = [];
       setTasks((prev) => {
@@ -136,19 +120,17 @@ export function useTaskMutations({
         return prev.filter((task) => task.id !== id);
       });
       startTransition(async () => {
-        try {
-          await deleteTaskFromDb(id);
-          toast({
-            title: "Success!",
-            description: "Task deleted.",
-          });
-        } catch (err) {
+        const result = await deleteTaskFromDb(id);
+
+        if (result && "error" in result) {
           setTasks(originalTasks);
           toast({
             title: "Error",
-            description: "Failed to delete task.",
+            description: result.error,
             variant: "destructive",
           });
+        } else {
+          toast({ title: "Success!", description: "Task deleted." });
         }
       });
     },
@@ -156,10 +138,7 @@ export function useTaskMutations({
   );
 
   const handleUpdateTask = useCallback(
-    async (
-      id: string,
-      updatedTask: Partial<Database["public"]["Tables"]["tasks"]["Update"]>,
-    ) => {
+    (id: string, updatedTask: Partial<TaskUpdate>) => {
       if (!user) return;
       let originalTasks: Task[] = [];
       setTasks((prev) => {
@@ -169,13 +148,19 @@ export function useTaskMutations({
         ) as Task[];
       });
       startTransition(async () => {
-        try {
-          await updateTaskInDb(id, updatedTask);
+        const result = await updateTaskInDb(id, updatedTask);
+
+        if (result && "error" in result) {
+          setTasks(originalTasks);
           toast({
-            title: "Success!",
-            description: "Task updated.",
+            title: "Error",
+            description: result.error,
+            variant: "destructive",
           });
-        } catch (err) {
+        } else if (result) {
+          setTasks((prev) => prev.map((t) => (t.id === id ? result : t)));
+          toast({ title: "Success!", description: "Task updated." });
+        } else {
           setTasks(originalTasks);
           toast({
             title: "Error",

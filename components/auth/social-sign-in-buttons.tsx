@@ -33,7 +33,7 @@ export function SocialSignInButtons({
         variant="outline"
         className="w-full"
         disabled={isLoading}
-        onClick={() => handleOAuthSignIn("github")}
+        onClick={() => void handleOAuthSignIn("github")}
       >
         Continue with GitHub
       </Button>
@@ -42,7 +42,7 @@ export function SocialSignInButtons({
         variant="outline"
         className="w-full"
         disabled={isLoading}
-        onClick={() => handleOAuthSignIn("google")}
+        onClick={() => void handleOAuthSignIn("google")}
       >
         Continue with Google
       </Button>

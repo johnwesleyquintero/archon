@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
-import { handleServerError } from "@/lib/error-utils";
 import { getAuthenticatedUser } from "@/lib/supabase/auth-utils";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
@@ -22,8 +21,7 @@ export async function getGoals(userId: string): Promise<Goal[]> {
     .order("created_at", { ascending: false });
 
   if (error) {
-    handleServerError(error, { userId }, "Failed to fetch goals");
-    return [];
+    throw new Error(`Failed to fetch goals: ${error.message}`);
   }
 
   // No explicit cast needed if select statement aligns with Goal type
@@ -59,7 +57,6 @@ export async function addGoal(
     .single();
 
   if (error) {
-    handleServerError(error, { goalData: newGoal }, "Failed to add goal");
     throw new Error(`Failed to add goal: ${error.message}`);
   }
 
@@ -90,7 +87,6 @@ export async function updateGoal(
     .single();
 
   if (error) {
-    handleServerError(error, { id, goalData }, "Failed to update goal");
     throw new Error(`Failed to update goal: ${error.message}`);
   }
 
@@ -113,7 +109,6 @@ export async function deleteGoal(id: string): Promise<void> {
     .eq("user_id", user.id); // Ensure user owns the goal
 
   if (error) {
-    handleServerError(error, { id }, "Failed to delete goal");
     throw new Error(`Failed to delete goal: ${error.message}`);
   }
 

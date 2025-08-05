@@ -247,7 +247,7 @@ export const TaskItem = React.memo(function TaskItem({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>
+              <AlertDialogAction onClick={() => void handleDelete()}>
                 Continue
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -268,8 +268,8 @@ export const TaskItem = React.memo(function TaskItem({
             <PopoverContent className="w-[160px] p-0" align="start">
               <Select
                 value={category || ""}
-                onValueChange={async (newCategory) =>
-                  await onUpdate(id, {
+                onValueChange={(newCategory) =>
+                  void onUpdate(id, {
                     category: newCategory === "__none__" ? null : newCategory,
                   })
                 }
@@ -308,10 +308,10 @@ export const TaskItem = React.memo(function TaskItem({
                     >
                       {tag}
                       <button
-                        onClick={async () => {
+                        onClick={() => {
                           const newTags = [...tags];
                           newTags.splice(index, 1);
-                          await onUpdate(id, { tags: newTags });
+                          void onUpdate(id, { tags: newTags });
                         }}
                         className="text-muted-foreground hover:text-foreground"
                       >
@@ -323,13 +323,13 @@ export const TaskItem = React.memo(function TaskItem({
                 <div className="flex gap-2">
                   <Input
                     placeholder="Add tag"
-                    onKeyDown={async (e) => {
+                    onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
                         const input = e.currentTarget;
                         const value = input.value.trim();
                         if (value && !tags?.includes(value)) {
-                          await onUpdate(id, {
+                          void onUpdate(id, {
                             tags: [...(tags || []), value],
                           });
                           input.value = "";

@@ -8,6 +8,7 @@ import { useJournal } from "@/hooks/use-journal";
 import { updateJournalEntry } from "@/app/journal/actions";
 
 type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
+type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];
 
 interface JournalInterfaceProps {
   initialJournalEntries: JournalEntry[];
@@ -33,6 +34,16 @@ export function JournalInterface({
     handleSaveEntry,
     handleDeleteEntry,
   } = useJournal(initialJournalEntries, userId);
+
+  const handleUpdateEntry = async (id: string, patch: JournalUpdate) => {
+    const result = await updateJournalEntry(id, patch);
+    if (result && "error" in result) {
+      console.error("Failed to update journal entry:", result.error);
+      // Optionally, show a toast notification to the user
+      return null;
+    }
+    return result;
+  };
 
   if (isLoading) {
     return (
@@ -93,7 +104,7 @@ export function JournalInterface({
             entry={selectedEntry}
             onSaveEntry={handleSaveEntry}
             hasUnsavedChanges={hasUnsavedChanges}
-            updateEntry={updateJournalEntry}
+            updateEntry={handleUpdateEntry}
             isMutating={isMutating}
           />
         </div>

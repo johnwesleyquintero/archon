@@ -32,7 +32,7 @@ export function KanbanView({ initialTasks }: KanbanViewProps) {
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
-      onDragEnd={handleDragEnd}
+      onDragEnd={(event) => void handleDragEnd(event)}
     >
       <KanbanBoard columns={columns} />
     </DndContext>

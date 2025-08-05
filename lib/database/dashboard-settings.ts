@@ -3,7 +3,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { DashboardSettingsRow, Json } from "@/lib/supabase/types";
 import * as Sentry from "@sentry/nextjs";
-import { handleServerError } from "@/lib/error-utils";
 
 import { WidgetLayout } from "@/app/types";
 import { widgetLayoutsSchema } from "@/lib/zod-schemas";
@@ -25,12 +24,7 @@ export async function getDashboardSettings(
     .maybeSingle();
 
   if (error) {
-    handleServerError(
-      error,
-      { userId },
-      `Failed to fetch dashboard settings for user ${userId}`,
-    );
-    return null;
+    throw new Error(`Failed to fetch dashboard settings for user ${userId}`);
   }
 
   if (!data?.layout) {
@@ -60,13 +54,14 @@ export async function getDashboardSettings(
       layout: parsedLayout,
       widget_configs: parsedWidgetConfigs,
     };
-  } catch (e) {
-    handleServerError(
-      e,
-      { userId, rawSettings: data.layout },
+  } catch (error) {
+    console.error(
+      `Error parsing stored dashboard settings for user ${userId}`,
+      error,
+    );
+    throw new Error(
       `Error parsing stored dashboard settings for user ${userId}`,
     );
-    return null;
   }
 }
 
@@ -89,12 +84,7 @@ export async function updateDashboardSettings(
   }
 
   if (error) {
-    handleServerError(
-      error,
-      { userId, settings },
-      `Failed to update dashboard settings for user ${userId}`,
-    );
-    return null;
+    throw new Error(`Failed to update dashboard settings for user ${userId}`);
   }
 
   return data;
