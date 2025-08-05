@@ -1,6 +1,6 @@
 # Archon
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/nebula-singularity/archon)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://archon-hub.vercel.app)
 [![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/VGyjSRXfzOE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18.0+-green?style=for-the-badge&logo=node.js)](https://nodejs.org)
@@ -23,7 +23,7 @@
 
 ## Demo
 
-🚀 [Live Demo](https://wesarchon.vercel.app)
+🚀 [Live Demo](https://archon-hub.vercel.app)
 
 ![Archon Dashboard Preview](public/placeholder.jpg)
 
