@@ -1,21 +1,16 @@
 import React from "react";
 import { KanbanColumn } from "./kanban-column";
-import { Task } from "@/lib/types/task";
+import { Column } from "@/lib/types/kanban";
 
 interface KanbanBoardProps {
-  columns: {
-    id: string;
-    title: string;
-    taskIds: string[];
-  }[];
-  tasks: Record<string, Task>;
+  columns: Column[];
 }
 
-export const KanbanBoard: React.FC<KanbanBoardProps> = ({ columns, tasks }) => {
+export const KanbanBoard: React.FC<KanbanBoardProps> = ({ columns }) => {
   return (
     <div className="flex space-x-4 overflow-x-auto p-4">
       {columns.map((column) => (
-        <KanbanColumn key={column.id} column={column} tasks={tasks} />
+        <KanbanColumn key={column.id} column={column} />
       ))}
     </div>
   );

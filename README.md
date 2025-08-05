@@ -35,7 +35,7 @@ Archon is a modern, responsive dashboard application built with Next.js 14 (App 
 
 ## Features
 
-- **Responsive Dashboard Layout**: Enjoy a sleek, dark-themed user interface that seamlessly adapts to various screen sizes, complete with a collapsible sidebar for enhanced navigation.
+- **Responsive Dashboard Layout**: Enjoy a sleek user interface that seamlessly adapts to various screen sizes, complete with a collapsible sidebar for enhanced navigation.
 - **Robust User Authentication**: Securely sign up and sign in using Supabase Auth, supporting both email/password and Google OAuth. User profiles are automatically created upon registration.
 - **Dynamic Task Management**: A comprehensive system for adding, completing, deleting, filtering, and sorting tasks. Includes a dedicated "Today's Tasks" widget with robust state management.
 - **Strategic Goal Tracking**: Set and monitor your strategic goals with intuitive progress bars and status badges. Attach relevant documents directly to your goals for easy access.

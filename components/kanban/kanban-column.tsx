@@ -1,22 +1,15 @@
-import { useDroppable } from "@dnd-kit/core";
+import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { KanbanCard } from "./kanban-card";
-import { Task } from "@/lib/types/task";
+import { Column } from "@/lib/types/kanban";
 
 interface KanbanColumnProps {
-  column: {
-    id: string;
-    title: string;
-    taskIds: string[];
-  };
-  tasks: Record<string, Task>;
+  column: Column;
 }
 
-export const KanbanColumn: React.FC<KanbanColumnProps> = ({
-  column,
-  tasks,
-}) => {
-  const { setNodeRef } = useDroppable({
+export const KanbanColumn: React.FC<KanbanColumnProps> = ({ column }) => {
+  const { setNodeRef } = useSortable({
     id: column.id,
+    data: { type: "Column", column },
   });
 
   return (
@@ -27,12 +20,13 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
       <h2 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
         {column.title}
       </h2>
-      <div className="space-y-3">
-        {column.taskIds.map((taskId) => {
-          const task = tasks[taskId];
-          return task ? <KanbanCard key={task.id} task={task} /> : null;
-        })}
-      </div>
+      <SortableContext items={column.tasks.map((t) => t.id)}>
+        <div className="space-y-3">
+          {column.tasks.map((task) => (
+            <KanbanCard key={task.id} task={task} />
+          ))}
+        </div>
+      </SortableContext>
     </div>
   );
 };

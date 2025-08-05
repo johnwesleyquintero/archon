@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import React from "react";
 import {
   DndContext,
   closestCorners,
@@ -9,47 +8,75 @@ import {
   useSensors,
   PointerSensor,
   KeyboardSensor,
-  DragEndEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-
 import { KanbanBoard } from "@/components/kanban/kanban-board";
-
-import { updateTask, TaskUpdate } from "@/app/tasks/actions";
+import { useKanban } from "@/hooks/use-kanban";
 import { Task } from "@/lib/types/task";
 
+// Mock initial tasks for demonstration purposes.
+// In a real app, this would come from a server-side fetch.
+const mockTasks: Task[] = [
+  {
+    id: "task-1",
+    title: "Design the new logo",
+    status: "todo",
+    priority: "medium",
+    due_date: null,
+    created_at: new Date().toISOString(),
+    is_completed: false,
+    updated_at: new Date().toISOString(),
+    user_id: "user-123",
+    category: null,
+    tags: null,
+  },
+  {
+    id: "task-2",
+    title: "Develop the landing page",
+    status: "in-progress",
+    priority: "high",
+    due_date: null,
+    created_at: new Date().toISOString(),
+    is_completed: false,
+    updated_at: new Date().toISOString(),
+    user_id: "user-123",
+    category: null,
+    tags: null,
+  },
+  {
+    id: "task-3",
+    title: "Fix authentication bug",
+    status: "in-progress",
+    priority: "high",
+    due_date: null,
+    created_at: new Date().toISOString(),
+    is_completed: false,
+    updated_at: new Date().toISOString(),
+    user_id: "user-123",
+    category: null,
+    tags: null,
+  },
+  {
+    id: "task-4",
+    title: "Write documentation",
+    status: "done",
+    priority: "low",
+    due_date: null,
+    created_at: new Date().toISOString(),
+    is_completed: true,
+    updated_at: new Date().toISOString(),
+    user_id: "user-123",
+    category: null,
+    tags: null,
+  },
+];
+
 interface KanbanPageProps {
-  initialTasks: Task[];
+  initialTasks?: Task[];
 }
 
-const KanbanPage = ({ initialTasks }: KanbanPageProps) => {
-  const router = useRouter();
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-
-  const columns = useMemo(() => {
-    const initialColumns = [
-      { id: "todo", title: "To Do", taskIds: [] as string[] },
-      { id: "in-progress", title: "In Progress", taskIds: [] as string[] },
-      { id: "done", title: "Done", taskIds: [] as string[] },
-    ];
-
-    const tasksById: Record<string, Task> = {};
-
-    tasks.forEach((task) => {
-      tasksById[task.id] = task;
-      const columnIndex = initialColumns.findIndex(
-        (col) => col.id === task.status,
-      );
-      if (columnIndex !== -1) {
-        initialColumns[columnIndex].taskIds.push(task.id);
-      } else {
-        // Fallback for tasks without a valid status, assign to 'todo'
-        initialColumns[0].taskIds.push(task.id);
-      }
-    });
-
-    return { initialColumns, tasksById };
-  }, [tasks]);
+const KanbanPage = ({ initialTasks = mockTasks }: KanbanPageProps) => {
+  const { columns, handleDragEnd } = useKanban(initialTasks);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -58,66 +85,18 @@ const KanbanPage = ({ initialTasks }: KanbanPageProps) => {
     }),
   );
 
-  const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
-      const { active, over } = event;
-
-      if (!over) return;
-
-      const activeId = String(active.id);
-
-      const activeTask = tasks.find((task) => task.id === activeId);
-      if (!activeTask) return;
-
-      interface SortableData {
-        sortable?: {
-          containerId: string;
-        };
-      }
-
-      // Determine if we are moving between columns or reordering within a column
-      const oldColumnId = activeTask.status;
-      const newColumnId =
-        (over.data.current as SortableData)?.sortable?.containerId ||
-        String(over.id);
-
-      if (oldColumnId !== newColumnId) {
-        // Moving between columns
-        const newStatus = newColumnId as Task["status"];
-
-        await updateTask(activeId, {
-          status: newStatus,
-        } as Partial<TaskUpdate>);
-
-        setTasks((prevTasks) =>
-          prevTasks.map((task) =>
-            task.id === activeId ? { ...task, status: newStatus } : task,
-          ),
-        );
-        router.refresh();
-      } else {
-        // Reordering within the same column (not implemented yet, requires more complex state management)
-        // For now, we only handle column changes.
-      }
-    },
-    [tasks, router],
-  );
-
   return (
     <div className="p-4">
       <h1 className="mb-6 text-3xl font-bold">Kanban Board</h1>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
-        onDragEnd={(event) => void handleDragEnd(event)}
+        onDragEnd={handleDragEnd}
       >
-        <KanbanBoard
-          columns={columns.initialColumns}
-          tasks={columns.tasksById}
-        />
+        <KanbanBoard columns={columns} />
       </DndContext>
     </div>
   );
 };
 
-export { KanbanPage };
+export default KanbanPage;

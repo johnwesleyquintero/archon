@@ -1,36 +1,35 @@
-import { useDraggable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Task } from "@/lib/types/task";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface KanbanCardProps {
-  task: {
-    id: string;
-    title: string;
-    // Add other task properties as needed
-  };
+  task: Task;
 }
 
 export const KanbanCard: React.FC<KanbanCardProps> = ({ task }) => {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: task.id,
-  });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
 
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      }
-    : undefined;
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...listeners}
-      {...attributes}
-      className="rounded-md bg-white p-3 shadow-sm dark:bg-gray-700 cursor-grab"
-    >
-      <h3 className="text-md font-medium text-gray-900 dark:text-gray-100">
-        {task.title}
-      </h3>
-      {/* Add more task details here */}
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <Card className="mb-2 cursor-grab active:cursor-grabbing">
+        <CardHeader className="p-3">
+          <CardTitle className="text-sm font-medium">{task.title}</CardTitle>
+        </CardHeader>
+      </Card>
     </div>
   );
 };
