@@ -154,7 +154,7 @@ export function ProfileFormWithAvatar() {
             <div className="flex items-center gap-6">
               <Avatar className="h-24 w-24">
                 <Image
-                  src={form.watch("avatar") || "/placeholder-user.jpg"}
+                  src={form.watch("avatar") || "/placeholder-user.svg"}
                   alt={form.watch("fullName") || "User Avatar"}
                   width={96} // Corresponds to h-24 w-24 (96px)
                   height={96}

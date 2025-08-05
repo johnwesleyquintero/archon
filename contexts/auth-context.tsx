@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: userId,
         full_name: userData.user.user_metadata?.full_name || "", // Provide empty string default
         avatar_url:
-          userData.user.user_metadata?.avatar_url || "/placeholder-user.jpg", // Provide a default avatar
+          userData.user.user_metadata?.avatar_url || "/placeholder-user.svg", // Provide a default avatar
         username: null, // Will be set later if user wants to customize
       };
 

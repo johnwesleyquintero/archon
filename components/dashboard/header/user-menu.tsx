@@ -34,7 +34,7 @@ export function UserMenu() {
         <Button variant="ghost" size="icon" className="rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage
-              src={profile?.avatar_url || "/placeholder-user.jpg"}
+              src={profile?.avatar_url || "/placeholder-user.svg"}
               alt={profile?.full_name || "User"}
             />
             <AvatarFallback>
