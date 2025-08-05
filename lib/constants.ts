@@ -1,4 +1,4 @@
-import { Home, Target, ListTodo, BookOpen, LucideIcon } from "lucide-react";
+import { Home, Target, ListTodo, BookOpen, Kanban, LucideIcon } from "lucide-react";
 import { AdvancedStatsGrid } from "@/components/advanced-stats-grid";
 import { WelcomeWidget } from "@/components/dashboard/welcome-widget";
 import { GoalTracker } from "@/components/goal-tracker";
@@ -28,6 +28,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/goals", label: "Goals", icon: Target },
   { href: "/tasks", label: "Tasks", icon: ListTodo },
   { href: "/journal", label: "Journal", icon: BookOpen },
+  { href: "/kanban", label: "Kanban", icon: Kanban },
 ];
 
 export const SIGN_OUT_LABEL = "Sign Out";
