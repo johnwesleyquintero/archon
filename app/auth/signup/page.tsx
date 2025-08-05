@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { handleAuthAction } from "@/lib/auth/actions";
 
 export default function SignUpPage() {
   return (
@@ -34,7 +35,7 @@ export default function SignUpPage() {
         </CardHeader>
         <CardContent>
           <Suspense fallback={<div>Loading...</div>}>
-            <AuthForm mode="signUp" />
+            <AuthForm mode="signUp" handleAuthAction={handleAuthAction} />
           </Suspense>
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}

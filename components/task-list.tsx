@@ -8,13 +8,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ListTodo, Filter } from "lucide-react";
 import type { TaskUpdate } from "@/lib/supabase/types";
 
+import { Task } from "@/lib/types/task";
+
 interface TaskListProps {
+  tasks: Task[];
+  loading: boolean;
   onAddTaskClick: () => void;
 }
 
-export function TaskList({ onAddTaskClick }: TaskListProps) {
-  const { tasks, loading, toggleTask, deleteTask, updateTask, isMutating } =
-    useTasks();
+export function TaskList({ tasks, loading, onAddTaskClick }: TaskListProps) {
+  const { toggleTask, deleteTask, updateTask, isMutating } = useTasks();
 
   const { filteredAndSortedTasks, sort, setSort, filters, setFilters } =
     useTaskFiltersAndSort(tasks);
@@ -34,6 +37,7 @@ export function TaskList({ onAddTaskClick }: TaskListProps) {
     updateTask(id, updatedTask);
   };
 
+  // The loading state is managed by the parent component (TodoList)
   if (loading) {
     return (
       <div className="flex flex-col h-full py-2 space-y-2">

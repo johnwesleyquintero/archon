@@ -76,7 +76,7 @@ export const addTask = withErrorHandling(
       throw new Error(`Failed to add task: ${error.message}`);
     }
 
-    revalidatePath("/dashboard");
+    revalidatePath("/tasks");
     return data as Task;
   },
 );
@@ -104,7 +104,7 @@ export const toggleTask = withErrorHandling(
       throw new Error(`Failed to toggle task: ${error.message}`);
     }
 
-    revalidatePath("/dashboard");
+    revalidatePath("/tasks");
     return data as Task;
   },
 );
@@ -130,7 +130,7 @@ export const deleteTask = withErrorHandling(
       throw new Error(`Failed to delete task: ${error.message}`);
     }
 
-    revalidatePath("/dashboard");
+    revalidatePath("/tasks");
     return { success: true };
   },
 );
@@ -163,7 +163,7 @@ export const updateTask = withErrorHandling(
       throw new Error(`Failed to update task: ${error.message}`);
     }
 
-    revalidatePath("/dashboard");
+    revalidatePath("/tasks");
     return data as Task;
   },
 );

@@ -16,7 +16,7 @@ interface TodoListProps {
 }
 
 export function TodoList({ initialTasks }: TodoListProps) {
-  const { addTask, isMutating } = useTasks(initialTasks);
+  const { tasks, loading, addTask, isMutating } = useTasks(initialTasks);
   const { user } = useAuth();
   const taskInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,7 +30,11 @@ export function TodoList({ initialTasks }: TodoListProps) {
         <CardTitle>Todo List</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-4">
-        <TaskList onAddTaskClick={handleAddTaskClick} />
+        <TaskList
+          tasks={tasks}
+          loading={loading}
+          onAddTaskClick={handleAddTaskClick}
+        />
         <TaskInput
           ref={taskInputRef}
           // eslint-disable-next-line @typescript-eslint/require-await

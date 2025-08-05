@@ -39,23 +39,26 @@ describe("TaskList", () => {
   });
 
   test("renders loading state correctly", () => {
-    (useTasks as jest.Mock).mockReturnValue({
-      tasks: [],
-      loading: true,
-      toggleTask: jest.fn(),
-      deleteTask: jest.fn(),
-      updateTask: jest.fn(),
-      isMutating: false,
-    });
-
-    render(<TaskList onAddTaskClick={mockOnAddTaskClick} />);
+    render(
+      <TaskList
+        tasks={[]}
+        loading={true}
+        onAddTaskClick={mockOnAddTaskClick}
+      />,
+    );
 
     // Check for skeleton loaders
     expect(screen.getAllByTestId("task-skeleton")).toHaveLength(5);
   });
 
   test("renders empty state when no tasks exist", () => {
-    render(<TaskList onAddTaskClick={mockOnAddTaskClick} />);
+    render(
+      <TaskList
+        tasks={[]}
+        loading={false}
+        onAddTaskClick={mockOnAddTaskClick}
+      />,
+    );
 
     expect(screen.getByText("No tasks yet!")).toBeInTheDocument();
     expect(screen.getByText("Add New Task")).toBeInTheDocument();

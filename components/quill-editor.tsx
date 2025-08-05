@@ -17,7 +17,7 @@ export interface TipTapEditorRef {
   getText: () => string;
   isEmpty: () => boolean;
   focus: () => void;
-  commands: Editor["commands"];
+  commands: Editor["commands"] | undefined; // Allow undefined for commands
   editor: Editor | null; // Expose the full editor instance
 }
 
@@ -57,6 +57,7 @@ const TipTapEditorBase: ForwardRefRenderFunction<
       },
     },
     editable: props.editable !== false, // Default to true if not explicitly false
+    immediatelyRender: false, // Explicitly set to false to avoid SSR hydration mismatches
   });
 
   // Store the editor instance in a ref for imperative access

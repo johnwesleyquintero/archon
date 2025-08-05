@@ -148,11 +148,11 @@ export function JournalEditorWithAttachments({
           });
 
           // Insert image directly into TipTap editor if it's an image
-          if (fileType === "image" && editorRef.current) {
+          if (fileType === "image" && editorRef.current?.commands) {
             editorRef.current.commands.insertContent(
               `<img src="${result.url}" alt="${newAttachment.filename}" />`,
             );
-          } else if (editorRef.current) {
+          } else if (editorRef.current?.commands) {
             // For other file types, insert a link
             editorRef.current.commands.insertContent(
               `<a href="${newAttachment.url}" target="_blank" rel="noopener noreferrer">${newAttachment.filename}</a>`,
@@ -320,7 +320,7 @@ export function JournalEditorWithAttachments({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editorRef.current?.commands.toggleBold()}
+              onClick={() => editorRef.current?.commands?.toggleBold()}
               className={cn(
                 "h-8 w-8 p-0",
                 editorRef.current?.editor?.isActive("bold") && "bg-slate-100",
@@ -332,7 +332,7 @@ export function JournalEditorWithAttachments({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editorRef.current?.commands.toggleItalic()}
+              onClick={() => editorRef.current?.commands?.toggleItalic()}
               className={cn(
                 "h-8 w-8 p-0",
                 editorRef.current?.editor?.isActive("italic") && "bg-slate-100",
@@ -344,7 +344,7 @@ export function JournalEditorWithAttachments({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editorRef.current?.commands.toggleStrike()}
+              onClick={() => editorRef.current?.commands?.toggleStrike()}
               className={cn(
                 "h-8 w-8 p-0",
                 editorRef.current?.editor?.isActive("strike") && "bg-slate-100",
@@ -356,7 +356,7 @@ export function JournalEditorWithAttachments({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editorRef.current?.commands.toggleBulletList()}
+              onClick={() => editorRef.current?.commands?.toggleBulletList()}
               className={cn(
                 "h-8 w-8 p-0",
                 editorRef.current?.editor?.isActive("bulletList") &&
@@ -369,7 +369,7 @@ export function JournalEditorWithAttachments({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => editorRef.current?.commands.toggleOrderedList()}
+              onClick={() => editorRef.current?.commands?.toggleOrderedList()}
               className={cn(
                 "h-8 w-8 p-0",
                 editorRef.current?.editor?.isActive("orderedList") &&
@@ -440,7 +440,7 @@ export function JournalEditorWithAttachments({
                             fill
                             className="object-cover rounded"
                             onClick={() => {
-                              if (editorRef.current) {
+                              if (editorRef.current?.commands) {
                                 editorRef.current.commands.insertContent(
                                   `<img src="${typedAttachment.url}" alt="${typedAttachment.filename}" />`,
                                 );
@@ -452,7 +452,7 @@ export function JournalEditorWithAttachments({
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                if (editorRef.current) {
+                                if (editorRef.current?.commands) {
                                   editorRef.current.commands.insertContent(
                                     `<img src="${typedAttachment.url}" alt="${typedAttachment.filename}" />`,
                                   );

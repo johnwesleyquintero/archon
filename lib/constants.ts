@@ -6,18 +6,8 @@ import {
   Kanban,
   LucideIcon,
 } from "lucide-react";
-import { AdvancedStatsGrid } from "@/components/advanced-stats-grid";
-import { WelcomeWidget } from "@/components/dashboard/welcome-widget";
-import { GoalTracker } from "@/components/goal-tracker";
-import { JournalList, JournalListProps } from "@/components/journal-list";
-import {
-  PlaceholderInfographics,
-  PlaceholderInfographicsProps,
-} from "@/components/placeholder-infographics";
-import { StatsGrid } from "@/components/stats-grid";
-import { TodoList } from "@/components/todo-list";
-import { GoalsDisplay } from "@/components/goals-display";
-
+import { JournalListProps } from "@/components/journal-list";
+import { PlaceholderInfographicsProps } from "@/components/placeholder-infographics";
 import type { Database } from "@/lib/supabase/types";
 import { GoalTrackerProps } from "@/components/goal-tracker";
 import { GoalsDisplayProps } from "@/components/goals-display";

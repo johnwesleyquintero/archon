@@ -123,7 +123,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
     return currentLayout.filter((item) => item.isVisible || isCustomizing);
   }, [currentLayout, isCustomizing]);
 
-  const widgetComponentsMap: Record<string, ComponentType<any>> = useMemo(() => {
+  const widgetComponentsMap: Record<string, ComponentType<P>> = useMemo(() => {
     return {
       "welcome-widget": WelcomeWidget,
       // Add other widgets here as they are defined
@@ -251,7 +251,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
                   }
                 >
                   <WidgetComponent
-                    {...(widget.defaultProps ? widget.defaultProps : {})}
+                    {...(widget.defaultProps || ({} as P))}
                     // Pass any additional props needed by the widget component
                   />
                 </DashboardWidget>

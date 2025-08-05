@@ -326,3 +326,4 @@ export type JournalEntryUpdate =
   Database["public"]["Tables"]["journal_entries"]["Update"];
 export type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 export type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
+export type GoalUpdate = Database["public"]["Tables"]["goals"]["Update"];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,21 +22,41 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import type { Database } from "@/lib/supabase/types";
+
+type Goal = Database["public"]["Tables"]["goals"]["Row"];
+
 interface GoalFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (goal: {
+    id?: string;
     title: string;
     description: string;
     target_date?: string;
   }) => void;
+  initialGoal?: Goal | null;
 }
 
 export const GoalForm: React.FC<GoalFormProps> = ({
   isOpen,
   onClose,
   onSave,
+  initialGoal,
 }) => {
+  useEffect(() => {
+    if (initialGoal) {
+      setTitle(initialGoal.title);
+      setDescription(initialGoal.description || "");
+      setTargetDate(
+        initialGoal.target_date ? new Date(initialGoal.target_date) : undefined,
+      );
+    } else {
+      setTitle("");
+      setDescription("");
+      setTargetDate(undefined);
+    }
+  }, [initialGoal, isOpen]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
@@ -44,13 +64,11 @@ export const GoalForm: React.FC<GoalFormProps> = ({
   const handleSubmit = () => {
     if (!title) return;
     onSave({
+      ...(initialGoal && { id: initialGoal.id }),
       title,
       description,
       ...(targetDate && { target_date: format(targetDate, "yyyy-MM-dd") }),
     });
-    setTitle("");
-    setDescription("");
-    setTargetDate(undefined);
     onClose();
   };
 
@@ -58,7 +76,9 @@ export const GoalForm: React.FC<GoalFormProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Goal</DialogTitle>
+          <DialogTitle>
+            {initialGoal ? "Edit Goal" : "Add New Goal"}
+          </DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">

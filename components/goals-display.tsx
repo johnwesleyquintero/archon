@@ -12,15 +12,22 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Edit } from "lucide-react";
 import { GoalForm } from "@/components/goal-form";
-import { createGoal } from "@/app/goals/actions";
+import { createGoal, updateGoal } from "@/app/goals/actions";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 
 export interface GoalsDisplayProps extends Record<string, unknown> {
   initialGoals: Goal[];
 }
+
+type GoalFormData = {
+  id?: string;
+  title: string;
+  description: string;
+  target_date?: string;
+};
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -34,23 +41,36 @@ export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
   });
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const handleSaveGoal = async (newGoalData: {
-    title: string;
-    description: string;
-    target_date?: string;
-  }) => {
+  const handleSaveGoal = async (goalData: GoalFormData) => {
     try {
-      await createGoal(newGoalData);
-      await mutate(); // Revalidate SWR cache to show new goal
+      if (goalData.id) {
+        // Update existing goal
+        await updateGoal(goalData.id, {
+          title: goalData.title,
+          description: goalData.description,
+          target_date: goalData.target_date,
+        });
+      } else {
+        // Create new goal
+        await createGoal(goalData);
+      }
+      await mutate(); // Revalidate SWR cache
       setIsFormOpen(false);
+      setEditingGoal(null);
     } catch (error) {
       console.error("Failed to save goal:", error);
       // Optionally, show an error message to the user
     }
+  };
+
+  const handleEditClick = (goal: Goal) => {
+    setEditingGoal(goal);
+    setIsFormOpen(true);
   };
 
   const filteredAndSortedGoals = useMemo(() => {
@@ -96,7 +116,13 @@ export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
     <div className="mt-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Your Goals</h2>
-        <Button onClick={() => setIsFormOpen(true)} className="ml-4">
+        <Button
+          onClick={() => {
+            setIsFormOpen(true);
+            setEditingGoal(null);
+          }}
+          className="ml-4"
+        >
           <PlusCircle className="mr-2 h-4 w-4" /> Add Goal
         </Button>
       </div>
@@ -134,23 +160,40 @@ export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
       ) : (
         <ul>
           {filteredAndSortedGoals.map((goal) => (
-            <li key={goal.id} className="mb-2 p-2 border rounded">
-              <h3 className="font-semibold">{goal.title}</h3>
-              <p className="text-sm text-gray-600">{goal.description}</p>
-              <p className="text-xs text-gray-500">Status: {goal.status}</p>
-              {goal.target_date && (
-                <p className="text-xs text-gray-500">
-                  Target Date: {new Date(goal.target_date).toLocaleDateString()}
-                </p>
-              )}
+            <li
+              key={goal.id}
+              className="mb-2 p-2 border rounded flex justify-between items-center"
+            >
+              <div>
+                <h3 className="font-semibold">{goal.title}</h3>
+                <p className="text-sm text-gray-600">{goal.description}</p>
+                <p className="text-xs text-gray-500">Status: {goal.status}</p>
+                {goal.target_date && (
+                  <p className="text-xs text-gray-500">
+                    Target Date:{" "}
+                    {new Date(goal.target_date).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleEditClick(goal)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
             </li>
           ))}
         </ul>
       )}
       <GoalForm
         isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditingGoal(null);
+        }}
         onSave={(goal) => void handleSaveGoal(goal)}
+        initialGoal={editingGoal}
       />
     </div>
   );

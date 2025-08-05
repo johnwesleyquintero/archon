@@ -40,21 +40,6 @@ export function useTaskMutations({
       setError(null);
       const tempId = `temp-${Date.now()}`;
       startTransition(async () => {
-        const newTask: Task = {
-          id: tempId,
-          title: input.title,
-          is_completed: input.is_completed || false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          user_id: user.id,
-          due_date: input.due_date || null,
-          priority: input.priority || null,
-          category: input.category || null,
-          tags: (input.tags as string[]) || null,
-          status: isValidStatus(input.status) ? input.status : "todo",
-        };
-        setTasks((prev) => [newTask, ...prev]);
-
         const result = await addTaskToDb(input);
 
         if (result && "error" in result) {
@@ -64,17 +49,12 @@ export function useTaskMutations({
             description: result.error,
             variant: "destructive",
           });
-          setTasks((prev) => prev.filter((task) => task.id !== tempId));
         } else if (result) {
-          setTasks((prev) =>
-            prev.map((task) => (task.id === tempId ? result : task)),
-          );
           toast({ title: "Success!", description: "Task added successfully." });
         } else {
           const msg = "Failed to add task.";
           setError(msg);
           toast({ title: "Error", description: msg, variant: "destructive" });
-          setTasks((prev) => prev.filter((task) => task.id !== tempId));
         }
       });
     },

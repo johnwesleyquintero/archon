@@ -32,7 +32,8 @@ export default function SignInPage() {
         </CardHeader>
         <CardContent>
           <Suspense fallback={<div>Loading...</div>}>
-            <AuthForm handleAuthAction={handleAuthAction} /> {/* Pass the server action as a prop */}
+            <AuthForm handleAuthAction={handleAuthAction} />{" "}
+            {/* Pass the server action as a prop */}
           </Suspense>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
