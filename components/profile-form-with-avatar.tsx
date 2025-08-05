@@ -204,7 +204,7 @@ export function ProfileFormWithAvatar() {
                   <FormLabel>Username</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="johndoe"
+                      placeholder="Wesley Q"
                       disabled={isSaving}
                       {...field}
                     />
