@@ -12,9 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { createClient } from "@/lib/supabase/client";
 import { loginSchema, signupSchema } from "@/lib/validators";
-import * as Sentry from "@sentry/nextjs";
+import { handleAuthAction } from "@/lib/auth/actions";
 
 type FormInputs = z.infer<typeof loginSchema> | z.infer<typeof signupSchema>;
 
@@ -36,7 +35,6 @@ export function EmailSignInForm({
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const router = useRouter();
-  const supabase = createClient();
   const { toast } = useToast();
 
   const {
@@ -52,23 +50,16 @@ export function EmailSignInForm({
   // Explicitly type errors for signup schema when in signUp mode
   const signUpErrors = errors as FieldErrors<z.infer<typeof signupSchema>>;
 
-  const handleAuthAction = async (data: FormInputs) => {
-    "use server";
+  const handleAuthActionClient = async (data: FormInputs) => {
     setIsLoading(true);
     clearErrors();
 
-    try {
+    const result = await handleAuthAction(data, mode);
+
+    if (result.success) {
       if (mode === "signIn") {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: data.email,
-          password: data.password,
-        });
-        if (error) throw error;
         router.push("/dashboard");
       } else {
-        const { email, password } = data as z.infer<typeof signupSchema>;
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
         if (onSignUpSuccess) {
           onSignUpSuccess();
         } else {
@@ -79,32 +70,21 @@ export function EmailSignInForm({
           router.refresh();
         }
       }
-    } catch (error: unknown) {
-      // Log to Sentry for production, console for development
-      if (process.env.NODE_ENV === "production") {
-        Sentry.captureException(error);
-      } else {
-        console.error("Authentication error:", error);
-      }
-
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred.";
+    } else {
+      const errorMessage = result.error || "An unexpected error occurred.";
       toast({
         variant: "destructive",
         title: "Authentication Error",
         description: errorMessage,
       });
       setFormError("root", { message: errorMessage });
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   return (
     <form
-      onSubmit={(event) => void handleSubmit(handleAuthAction)(event)}
+      onSubmit={(event) => void handleSubmit(handleAuthActionClient)(event)}
       className="space-y-4"
     >
       {errors.root && (
