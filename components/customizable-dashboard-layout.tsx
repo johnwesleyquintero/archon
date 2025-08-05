@@ -41,7 +41,6 @@ export interface Widget<
 
 // Widget type definitions
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TriangleAlert } from "lucide-react";
 
 interface CustomizableDashboardLayoutProps<P extends Record<string, unknown>> {
@@ -49,8 +48,6 @@ interface CustomizableDashboardLayoutProps<P extends Record<string, unknown>> {
   initialLayout?: DashboardLayoutItem[];
   initialWidgetConfigs?: Record<string, { title: string }>;
   className?: string;
-  dashboardSettingsError?: string | null;
-  goalsError?: string | null;
   userName?: string;
 }
 
@@ -59,8 +56,6 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
   initialLayout = [],
   initialWidgetConfigs = {},
   className = "",
-  dashboardSettingsError = null,
-  goalsError = null,
   userName,
 }: CustomizableDashboardLayoutProps<P>) {
   const [isCustomizing, setIsCustomizing] = useState(false);
@@ -69,7 +64,6 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
 
   const {
     layout: currentLayout,
-    isLoading,
     saveLayout,
     handleLayoutChange,
     toggleWidgetVisibility,
@@ -189,102 +183,76 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {dashboardSettingsError && (
-        <Alert variant="destructive">
-          <TriangleAlert className="h-4 w-4" />
-          <AlertTitle>Error Loading Dashboard Settings</AlertTitle>
-          <AlertDescription>
-            {dashboardSettingsError}. Please try refreshing the page. If the
-            issue persists, contact support.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {goalsError && (
-        <Alert variant="destructive">
-          <TriangleAlert className="h-4 w-4" />
-          <AlertTitle>Error Loading Goals</AlertTitle>
-          <AlertDescription>
-            {goalsError}. Goals might not be displayed correctly. Please try
-            refreshing the page. If the issue persists, contact support.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Control Bar */}
       <DashboardControlBar
         isCustomizing={isCustomizing}
-        isLoading={isLoading}
         onToggleCustomization={toggleCustomization}
-        onSaveLayout={() => void handleSaveLayout()}
+        onSaveLayout={handleSaveLayout}
         onCancelCustomization={() => setIsCustomizing(false)}
-        onResetLayout={() => void handleResetLayout()}
+        onResetLayout={handleResetLayout}
+        userName={userName}
       />
 
-      {/* Help Text */}
       {isCustomizing && <CustomizationHelpText />}
 
-      {/* Grid Layout */}
       <ResponsiveGridLayout
         className="layout"
-        layouts={{ lg: currentLayout }}
-        onLayoutChange={handleLayoutChange}
+        layouts={{ lg: visibleWidgets }}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-        rowHeight={30}
+        rowHeight={100}
         isDraggable={isCustomizing}
         isResizable={isCustomizing}
-        margin={[16, 16]}
-        containerPadding={[0, 0]}
+        onLayoutChange={handleLayoutChange}
+        measureBeforeMount={true}
         useCSSTransforms={true}
         compactType="vertical"
-        preventCollision={false}
-        autoSize={true}
       >
-        {visibleWidgets.map((layoutItem) => {
-          const widget = widgets.find((w) => w.id === layoutItem.i);
-          if (!widget) return null;
+        {visibleWidgets.map((item) => {
+          const widget = availableWidgets.find((w) => w.id === item.i);
+          if (!widget) {
+            return (
+              <div key={item.i} className="relative">
+                <Card className="h-full w-full flex flex-col justify-center items-center">
+                  <CardContent className="text-center">
+                    <TriangleAlert className="h-8 w-8 text-destructive mb-2" />
+                    <h3 className="text-lg font-semibold">Widget Not Found</h3>
+                    <p className="text-sm text-muted-foreground">
+                      The widget "{item.i}" could not be loaded.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            );
+          }
 
-          const WidgetComponent = widget.component;
-          // Use the title from layoutItem if available, otherwise fallback to widget.title
-          const displayTitle = widgetConfigs[widget.id]?.title ?? widget.title;
           return (
-            <div key={widget.id} className="widget-container">
-              <DashboardWidget
-                title={displayTitle} // Use the title from the layout item
-                isCustomizing={isCustomizing}
-                onRemove={() => {
-                  // Handle widget removal if needed
-                }}
-                onToggleVisibility={() =>
-                  handleToggleWidgetVisibility(widget.id)
-                }
-                isVisible={layoutItem.isVisible}
-                _widgetId={widget.id}
-                onSaveConfig={(config) =>
-                  handleSaveWidgetConfig(widget.id, config)
-                }
-              >
-                <WidgetComponent
-                  {...(widget.defaultProps || ({} as P))}
-                  userName={userName}
-                />
-              </DashboardWidget>
+            <div key={item.i} className="relative">
+              {widget.component && (
+                <DashboardWidget
+                  key={widget.id}
+                  title={widgetConfigs[widget.id]?.title || widget.title}
+                  isCustomizing={isCustomizing}
+                  onRemove={() => handleToggleWidgetVisibility(widget.id)}
+                  onSaveConfig={(config) =>
+                    handleSaveWidgetConfig(widget.id, config)
+                  }
+                >
+                  <widget.component
+                    {...(widget.defaultProps ? widget.defaultProps : {})}
+                    // Pass any additional props needed by the widget component
+                  />
+                </DashboardWidget>
+              )}
             </div>
           );
         })}
       </ResponsiveGridLayout>
 
-      {/* Add Widget Button (when customizing) */}
       {isCustomizing && (
-        <Card className="border-dashed border-2 border-gray-300 hover:border-gray-400 transition-colors">
-          <CardContent className="flex items-center justify-center py-8">
-            <AddWidgetDialog<P>
-              availableWidgets={availableWidgets}
-              onAddWidget={(widgetId: string) => void handleAddWidget(widgetId)}
-            />
-          </CardContent>
-        </Card>
+        <AddWidgetDialog
+          availableWidgets={availableWidgets}
+          onAddWidget={handleAddWidget}
+        />
       )}
     </div>
   );

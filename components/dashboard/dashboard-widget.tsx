@@ -4,12 +4,18 @@ interface DashboardWidgetProps {
   title: string;
   children: React.ReactNode;
   className?: string;
+  isCustomizing: boolean;
+  onRemove: () => void;
+  onSaveConfig: (config: { title: string }) => void;
 }
 
 export function DashboardWidget({
   title,
   children,
   className,
+  isCustomizing: _isCustomizing,
+  onRemove: _onRemove,
+  onSaveConfig: _onSaveConfig,
 }: DashboardWidgetProps) {
   return (
     <div

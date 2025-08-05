@@ -4,16 +4,15 @@ import { Button } from "@/components/ui/button";
 
 interface DashboardControlBarProps {
   isCustomizing: boolean;
-  isLoading: boolean;
   onToggleCustomization: () => void;
   onSaveLayout: () => void;
   onCancelCustomization: () => void;
   onResetLayout: () => void;
+  userName?: string;
 }
 
 export function DashboardControlBar({
   isCustomizing,
-  isLoading,
   onToggleCustomization,
   onSaveLayout,
   onCancelCustomization,
@@ -56,12 +55,11 @@ export function DashboardControlBar({
             <Button
               size="sm"
               onClick={onSaveLayout}
-              disabled={isLoading}
               className="flex items-center space-x-1"
-              aria-label={isLoading ? "Saving Layout" : "Save Layout"}
+              aria-label="Save Layout"
             >
               <Save className="h-4 w-4" />
-              <span>{isLoading ? "Saving..." : "Save"}</span>
+              <span>Save</span>
             </Button>
           </>
         ) : (

@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import * as Sentry from "@sentry/nextjs";
 import { CustomizableDashboardLayout } from "@/components/customizable-dashboard-layout";
-import { DashboardErrorToaster } from "@/components/dashboard/dashboard-error-toaster";
 import { DashboardCriticalError } from "@/components/dashboard/dashboard-critical-error";
 import { getDashboardSettings } from "@/lib/database/dashboard-settings";
 import { getGoals } from "@/lib/database/goals";
@@ -14,7 +13,6 @@ import { redirect } from "next/navigation";
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 import { mergeLayouts } from "@/lib/dashboard-utils";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getErrorMessage } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -31,10 +29,8 @@ export default async function DashboardPage() {
   }
 
   let initialGoals: Goal[] = [];
-  let goalsError: string | null = null;
   let initialLayout = DEFAULT_LAYOUT;
   let initialWidgetConfigs: Record<string, { title: string }> = {};
-  let dashboardSettingsError: string | null = null;
 
   // The rest of the data fetching logic remains the same,
   // but now it's guaranteed that `user` is not null.
@@ -46,7 +42,6 @@ export default async function DashboardPage() {
   if (goalsResult.status === "fulfilled") {
     initialGoals = goalsResult.value;
   } else {
-    goalsError = getErrorMessage(goalsResult.reason);
     Sentry.captureException(goalsResult.reason, {
       extra: { context: "Goals Loading" },
     });
@@ -61,7 +56,6 @@ export default async function DashboardPage() {
         {};
     }
   } else {
-    dashboardSettingsError = getErrorMessage(settingsResult.reason);
     Sentry.captureException(settingsResult.reason, {
       extra: { context: "Dashboard Settings Loading" },
     });
@@ -69,9 +63,14 @@ export default async function DashboardPage() {
 
   const availableWidgets = getAvailableWidgets(initialGoals);
 
-  if (goalsError && dashboardSettingsError) {
-    Sentry.captureException(goalsError);
-    Sentry.captureException(dashboardSettingsError);
+  // If there are critical errors, display a critical error message
+  // The individual errors are now handled by toasts in useDashboardSettings
+  if (
+    goalsResult.status === "rejected" &&
+    settingsResult.status === "rejected"
+  ) {
+    Sentry.captureException(goalsResult.reason);
+    Sentry.captureException(settingsResult.reason);
     return (
       <DashboardCriticalError
         title="Failed to load dashboard"
@@ -90,10 +89,6 @@ export default async function DashboardPage() {
           initialWidgetConfigs={initialWidgetConfigs}
           className="min-h-screen"
           userName={userName}
-        />
-        <DashboardErrorToaster
-          goalsError={goalsError}
-          dashboardSettingsError={dashboardSettingsError}
         />
       </Suspense>
     </div>

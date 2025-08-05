@@ -11,6 +11,7 @@ import {
 import { mergeLayouts } from "@/lib/dashboard-utils";
 import { DEFAULT_LAYOUT } from "@/lib/layouts";
 import * as Sentry from "@sentry/nextjs";
+import { useToast } from "@/components/ui/use-toast";
 
 // Define a type that extends Layout with isVisible
 interface DashboardLayoutItem extends Layout {
@@ -40,6 +41,7 @@ export function useDashboardSettings(
   const [widgetConfigs, setWidgetConfigs] =
     useState<Record<string, any>>(initialWidgetConfigs);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -65,6 +67,12 @@ export function useDashboardSettings(
       } catch (error: unknown) {
         console.error("Failed to load dashboard settings:", error);
         Sentry.captureException(error);
+        toast({
+          title: "Error loading dashboard settings",
+          description:
+            "We encountered an issue loading your dashboard. Please try refreshing.",
+          variant: "destructive",
+        });
         setLayout(DEFAULT_LAYOUT); // Fallback to default on error
         setWidgetConfigs({});
       } finally {
@@ -95,6 +103,12 @@ export function useDashboardSettings(
       } catch (error: unknown) {
         console.error("Failed to save dashboard settings:", error);
         Sentry.captureException(error);
+        toast({
+          title: "Error saving dashboard settings",
+          description:
+            "Failed to save your dashboard changes. Please try again.",
+          variant: "destructive",
+        });
         throw error; // Re-throw to allow component to handle
       } finally {
         setIsLoading(false);
@@ -135,6 +149,11 @@ export function useDashboardSettings(
       console.warn("Cannot reset layout: User not authenticated.");
       setLayout(DEFAULT_LAYOUT);
       setWidgetConfigs({});
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to reset your dashboard layout.",
+        variant: "destructive",
+      });
       return;
     }
     setIsLoading(true);
@@ -147,9 +166,18 @@ export function useDashboardSettings(
       });
       setLayout(DEFAULT_LAYOUT);
       setWidgetConfigs({});
+      toast({
+        title: "Dashboard Reset",
+        description: "Your dashboard layout has been reset to default.",
+      });
     } catch (error: unknown) {
       console.error("Failed to reset dashboard settings:", error);
       Sentry.captureException(error);
+      toast({
+        title: "Error resetting dashboard",
+        description: "Failed to reset your dashboard layout. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
