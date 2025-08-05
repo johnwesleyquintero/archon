@@ -35,16 +35,18 @@ Archon is a modern, responsive dashboard application built with Next.js 14 (App 
 
 ## Features
 
-- **Responsive Dashboard Layout**: Enjoy a sleek user interface that seamlessly adapts to various screen sizes, complete with a collapsible sidebar for enhanced navigation.
+- **Customizable Dashboard**: A highly flexible dashboard with widgets for tasks, goals, and journal entries, allowing users to personalize their productivity hub.
+- **Responsive Layout**: Enjoy a sleek user interface that seamlessly adapts to various screen sizes, complete with a collapsible sidebar for enhanced navigation.
 - **Robust User Authentication**: Securely sign up and sign in using Supabase Auth, supporting both email/password and Google OAuth. User profiles are automatically created upon registration.
-- **Dynamic Task Management**: A comprehensive system for adding, completing, deleting, filtering, and sorting tasks. Includes a dedicated "Today's Tasks" widget with robust state management.
-- **Strategic Goal Tracking**: Set and monitor your strategic goals with intuitive progress bars and status badges. Attach relevant documents directly to your goals for easy access.
-- **Rich Journaling System**: Create and manage journal entries using a versatile rich text editor, supporting various templates and file attachments for comprehensive record-keeping.
+- **Dynamic Task Management**: A comprehensive system for adding, completing, deleting, filtering, and sorting tasks, including a quick-add modal and dedicated widgets.
+- **Strategic Goal Tracking**: Set and monitor your strategic goals with intuitive progress bars and status badges. Attach relevant documents directly to your goals for easy access, with a dedicated modal for goal creation.
+- **Rich Journaling System**: Create and manage journal entries using a versatile rich text editor with attachment support, offering a comprehensive record-keeping solution.
 - **Personalized User Settings**: Customize your experience by managing profile information, account settings, and appearance preferences, including avatar uploads and a convenient dark/light mode toggle.
 - **Efficient File Uploads**: Seamlessly integrate and store files across journal entries, goals, and user avatars with efficient Vercel Blob storage.
 - **AI-Powered Insights**: Leverage **GroqFast AI Inference** for rapid, low-latency AI responses, enabling intelligent features like smart suggestions, content generation, and conversational AI.
-- **Reusable UI Components**: Utilize generic `LoadingSkeleton`, `EmptyState`, and `ErrorState` components to gracefully handle common UI scenarios, providing excellent user feedback and a consistent experience.
+- **Reusable UI Components**: Utilize generic `LoadingSkeleton`, `EmptyState`, and `ErrorState` components, along with a rich set of `shadcn/ui` components, to gracefully handle common UI scenarios, providing excellent user feedback and a consistent experience.
 - **Modular & Maintainable Codebase**: The application is built with a modular architecture, breaking down components into smaller, reusable pieces with clear separation of concerns (e.g., custom hooks like `useTasks` for logic abstraction), ensuring high maintainability and scalability.
+- **Dedicated Landing Page**: A comprehensive landing page showcasing the application's features and benefits to new users.
 
 ## Technologies Used
 
@@ -59,6 +61,41 @@ Archon is a modern, responsive dashboard application built with Next.js 14 (App 
 - **Lucide React**: Provides a comprehensive and customizable set of open-source icons.
 - **Vercel Blob**: Ensures efficient and scalable file storage for various application assets.
 - **next-themes**: Facilitates easy integration and management of dark/light mode themes.
+- **Jest & React Testing Library**: For robust unit and integration testing.
+
+## Project Structure
+
+Archon follows a clear and modular project structure to ensure maintainability and scalability:
+
+```
+archon/
+├── app/                  # Next.js App Router pages, API routes, and server actions
+│   ├── api/              # Backend API routes (e.g., goals, groq-chat, upload)
+│   ├── auth/             # Authentication-related pages and actions
+│   ├── dashboard/        # Main dashboard pages and layout
+│   ├── goals/            # Goal management pages and actions
+│   ├── journal/          # Journaling pages and actions
+│   ├── kanban/           # Kanban board pages and layout
+│   ├── settings/         # User settings pages
+│   └── tasks/            # Task management pages and actions
+├── components/           # Reusable React components
+│   ├── auth/             # Authentication-specific components
+│   ├── custom/           # Custom application-specific components (e.g., quick-add-task-modal)
+│   ├── dashboard/        # Dashboard-specific components (e.g., widgets, controls)
+│   ├── landing/          # Components for the landing page
+│   └── ui/               # shadcn/ui components (re-exported and customized)
+├── contexts/             # React Context API providers
+├── hooks/                # Custom React hooks for reusable logic
+├── lib/                  # Utility functions, constants, database interactions, and Supabase client setup
+│   ├── database/         # Database query functions
+│   ├── supabase/         # Supabase client and auth utilities
+│   ├── types/            # TypeScript type definitions
+│   └── utils.ts          # General utility functions
+├── public/               # Static assets
+├── scripts/              # Utility scripts (e.g., database migrations)
+├── styles/               # Global CSS styles
+└── __tests__/            # Jest and React Testing Library tests
+```
 
 ## Getting Started
 
