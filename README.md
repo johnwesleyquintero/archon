@@ -25,9 +25,7 @@
 
 🚀 [Live Demo](https://archon-hub.vercel.app)
 
-![Archon Dashboard Preview](public/placeholder.jpg)
-
-> Note: Add a screenshot or GIF of your application here to showcase its features.
+<img width="1088" height="846" alt="image" src="https://github.com/user-attachments/assets/d8a62881-c0f5-498f-aae0-2213c880566e" />
 
 ## Overview
 
