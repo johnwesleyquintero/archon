@@ -3,37 +3,34 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { withErrorHandling } from "@/lib/error-utils";
+import { GoalInsert } from "@/lib/supabase/types";
 
-export const createGoal = withErrorHandling(async (formData: {
-  title: string;
-  description: string;
-  target_date?: string;
-}) => {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export const createGoal = withErrorHandling(
+  async (formData: { title: string; description?: string }) => {
+    const supabase = await createServerSupabaseClient();
+    const { data: userData, error: userError } = await supabase.auth.getUser();
 
-  if (!user) {
-    throw new Error("User not authenticated.");
-  }
+    if (userError || !userData?.user) {
+      throw new Error("User not authenticated.");
+    }
 
-  const { data, error } = await supabase
-    .from("goals")
-    .insert({
-      user_id: user.id,
+    const newGoal: GoalInsert = {
       title: formData.title,
-      description: formData.description,
-      target_date: formData.target_date || null,
-      status: "pending", // Default status
-    })
-    .select();
+      description: formData.description || null,
+      user_id: userData.user.id,
+    };
 
-  if (error) {
-    console.error("Error creating goal:", error);
-    throw new Error(`Failed to create goal: ${error.message}`);
-  }
+    const { data, error } = await supabase
+      .from("goals")
+      .insert(newGoal)
+      .select()
+      .single();
 
-  revalidatePath("/goals");
-  return data;
-});
+    if (error) {
+      throw new Error(`Failed to create goal: ${error.message}`);
+    }
+
+    revalidatePath("/goals");
+    return data;
+  },
+);

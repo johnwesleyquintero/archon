@@ -6,11 +6,7 @@ import { cookies } from "next/headers";
 import type { Database } from "@/lib/supabase/types";
 import { Task } from "@/lib/types/task";
 
-import {
-  withErrorHandling,
-  convertRawTaskToTask,
-  handleError,
-} from "@/lib/utils";
+import { withErrorHandling } from "@/lib/error-utils";
 import { taskInsertSchema, taskUpdateSchema } from "@/lib/zod-schemas";
 
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
@@ -77,14 +73,12 @@ export const addTask = withErrorHandling(
       .single();
 
     if (error) {
-      handleError(error, "Task:addTask");
       throw new Error(`Failed to add task: ${error.message}`);
     }
 
     revalidatePath("/dashboard");
-    return convertRawTaskToTask(data);
+    return data as Task;
   },
-  "add task",
 );
 
 export const toggleTask = withErrorHandling(
@@ -107,14 +101,12 @@ export const toggleTask = withErrorHandling(
       .single();
 
     if (error) {
-      handleError(error, "Task:toggleTask");
       throw new Error(`Failed to toggle task: ${error.message}`);
     }
 
     revalidatePath("/dashboard");
-    return convertRawTaskToTask(data);
+    return data as Task;
   },
-  "toggle task",
 );
 
 export const deleteTask = withErrorHandling(
@@ -135,14 +127,12 @@ export const deleteTask = withErrorHandling(
       .eq("user_id", user.id); // Ensure user owns the task
 
     if (error) {
-      handleError(error, "Task:deleteTask");
       throw new Error(`Failed to delete task: ${error.message}`);
     }
 
     revalidatePath("/dashboard");
     return { success: true };
   },
-  "delete task",
 );
 
 export const updateTask = withErrorHandling(
@@ -170,12 +160,10 @@ export const updateTask = withErrorHandling(
       .single();
 
     if (error) {
-      handleError(error, "Task:updateTask");
       throw new Error(`Failed to update task: ${error.message}`);
     }
 
     revalidatePath("/dashboard");
-    return convertRawTaskToTask(data);
+    return data as Task;
   },
-  "update task",
 );

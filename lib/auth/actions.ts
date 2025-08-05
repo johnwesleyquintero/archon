@@ -7,7 +7,10 @@ import { loginSchema, signupSchema } from "@/lib/validators";
 
 type FormInputs = z.infer<typeof loginSchema> | z.infer<typeof signupSchema>;
 
-export async function handleAuthAction(data: FormInputs, mode: "signIn" | "signUp") {
+export async function handleAuthAction(
+  data: FormInputs,
+  mode: "signIn" | "signUp",
+) {
   const supabase = await createServerSupabaseClient();
 
   try {
@@ -31,9 +34,7 @@ export async function handleAuthAction(data: FormInputs, mode: "signIn" | "signU
       console.error("Authentication error:", error);
     }
     const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "An unexpected error occurred.";
+      error instanceof Error ? error.message : "An unexpected error occurred.";
     return { success: false, error: errorMessage };
   }
 }

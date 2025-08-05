@@ -13,7 +13,7 @@ import {
   journalEntryUpdateSchema,
 } from "@/lib/zod-schemas";
 
-import { withErrorHandling } from "@/lib/utils";
+import { withErrorHandling } from "@/lib/error-utils";
 
 type JournalInsert = Database["public"]["Tables"]["journal_entries"]["Insert"];
 type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];
@@ -25,7 +25,6 @@ export const addJournalEntry = withErrorHandling(
     revalidatePath("/journal");
     return newEntry;
   },
-  "add journal entry",
 );
 
 export const updateJournalEntry = withErrorHandling(
@@ -35,11 +34,10 @@ export const updateJournalEntry = withErrorHandling(
     revalidatePath("/journal");
     return updatedEntry;
   },
-  "update journal entry",
 );
 
 export const deleteJournalEntry = withErrorHandling(async (id: string) => {
   await dbDeleteJournalEntry(id);
   revalidatePath("/journal");
   return { success: true }; // Return success indicator
-}, "delete journal entry");
+});

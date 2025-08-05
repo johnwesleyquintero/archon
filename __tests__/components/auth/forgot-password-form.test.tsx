@@ -18,9 +18,13 @@ describe("ForgotPasswordForm", () => {
 
   it("renders the form correctly", () => {
     render(<ForgotPasswordForm />);
-    expect(screen.getByRole("heading", { name: /Reset Password/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Reset Password/i }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Send Reset Link/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Send Reset Link/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Cancel/i })).toBeInTheDocument();
   });
 
