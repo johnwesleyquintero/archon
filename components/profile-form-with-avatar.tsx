@@ -30,7 +30,7 @@ import { profileSchema } from "@/lib/validators";
 import type { z } from "zod";
 import { User } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
@@ -71,10 +71,11 @@ export function ProfileFormWithAvatar() {
           shouldDirty: true,
           shouldValidate: true,
         });
-        toast(
-          "Avatar uploaded successfully! Click Save Changes to apply.",
-          "success",
-        );
+        toast({
+          description:
+            "Avatar uploaded successfully! Click Save Changes to apply.",
+          variant: "success",
+        });
         return { success: true, url: result.url };
       } else {
         throw new Error(result.error?.message || "Failed to upload avatar.");
@@ -82,7 +83,10 @@ export function ProfileFormWithAvatar() {
     } catch (err: unknown) {
       const errorMessageText =
         err instanceof Error ? err.message : "Failed to upload avatar.";
-      toast(errorMessageText, "error");
+      toast({
+        description: errorMessageText,
+        variant: "destructive",
+      });
       return {
         success: false,
         error:
@@ -99,11 +103,17 @@ export function ProfileFormWithAvatar() {
         username: data.username,
         avatar_url: data.avatar,
       });
-      toast("Profile updated successfully.", "success");
+      toast({
+        description: "Profile updated successfully.",
+        variant: "success",
+      });
     } catch (err: unknown) {
       const errorMessageText =
         err instanceof Error ? err.message : "Failed to update profile.";
-      toast(errorMessageText, "error");
+      toast({
+        description: errorMessageText,
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }

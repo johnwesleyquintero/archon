@@ -71,7 +71,7 @@ jest.mock("@/contexts/auth-context", () => ({
 }));
 
 // Mock toast hooks
-jest.mock("@/hooks/use-toast", () => ({
+jest.mock("@/components/ui/use-toast", () => ({
   useToast: jest.fn(() => ({
     toast: jest.fn(),
     dismiss: jest.fn(),

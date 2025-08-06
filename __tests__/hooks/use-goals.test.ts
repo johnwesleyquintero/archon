@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useGoals } from "@/hooks/use-goals";
 import { createClient } from "@/lib/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/auth-context";
 
 // Mock Supabase client
@@ -70,7 +70,7 @@ jest.mock("@/lib/supabase/client", () => ({
 }));
 
 // Mock useToast hook
-jest.mock("@/hooks/use-toast", () => ({
+jest.mock("@/components/ui/use-toast", () => ({
   useToast: jest.fn(),
 }));
 

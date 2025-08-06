@@ -12,6 +12,7 @@ type ToasterToast = ToastProps & {
   title?: React.ReactNode;
   description?: React.ReactNode;
   action?: ToastActionElement;
+  variant?: "default" | "destructive" | "success";
 };
 
 const actionTypes = {
@@ -158,6 +159,7 @@ export function useToast() {
           ...props,
           id,
           open: true,
+          variant: props.variant || "default",
           onOpenChange: (open) => {
             if (!open) {
               dispatch({
