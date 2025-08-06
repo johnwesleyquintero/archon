@@ -77,7 +77,9 @@ export const useKanban = (initialTasks: Task[]) => {
 
     // Update backend
     try {
-      await updateTask(task.id, { status: overColumn.id as Task["status"] });
+      await updateTask(task.id, {
+        status: overColumn.id as Task["status"],
+      });
       // Optionally refresh data or handle success
     } catch (error) {
       console.error("Failed to update task status:", error);

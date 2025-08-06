@@ -28,6 +28,7 @@ export function TodoList({ initialTasks }: TodoListProps) {
       await addTask({
         ...input,
         user_id: user.id,
+        status: "todo",
       });
     }
   };

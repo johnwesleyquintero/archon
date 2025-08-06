@@ -4,9 +4,10 @@ import type { Database } from "@/lib/supabase/types";
 type BaseTask = Database["public"]["Tables"]["tasks"]["Row"];
 
 // Create a modified Task type with tags as string[] | null
-export type Task = Omit<BaseTask, "tags"> & {
+export type Task = Omit<BaseTask, "tags" | "status"> & {
+  description: string | null; // New field for rich text description
   tags: string[] | null;
-  status: "todo" | "in-progress" | "done";
+  status: Database["public"]["Enums"]["task_status"];
   parent_id: string | null; // New field for subtasks
   subtasks?: Task[]; // Optional array for nested subtasks
 };

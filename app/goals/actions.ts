@@ -3,8 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { withErrorHandling } from "@/lib/error-utils";
-import { GoalInsert, GoalUpdate } from "@/lib/supabase/types";
+import { TablesInsert, TablesUpdate } from "@/lib/supabase/types";
 import { updateGoal as dbUpdateGoal } from "@/lib/database/goals";
+
+type GoalInsert = TablesInsert<"goals">;
+type GoalUpdate = TablesUpdate<"goals">;
 
 export const createGoal = withErrorHandling(
   async (formData: {

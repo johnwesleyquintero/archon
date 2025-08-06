@@ -1,60 +1,48 @@
 "use client";
 
-import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
+import { useQuickAddTask } from "@/lib/state/use-quick-add-task";
 import { TaskInput } from "@/components/task-input";
-import { addTask } from "@/app/tasks/actions";
-import { useToast } from "@/components/ui/use-toast";
-import { handleError } from "@/lib/utils";
-import * as Zod from "zod";
-import { taskSchema } from "@/lib/validators";
+import { useTasks } from "@/hooks/use-tasks";
+import { useAuth } from "@/contexts/auth-context";
+import { TaskFormValues } from "@/lib/validators";
+import { toast } from "sonner";
 
-type TaskFormValues = Zod.infer<typeof taskSchema>;
-
-interface QuickAddTaskModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export function QuickAddTaskModal({ isOpen, onClose }: QuickAddTaskModalProps) {
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function QuickAddTaskModal() {
+  const { isOpen, close } = useQuickAddTask();
+  const { addTask, isMutating } = useTasks();
+  const { user } = useAuth();
 
   const handleAddTask = async (input: TaskFormValues) => {
-    setIsSubmitting(true);
-    try {
-      await addTask(input);
-      toast({
-        title: "Task Added!",
-        description: "Your task has been successfully added.",
-      });
-      onClose(); // Close modal on success
-    } catch (error) {
-      handleError(error, "QuickAddTaskModal:handleAddTask");
-      toast({
-        title: "Error",
-        description: "Failed to add task. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
+    if (!user) {
+      toast.error("You must be logged in to add a task.");
+      return;
     }
+    await addTask({ ...input, user_id: user.id, status: "todo" });
+    toast.success("Task added successfully!");
+    close();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={close}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Quick Add Task</DialogTitle>
+          <DialogTitle>Add a new task</DialogTitle>
+          <DialogDescription>
+            Quickly capture what's on your mind. You can add more details later.
+          </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          <TaskInput onAddTask={handleAddTask} disabled={isSubmitting} />
-        </div>
+        <TaskInput
+          onAddTask={handleAddTask}
+          disabled={isMutating || !user}
+          autoFocus
+        />
       </DialogContent>
     </Dialog>
   );

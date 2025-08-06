@@ -67,7 +67,7 @@ export const addTask = withErrorHandling(
         priority: validatedTaskData.priority || "medium",
         category: validatedTaskData.category,
         tags: validatedTaskData.tags || [],
-        status: validatedTaskData.status || "todo",
+        status: validatedTaskData.status || "todo", // Corrected to "todo" as default
         parent_id: validatedTaskData.parent_id, // Added parent_id
       })
       .select()
@@ -79,6 +79,32 @@ export const addTask = withErrorHandling(
 
     revalidatePath("/tasks");
     return data as Task;
+  },
+);
+
+export const deleteMultipleTasks = withErrorHandling(
+  async (ids: string[]): Promise<{ success: boolean }> => {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error("User not authenticated.");
+    }
+
+    const { error } = await supabase
+      .from("tasks")
+      .delete()
+      .in("id", ids)
+      .eq("user_id", user.id);
+
+    if (error) {
+      throw new Error(`Failed to delete tasks: ${error.message}`);
+    }
+
+    revalidatePath("/tasks");
+    return { success: true };
   },
 );
 

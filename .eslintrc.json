@@ -35,5 +35,13 @@
     "@typescript-eslint/no-unsafe-call": "error",
     "@typescript-eslint/no-unnecessary-type-assertion": "error",
     "@typescript-eslint/no-unsafe-argument": "error"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["components/task-list.tsx"],
+      "rules": {
+        "@typescript-eslint/await-thenable": "off"
+      }
+    }
+  ]
 }

@@ -1,23 +1,21 @@
 "use client";
 
 import React from "react";
-import { format } from "date-fns";
-import { useTaskItem } from "@/hooks/use-task-item";
+import { format, isPast, isToday } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Calendar as CalendarIcon, Trash2, Edit, Plus } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { TaskInput } from "./task-input"; // Import TaskInput
-import { useState } from "react"; // Import useState
+import { TaskInput } from "./task-input";
+import { useState } from "react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Spinner } from "@/components/ui/spinner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,13 +39,16 @@ import type { Task } from "@/lib/types/task";
 import type { TaskFormValues } from "@/lib/validators"; // Import TaskFormValues
 
 interface TaskItemProps extends Task {
-  onToggle: (id: string, is_completed: boolean) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
+  onToggle: (id: string, is_completed: boolean) => void | Promise<void>;
+  onDelete: (id: string) => void | Promise<void>;
   onUpdate: (id: string, updatedTask: Partial<Task>) => Promise<void>;
   onAddTask: (
     taskData: TaskFormValues & { parent_id?: string },
-  ) => Promise<void>; // Use TaskFormValues
+  ) => Promise<void>;
+  onOpenModal: (task: Task) => void; // New prop to open the modal
   disabled?: boolean;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
 }
 
 /**
@@ -68,48 +69,36 @@ interface TaskItemProps extends Task {
  * />
  * ```
  */
-export const TaskItem = React.memo(function TaskItem({
-  id,
-  title,
-  is_completed,
-  due_date,
-  priority,
-  category,
-  tags,
-  status, // Destructure status
-  subtasks, // Destructure subtasks
-  onToggle,
-  onDelete,
-  onUpdate,
-  onAddTask, // Destructure onAddTask
-  disabled = false,
-}: TaskItemProps) {
-  const [showSubtaskInput, setShowSubtaskInput] = useState(false); // State for subtask input
-
+export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
   const {
-    isToggling,
-    isDeleting,
-    isEditing,
-    newTitle,
-    setNewTitle,
-    setIsEditing,
-    handleToggle,
-    handleDelete,
-    handleUpdate,
-    handleKeyDown,
-  } = useTaskItem({
     id,
     title,
+    is_completed,
     due_date,
     priority,
     category,
     tags,
-    status: status || "todo", // Pass status to hook, default to "todo" if null
+    status,
+    subtasks,
     onToggle,
     onDelete,
     onUpdate,
-    disabled,
-  });
+    onAddTask,
+    onOpenModal,
+    disabled = false,
+    isSelected,
+    onSelect,
+  } = props;
+  const [showSubtaskInput, setShowSubtaskInput] = useState(false);
+
+  // Simplified handlers, as modal will manage complex state
+  const handleToggle = async (checked: boolean) => {
+    await onToggle(id, checked);
+  };
+
+  const handleDelete = async () => {
+    await onDelete(id);
+  };
 
   const priorityColors = {
     low: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
@@ -118,55 +107,61 @@ export const TaskItem = React.memo(function TaskItem({
     high: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
   };
 
-  const statusColors: Record<NonNullable<Task["status"]>, string> = {
+  const statusColors: Record<Task["status"], string> = {
     todo: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
-    "in-progress":
+    in_progress:
       "bg-purple-100 text-purple-800 dark:bg-purple-700 dark:text-purple-200",
     done: "bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-200",
+    canceled: "bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-200",
   };
 
   return (
     <div className="group flex flex-col gap-1 py-2">
       <div className="flex items-center gap-2">
         <Checkbox
+          id={`select-${id}`}
+          checked={isSelected}
+          onCheckedChange={() => onSelect(id)}
+          className="h-4 w-4 rounded border-slate-300"
+          aria-label="Select task"
+        />
+        <Checkbox
           id={`task-${id}`}
           checked={is_completed}
-          disabled={disabled || isToggling}
+          disabled={disabled}
           onCheckedChange={(checked) => {
             void handleToggle(!!checked);
           }}
           className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900 dark:border-slate-600 dark:data-[state=checked]:bg-slate-50 dark:data-[state=checked]:border-slate-50"
         />
-        {isEditing ? (
-          <Input
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            onBlur={() => {
-              void handleUpdate();
-            }}
-            onKeyDown={handleKeyDown}
-            className="flex-1 text-sm h-8"
-            autoFocus
-          />
-        ) : (
-          <label
-            htmlFor={`task-${id}`}
-            className={cn(
-              "flex-1 text-sm cursor-pointer",
-              is_completed && "text-slate-400 line-through dark:text-slate-600",
-            )}
-            onDoubleClick={() => setIsEditing(true)}
-          >
-            {title}
-          </label>
-        )}
+        <label
+          htmlFor={`task-${id}`}
+          className={cn(
+            "flex-1 text-sm cursor-pointer",
+            is_completed && "text-slate-400 line-through dark:text-slate-600",
+          )}
+          onClick={() => onOpenModal(props)}
+        >
+          {title}
+        </label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               className={cn(
                 "h-6 text-xs px-2 py-0",
-                !due_date && "text-muted-foreground",
+                (!due_date ||
+                  (due_date &&
+                    !isPast(new Date(due_date)) &&
+                    !isToday(new Date(due_date)))) &&
+                  "text-muted-foreground",
+                due_date &&
+                  isToday(new Date(due_date)) &&
+                  "text-orange-600 dark:text-orange-500",
+                due_date &&
+                  isPast(new Date(due_date)) &&
+                  !isToday(new Date(due_date)) &&
+                  "text-red-600 dark:text-red-500",
               )}
               disabled={disabled}
             >
@@ -249,19 +244,17 @@ export const TaskItem = React.memo(function TaskItem({
                 <SelectItem value="todo">Todo</SelectItem>
                 <SelectItem value="in-progress">In Progress</SelectItem>
                 <SelectItem value="done">Done</SelectItem>
+                <SelectItem value="canceled">Canceled</SelectItem>
               </SelectContent>
             </Select>
           </PopoverContent>
         </Popover>
 
-        {isToggling && (
-          <Spinner className="w-4 h-4 text-slate-400 dark:text-slate-600" />
-        )}
         <Button
           size="icon"
           variant="ghost"
           className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => setIsEditing(true)}
+          onClick={() => onOpenModal(props)}
           disabled={disabled}
         >
           <Edit className="h-4 w-4" />
@@ -273,13 +266,9 @@ export const TaskItem = React.memo(function TaskItem({
               size="icon"
               variant="ghost"
               className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-              disabled={disabled || isDeleting}
+              disabled={disabled}
             >
-              {isDeleting ? (
-                <Spinner className="h-4 w-4" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
+              <Trash2 className="h-4 w-4" />
               <span className="sr-only">Delete task</span>
             </Button>
           </AlertDialogTrigger>
@@ -402,8 +391,11 @@ export const TaskItem = React.memo(function TaskItem({
                   onToggle={onToggle}
                   onDelete={onDelete}
                   onUpdate={onUpdate}
-                  onAddTask={onAddTask} // Pass onAddTask to subtasks
+                  onAddTask={onAddTask}
+                  onOpenModal={onOpenModal} // Pass onOpenModal to subtasks
                   disabled={disabled}
+                  isSelected={isSelected}
+                  onSelect={onSelect}
                 />
               </li>
             ))}

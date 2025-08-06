@@ -8,7 +8,7 @@ import {
   deleteGoal,
 } from "@/lib/database/goals";
 import { createClient } from "@/lib/supabase/client";
-import type { Database } from "@/lib/supabase/types";
+import type { Database, Json } from "@/lib/supabase/types";
 import { useAuth } from "@/contexts/auth-context";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
@@ -100,9 +100,9 @@ export function useGoals(initialGoals: Goal[] = []) {
             title: newGoalData.title,
             description: newGoalData.description || null,
             target_date: newGoalData.target_date || null,
-            status: newGoalData.status || "pending",
-            attachments: newGoalData.attachments || [],
-            progress: 0, // Initialize progress as 0 for new goals
+            status: newGoalData.status || "todo", // Default to "todo"
+            attachments: (newGoalData.attachments || null) as Json,
+            progress: newGoalData.progress ?? 0,
           };
           setGoals((prev) => [optimisticGoal, ...prev]);
 

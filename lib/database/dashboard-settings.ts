@@ -1,8 +1,10 @@
 "use server";
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { DashboardSettingsRow, Json } from "@/lib/supabase/types";
+import { Tables, Json } from "@/lib/supabase/types";
 import * as Sentry from "@sentry/nextjs";
+
+type DashboardSettingsRow = Tables<"dashboard_settings">;
 
 import { WidgetLayout } from "@/app/types";
 import { widgetLayoutsSchema } from "@/lib/zod-schemas";

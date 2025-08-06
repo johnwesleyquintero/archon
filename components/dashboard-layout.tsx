@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { cn } from "@/lib/utils";
+import { QuickAddTaskModal } from "./custom/quick-add-task-modal";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -28,6 +29,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </main>
       </div>
+      <QuickAddTaskModal />
     </div>
   );
 }

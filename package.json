@@ -7,13 +7,13 @@
     "build": "npx cross-env NODE_ENV=production next build",
     "check": "node scripts/code-checker.mjs",
     "check:actions": "node scripts/github-actions-validator.mjs",
-    "dev": "npx cross-env node --max-old-space-size=4096 node_modules/next/dist/bin/next dev",
-    "format": "node --max-old-space-size=4096 node_modules/prettier/bin/prettier.cjs --write .",
-    "lint": "node --max-old-space-size=4096 node_modules/next/dist/bin/next lint",
+    "dev": "npx cross-env node --max-old-space-size=8192 node_modules/next/dist/bin/next dev",
+    "format": "node --max-old-space-size=8192 node_modules/prettier/bin/prettier.cjs --write .",
+    "lint": "node --max-old-space-size=8192 node_modules/next/dist/bin/next lint",
     "start": "next start",
     "test": "jest",
     "test:watch": "jest --watch",
-    "typecheck": "node --max-old-space-size=4096 node_modules/typescript/bin/tsc --noEmit",
+    "typecheck": "node --max-old-space-size=8192 node_modules/typescript/bin/tsc --noEmit",
     "clean": "tsc --build --clean",
     "commit": "node scripts/git-commit.mjs"
   },
@@ -95,7 +95,8 @@
     "tailwindcss-animate": "1.0.7",
     "util": "0.12.5",
     "vaul": "1.1.2",
-    "zod": "3.25.76"
+    "zod": "3.25.76",
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@swc/jest": "0.2.39",

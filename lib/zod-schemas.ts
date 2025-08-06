@@ -48,7 +48,7 @@ export const taskInsertSchema = Zod.object({
   priority: Zod.enum(["low", "medium", "high"]).nullable().optional(),
   category: Zod.string().nullable().optional(),
   tags: Zod.array(Zod.string()).nullable().optional(),
-  status: Zod.enum(["todo", "in-progress", "done"]).optional(),
+  status: Zod.enum(["todo", "in_progress", "done", "canceled"]).optional(),
   parent_id: Zod.string().nullable().optional(), // Added for subtasks
 });
 
@@ -59,6 +59,6 @@ export const taskUpdateSchema = Zod.object({
   priority: Zod.enum(["low", "medium", "high"]).nullable().optional(),
   category: Zod.string().nullable().optional(),
   tags: Zod.array(Zod.string()).nullable().optional(),
-  status: Zod.enum(["todo", "in-progress", "done"]).optional(),
+  status: Zod.enum(["todo", "in_progress", "done", "canceled"]).optional(),
   parent_id: Zod.string().nullable().optional(), // Added for subtasks
 });

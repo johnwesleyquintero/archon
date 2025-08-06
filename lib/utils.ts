@@ -4,7 +4,9 @@ import type { Database } from "@/lib/supabase/types";
 import type { Task } from "@/lib/types/task";
 
 // Define the raw task type from the database, ensuring it's sourced from the single source of truth.
-type RawTask = Database["public"]["Tables"]["tasks"]["Row"];
+type RawTask = Database["public"]["Tables"]["tasks"]["Row"] & {
+  status: Database["public"]["Enums"]["task_status"] | null;
+};
 
 /**
  * Combines Tailwind CSS classes and other class values into a single string.
@@ -43,8 +45,9 @@ export const convertRawTaskToTask = (rawTask: RawTask): Task => {
 
   const processedStatus: Task["status"] =
     rawTask.status === "todo" ||
-    rawTask.status === "in-progress" ||
-    rawTask.status === "done"
+    rawTask.status === "in_progress" || // Corrected typo
+    rawTask.status === "done" ||
+    rawTask.status === "canceled" // Added canceled status
       ? rawTask.status
       : "todo"; // Default to 'todo' if status is null or invalid
 

@@ -23,7 +23,7 @@ export function useTaskItem({
   priority: "low" | "medium" | "high" | null;
   category: string | null;
   tags: string[] | null;
-  status: "todo" | "in-progress" | "done"; // Added status type
+  status: "todo" | "in_progress" | "done" | "canceled"; // Added status type
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onUpdate: (id: string, updatedTask: Partial<Task>) => Promise<void>;

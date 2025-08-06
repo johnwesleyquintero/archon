@@ -1,21 +1,20 @@
 "use client";
 
-import { Menu, Plus } from "lucide-react";
-import { useState } from "react";
+import { Menu, PlusCircle } from "lucide-react";
 
 import { MobileNavSheet } from "@/components/dashboard/mobile-nav-sheet";
 import { NotificationsButton } from "@/components/dashboard/header/notifications-button";
 import { SearchBar } from "@/components/dashboard/controls/search-bar";
 import { UserMenu } from "@/components/dashboard/header/user-menu";
 import { Button } from "@/components/ui/button";
-import { QuickAddTaskModal } from "@/components/custom/quick-add-task-modal";
+import { useQuickAddTask } from "@/lib/state/use-quick-add-task";
 
 interface DashboardHeaderProps {
   onToggleSidebar: () => void;
 }
 
 export function DashboardHeader({ onToggleSidebar }: DashboardHeaderProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { open } = useQuickAddTask();
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-white px-4 sm:static sm:px-6">
       <MobileNavSheet />
@@ -30,20 +29,17 @@ export function DashboardHeader({ onToggleSidebar }: DashboardHeaderProps) {
       </Button>
       <SearchBar role="search" />
       <Button
-        variant="ghost"
-        size="icon"
+        variant="default"
+        size="sm"
         className="ml-auto"
-        onClick={() => setIsModalOpen(true)}
+        onClick={open}
         aria-label="Quick add task"
       >
-        <Plus className="h-5 w-5" />
+        <PlusCircle className="mr-2 h-4 w-4" />
+        Quick Add Task
       </Button>
       <NotificationsButton />
       <UserMenu />
-      <QuickAddTaskModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
     </header>
   );
 }

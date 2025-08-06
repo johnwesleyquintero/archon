@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
+import type { Database, Json } from "@/lib/supabase/types";
 import { getAuthenticatedUser } from "@/lib/supabase/auth-utils";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
@@ -28,9 +28,14 @@ export async function getGoals(userId: string): Promise<Goal[]> {
   return data;
 }
 
-export async function addGoal(
-  goalData: Omit<GoalInsert, "user_id">,
-): Promise<Goal | null> {
+export async function addGoal(goalData: {
+  title: string;
+  description?: string | null;
+  progress?: number | null;
+  status?: string | null;
+  target_date?: string | null;
+  attachments?: Json | null;
+}): Promise<Goal | null> {
   const supabase = await createServerSupabaseClient();
   const user = await getAuthenticatedUser();
 
@@ -39,14 +44,18 @@ export async function addGoal(
   }
 
   // Explicitly construct the object to insert, ensuring it matches GoalInsert.
+  // Explicitly construct the object to insert, ensuring it matches GoalInsert.
   // This addresses potential TS2769 errors related to missing properties or incorrect structure.
   const newGoal: GoalInsert = {
     title: goalData.title, // Assuming title is a required field in goalData
-    description: goalData.description ?? null,
-    progress: goalData.progress ?? null,
-    status: goalData.status ?? null,
-    target_date: goalData.target_date ?? null,
-    attachments: goalData.attachments ?? null, // Assuming attachments is Json type
+    description:
+      goalData.description === null ? undefined : goalData.description,
+    progress: goalData.progress === null ? undefined : goalData.progress,
+    status: goalData.status === null ? undefined : goalData.status,
+    target_date:
+      goalData.target_date === null ? undefined : goalData.target_date,
+    attachments:
+      goalData.attachments === null ? undefined : goalData.attachments,
     user_id: user.id, // Explicitly add user_id
   };
 

@@ -7,12 +7,13 @@ import {
   deleteTask as deleteTaskFromDb,
   updateTask as updateTaskInDb,
 } from "@/app/tasks/actions";
-import type { Database, TaskUpdate } from "@/lib/supabase/types";
+import type { Database, TablesUpdate } from "@/lib/supabase/types";
 import type { Task } from "@/lib/types/task";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/use-toast";
 
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
+type TaskUpdate = TablesUpdate<"tasks">;
 type TaskStatus = "todo" | "in-progress" | "done";
 
 const isValidStatus = (status: any): status is TaskStatus => {
@@ -70,56 +71,80 @@ export function useTaskMutations({
   );
 
   const handleToggleTask = useCallback(
-    (id: string, completed: boolean) => {
-      if (!user) return;
-      startTransition(async () => {
-        setTasks((prev) =>
-          prev.map((task) =>
-            task.id === id ? { ...task, is_completed: completed } : task,
-          ),
-        );
-        const result = await toggleTaskInDb(id, completed);
-
-        if (result && "error" in result) {
+    (id: string, completed: boolean): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        if (!user) {
+          const msg = "You must be logged in to toggle tasks.";
+          setError(msg);
+          toast({ title: "Error", description: msg, variant: "destructive" });
+          reject(new Error(msg));
+          return;
+        }
+        setError(null);
+        startTransition(async () => {
           setTasks((prev) =>
             prev.map((task) =>
-              task.id === id ? { ...task, is_completed: !completed } : task,
+              task.id === id ? { ...task, is_completed: completed } : task,
             ),
           );
-          toast({
-            title: "Error",
-            description: result.error,
-            variant: "destructive",
-          });
-        } else {
-          toast({ title: "Success!", description: "Task status updated." });
-        }
+          const result = await toggleTaskInDb(id, completed);
+
+          if (result && "error" in result) {
+            setTasks((prev) =>
+              prev.map((task) =>
+                task.id === id ? { ...task, is_completed: !completed } : task,
+              ),
+            );
+            setError(result.error);
+            toast({
+              title: "Error",
+              description: result.error,
+              variant: "destructive",
+            });
+            reject(new Error(result.error));
+          } else {
+            toast({ title: "Success!", description: "Task status updated." });
+            resolve();
+          }
+        });
       });
     },
     [user, toast, setTasks],
   );
 
   const handleDeleteTask = useCallback(
-    (id: string) => {
-      if (!user) return;
-      let originalTasks: Task[] = [];
-      setTasks((prev) => {
-        originalTasks = prev;
-        return prev.filter((task) => task.id !== id);
-      });
-      startTransition(async () => {
-        const result = await deleteTaskFromDb(id);
-
-        if (result && "error" in result) {
-          setTasks(originalTasks);
-          toast({
-            title: "Error",
-            description: result.error,
-            variant: "destructive",
-          });
-        } else {
-          toast({ title: "Success!", description: "Task deleted." });
+    (id: string): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        if (!user) {
+          const msg = "You must be logged in to delete tasks.";
+          setError(msg);
+          toast({ title: "Error", description: msg, variant: "destructive" });
+          reject(new Error(msg));
+          return;
         }
+        setError(null);
+        let originalTasks: Task[] = [];
+        setTasks((prev) => {
+          originalTasks = prev;
+          return prev.filter((task) => task.id !== id);
+        });
+        startTransition(async () => {
+          const result = await deleteTaskFromDb(id);
+
+          if (result && "error" in result) {
+            setTasks(originalTasks);
+            setError(result.error);
+            toast({
+              title: "Error",
+              description: result.error,
+              variant: "destructive",
+            });
+            reject(new Error(result.error));
+          } else {
+            toast({ title: "Success!", description: "Task deleted." });
+            resolve();
+          }
+        });
       });
     },
     [user, toast, setTasks],
