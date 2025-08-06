@@ -38,7 +38,15 @@ export function SubmitButton({
         onError?.();
       }
     }
-  }, [pending, successMessage, errorMessage, onSuccess, onError, showSuccessToast, showErrorToast]);
+  }, [
+    pending,
+    successMessage,
+    errorMessage,
+    onSuccess,
+    onError,
+    showSuccessToast,
+    showErrorToast,
+  ]);
 
   return (
     <Button {...props} type="submit" disabled={pending || props.disabled}>

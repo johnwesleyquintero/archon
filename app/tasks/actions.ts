@@ -67,7 +67,8 @@ export const addTask = withErrorHandling(
         priority: validatedTaskData.priority || "medium",
         category: validatedTaskData.category,
         tags: validatedTaskData.tags || [],
-        status: validatedTaskData.status || "todo", // Add default status
+        status: validatedTaskData.status || "todo",
+        parent_id: validatedTaskData.parent_id, // Added parent_id
       })
       .select()
       .single();

@@ -10,13 +10,23 @@ import type { TaskUpdate } from "@/lib/supabase/types";
 
 import { Task } from "@/lib/types/task";
 
+import type { TaskFormValues } from "@/lib/validators"; // Import TaskFormValues
+
 interface TaskListProps {
   tasks: Task[];
   loading: boolean;
   onAddTaskClick: () => void;
+  onAddTask: (
+    taskData: TaskFormValues & { parent_id?: string },
+  ) => Promise<void>; // Added onAddTask prop
 }
 
-export function TaskList({ tasks, loading, onAddTaskClick }: TaskListProps) {
+export function TaskList({
+  tasks,
+  loading,
+  onAddTaskClick,
+  onAddTask,
+}: TaskListProps) {
   const { toggleTask, deleteTask, updateTask, isMutating } = useTasks();
 
   const { filteredAndSortedTasks, sort, setSort, filters, setFilters } =
@@ -109,6 +119,7 @@ export function TaskList({ tasks, loading, onAddTaskClick }: TaskListProps) {
                   onToggle={handleToggle}
                   onDelete={handleDelete}
                   onUpdate={handleUpdate}
+                  onAddTask={onAddTask} // Pass onAddTask to TaskItem
                   disabled={isMutating}
                 />
               </li>

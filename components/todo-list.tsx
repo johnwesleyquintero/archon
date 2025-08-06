@@ -8,6 +8,7 @@ import { TaskList } from "./task-list";
 import { useTasks } from "@/hooks/use-tasks";
 import { useAuth } from "@/contexts/auth-context";
 import { Task as TaskType } from "@/lib/types/task"; // Import Task as TaskType to avoid conflict
+import { TaskFormValues } from "@/lib/validators";
 
 interface TodoListProps {
   initialTasks?: TaskType[]; // Use TaskType here
@@ -22,6 +23,15 @@ export function TodoList({ initialTasks }: TodoListProps) {
     taskInputRef.current?.focus();
   };
 
+  const handleAddTask = async (input: TaskFormValues) => {
+    if (user) {
+      await addTask({
+        ...input,
+        user_id: user.id,
+      });
+    }
+  };
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
@@ -32,23 +42,11 @@ export function TodoList({ initialTasks }: TodoListProps) {
           tasks={tasks}
           loading={loading}
           onAddTaskClick={handleAddTaskClick}
+          onAddTask={handleAddTask}
         />
         <TaskInput
           ref={taskInputRef}
-          // eslint-disable-next-line @typescript-eslint/require-await
-          onAddTask={async (input) => {
-            if (user) {
-              addTask({
-                title: input.title,
-                due_date: input.dueDate,
-                priority: input.priority,
-                category: input.category,
-                tags: input.tags,
-                status: input.status, // Added status
-                user_id: user.id,
-              });
-            }
-          }}
+          onAddTask={handleAddTask}
           disabled={isMutating || !user}
         />
       </CardContent>

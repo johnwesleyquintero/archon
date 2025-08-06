@@ -7,8 +7,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Calendar as CalendarIcon, Trash2, Edit } from "lucide-react";
+import { Calendar as CalendarIcon, Trash2, Edit, Plus } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
+import { TaskInput } from "./task-input"; // Import TaskInput
+import { useState } from "react"; // Import useState
 import {
   Popover,
   PopoverContent,
@@ -36,11 +38,15 @@ import {
 } from "@/components/ui/select";
 
 import type { Task } from "@/lib/types/task";
+import type { TaskFormValues } from "@/lib/validators"; // Import TaskFormValues
 
 interface TaskItemProps extends Task {
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onUpdate: (id: string, updatedTask: Partial<Task>) => Promise<void>;
+  onAddTask: (
+    taskData: TaskFormValues & { parent_id?: string },
+  ) => Promise<void>; // Use TaskFormValues
   disabled?: boolean;
 }
 
@@ -71,11 +77,15 @@ export const TaskItem = React.memo(function TaskItem({
   category,
   tags,
   status, // Destructure status
+  subtasks, // Destructure subtasks
   onToggle,
   onDelete,
   onUpdate,
+  onAddTask, // Destructure onAddTask
   disabled = false,
 }: TaskItemProps) {
+  const [showSubtaskInput, setShowSubtaskInput] = useState(false); // State for subtask input
+
   const {
     isToggling,
     isDeleting,
@@ -380,6 +390,49 @@ export const TaskItem = React.memo(function TaskItem({
           </Popover>
         </div>
       )}
+
+      {/* Subtasks Section */}
+      {subtasks && subtasks.length > 0 && (
+        <div className="ml-6 mt-2 border-l pl-4 border-slate-200 dark:border-slate-700">
+          <ul className="space-y-1">
+            {subtasks.map((subtask: Task) => (
+              <li key={subtask.id}>
+                <TaskItem
+                  {...subtask}
+                  onToggle={onToggle}
+                  onDelete={onDelete}
+                  onUpdate={onUpdate}
+                  onAddTask={onAddTask} // Pass onAddTask to subtasks
+                  disabled={disabled}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="ml-6 mt-2">
+        {showSubtaskInput ? (
+          <TaskInput
+            onAddTask={async (input) => {
+              await onAddTask({ ...input, parent_id: id });
+              setShowSubtaskInput(false);
+            }}
+            onCancel={() => setShowSubtaskInput(false)}
+            autoFocus
+            isSubtaskInput
+          />
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-50"
+            onClick={() => setShowSubtaskInput(true)}
+          >
+            <Plus className="mr-1 h-3 w-3" /> Add Subtask
+          </Button>
+        )}
+      </div>
     </div>
   );
 });

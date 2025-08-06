@@ -59,6 +59,31 @@ export const getTasks = withErrorHandling(async (): Promise<Task[]> => {
     throw new Error(`Failed to fetch tasks: ${error.message}`);
   }
 
-  const typedData: Task[] = data.map(convertRawTaskToTask);
-  return typedData;
+  const rawTasks = data.map(convertRawTaskToTask);
+
+  const parentTasks: Task[] = [];
+  const subtasksMap: Map<string, Task[]> = new Map();
+
+  rawTasks.forEach((task) => {
+    if (task.parent_id) {
+      if (!subtasksMap.has(task.parent_id)) {
+        subtasksMap.set(task.parent_id, []);
+      }
+      subtasksMap.get(task.parent_id)?.push(task);
+    } else {
+      parentTasks.push(task);
+    }
+  });
+
+  // Attach subtasks to their parent tasks
+  parentTasks.forEach((parentTask) => {
+    parentTask.subtasks = subtasksMap.get(parentTask.id) || [];
+    // Sort subtasks if needed, e.g., by created_at or due_date
+    parentTask.subtasks.sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    );
+  });
+
+  return parentTasks;
 }, "fetch tasks");

@@ -35,11 +35,23 @@ type TaskFormValues = Zod.infer<typeof taskSchema>;
 
 interface TaskInputProps {
   onAddTask: (input: TaskFormValues) => Promise<void>;
+  onCancel?: () => void; // Added onCancel prop
   disabled?: boolean;
+  autoFocus?: boolean; // Added autoFocus prop
+  isSubtaskInput?: boolean; // Added isSubtaskInput prop
 }
 
 export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
-  ({ onAddTask, disabled = false }, _ref) => {
+  (
+    {
+      onAddTask,
+      onCancel,
+      disabled = false,
+      autoFocus = false,
+      isSubtaskInput = false,
+    },
+    _ref,
+  ) => {
     const [isAdding, setIsAdding] = useState(false);
 
     const form = useForm<TaskFormValues>({
@@ -126,6 +138,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                           void form.handleSubmit(handleAddTaskSubmit)();
                         }
                       }}
+                      autoFocus={autoFocus} // Apply autoFocus
                       {...field}
                     />
                   </FormControl>
@@ -133,179 +146,190 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="dueDate"
-              render={({ field }) => (
-                <FormItem className="flex-none">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={`h-9 w-9 p-0 ${
-                          field.value
-                            ? "text-slate-900 dark:text-slate-50"
-                            : "text-slate-400"
-                        }`}
-                        disabled={disabled || isAdding}
-                      >
-                        <CalendarIcon className="h-4 w-4" />
-                        <span className="sr-only">Pick a due date</span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                      <Calendar
-                        mode="single"
-                        selected={
-                          field.value ? new Date(field.value) : undefined
-                        }
-                        onSelect={(date) =>
-                          field.onChange(date ? date.toISOString() : null)
-                        }
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem className="flex-none">
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={disabled || isAdding}
-                  >
-                    <SelectTrigger className="h-9 w-[100px]">
-                      <SelectValue placeholder="Priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem className="flex-none">
-                  <Select
-                    onValueChange={(value) =>
-                      field.onChange(value === "__none__" ? null : value)
-                    }
-                    value={field.value || "__none__"}
-                    disabled={disabled || isAdding}
-                  >
-                    <SelectTrigger className="h-9 w-[120px]">
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">No Category</SelectItem>
-                      <SelectItem value="work">Work</SelectItem>
-                      <SelectItem value="personal">Personal</SelectItem>
-                      <SelectItem value="shopping">Shopping</SelectItem>
-                      <SelectItem value="health">Health</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="status" // New status field
-              render={({ field }) => (
-                <FormItem className="flex-none">
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={disabled || isAdding}
-                  >
-                    <SelectTrigger className="h-9 w-[120px]">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todo">Todo</SelectItem>
-                      <SelectItem value="in-progress">In Progress</SelectItem>
-                      <SelectItem value="done">Done</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="tags"
-              render={({ field }) => (
-                <FormItem className="flex-none">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="h-9 w-9 p-0"
-                        disabled={disabled || isAdding}
-                      >
-                        <Tag className="h-4 w-4" />
-                        <span className="sr-only">Add tags</span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80 p-3" align="end">
-                      <div className="space-y-4">
-                        <h4 className="font-medium leading-none">Tags</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {field.value?.map((tag: string, index: number) => (
-                            <Badge
-                              key={`${tag}-${index}`}
-                              variant="secondary"
-                              className="gap-1"
-                            >
-                              {tag}
-                              <button
-                                onClick={() => {
-                                  const newTags = [...field.value];
-                                  newTags.splice(index, 1);
-                                  field.onChange(newTags);
-                                }}
-                                className="text-muted-foreground hover:text-foreground"
-                              >
-                                ×
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Add tag"
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                const input = e.currentTarget;
-                                const value = input.value.trim();
-                                if (value && !field.value?.includes(value)) {
-                                  field.onChange([
-                                    ...(field.value || []),
-                                    value,
-                                  ]);
-                                  input.value = "";
-                                }
-                              }
-                            }}
-                            className="h-8"
+            {!isSubtaskInput && ( // Conditionally render these fields for main task input
+              <>
+                <FormField
+                  control={form.control}
+                  name="dueDate"
+                  render={({ field }) => (
+                    <FormItem className="flex-none">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={`h-9 w-9 p-0 ${
+                              field.value
+                                ? "text-slate-900 dark:text-slate-50"
+                                : "text-slate-400"
+                            }`}
+                            disabled={disabled || isAdding}
+                          >
+                            <CalendarIcon className="h-4 w-4" />
+                            <span className="sr-only">Pick a due date</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <Calendar
+                            mode="single"
+                            selected={
+                              field.value ? new Date(field.value) : undefined
+                            }
+                            onSelect={(date) =>
+                              field.onChange(date ? date.toISOString() : null)
+                            }
+                            disabled={(date) => date < new Date()}
+                            initialFocus
                           />
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </FormItem>
-              )}
-            />
+                        </PopoverContent>
+                      </Popover>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem className="flex-none">
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={disabled || isAdding}
+                      >
+                        <SelectTrigger className="h-9 w-[100px]">
+                          <SelectValue placeholder="Priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem className="flex-none">
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(value === "__none__" ? null : value)
+                        }
+                        value={field.value || "__none__"}
+                        disabled={disabled || isAdding}
+                      >
+                        <SelectTrigger className="h-9 w-[120px]">
+                          <SelectValue placeholder="Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">No Category</SelectItem>
+                          <SelectItem value="work">Work</SelectItem>
+                          <SelectItem value="personal">Personal</SelectItem>
+                          <SelectItem value="shopping">Shopping</SelectItem>
+                          <SelectItem value="health">Health</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="status" // New status field
+                  render={({ field }) => (
+                    <FormItem className="flex-none">
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={disabled || isAdding}
+                      >
+                        <SelectTrigger className="h-9 w-[120px]">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todo">Todo</SelectItem>
+                          <SelectItem value="in-progress">
+                            In Progress
+                          </SelectItem>
+                          <SelectItem value="done">Done</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="tags"
+                  render={({ field }) => (
+                    <FormItem className="flex-none">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="h-9 w-9 p-0"
+                            disabled={disabled || isAdding}
+                          >
+                            <Tag className="h-4 w-4" />
+                            <span className="sr-only">Add tags</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 p-3" align="end">
+                          <div className="space-y-4">
+                            <h4 className="font-medium leading-none">Tags</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {field.value?.map(
+                                (tag: string, index: number) => (
+                                  <Badge
+                                    key={`${tag}-${index}`}
+                                    variant="secondary"
+                                    className="gap-1"
+                                  >
+                                    {tag}
+                                    <button
+                                      onClick={() => {
+                                        const newTags = [...field.value];
+                                        newTags.splice(index, 1);
+                                        field.onChange(newTags);
+                                      }}
+                                      className="text-muted-foreground hover:text-foreground"
+                                    >
+                                      ×
+                                    </button>
+                                  </Badge>
+                                ),
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <Input
+                                placeholder="Add tag"
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    const input = e.currentTarget;
+                                    const value = input.value.trim();
+                                    if (
+                                      value &&
+                                      !field.value?.includes(value)
+                                    ) {
+                                      field.onChange([
+                                        ...(field.value || []),
+                                        value,
+                                      ]);
+                                      input.value = "";
+                                    }
+                                  }
+                                }}
+                                className="h-8"
+                              />
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
             <Button
               type="submit"
               size="sm"
@@ -319,6 +343,18 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
               )}
               <span className="sr-only">Add Task</span>
             </Button>
+            {onCancel && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 w-9 p-0"
+                onClick={onCancel}
+                disabled={disabled || isAdding}
+              >
+                Cancel
+              </Button>
+            )}
           </div>
         </form>
       </Form>

@@ -70,7 +70,7 @@ export function ProfileFormWithAvatar() {
         form.setValue("avatar", result.url, {
           shouldDirty: true,
           shouldValidate: true,
-         });
+        });
         toast({
           description:
             "Avatar uploaded successfully! Click Save Changes to apply.",

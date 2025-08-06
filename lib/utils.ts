@@ -52,6 +52,7 @@ export const convertRawTaskToTask = (rawTask: RawTask): Task => {
     ...rawTask,
     tags: processedTags,
     status: processedStatus,
+    parent_id: (rawTask as { parent_id?: string | null }).parent_id ?? null,
   };
 };
 

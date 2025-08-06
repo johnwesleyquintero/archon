@@ -44,6 +44,7 @@ describe("TaskList", () => {
         tasks={[]}
         loading={true}
         onAddTaskClick={mockOnAddTaskClick}
+        onAddTask={jest.fn()}
       />,
     );
 
@@ -57,6 +58,7 @@ describe("TaskList", () => {
         tasks={[]}
         loading={false}
         onAddTaskClick={mockOnAddTaskClick}
+        onAddTask={jest.fn()}
       />,
     );
 

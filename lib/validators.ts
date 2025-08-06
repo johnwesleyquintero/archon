@@ -1,6 +1,42 @@
 import * as Zod from "zod";
 
 /**
+ * Zod enum for defining task priorities.
+ * Validates that a task's priority is one of "low", "medium", or "high".
+ */
+export const taskPriorityEnum = Zod.enum(["low", "medium", "high"]);
+
+/**
+ * Zod enum for defining task statuses.
+ * Validates that a task's status is one of "todo", "in-progress", or "done".
+ */
+export const taskStatusEnum = Zod.enum(["todo", "in-progress", "done"]); // New enum for task status
+
+/**
+ * Zod schema for task validation.
+ * Validates task properties such as title, due date, priority, category, and tags.
+ * Ensures required fields are present and string lengths are within limits.
+ */
+export const taskSchema = Zod.object({
+  title: Zod.string()
+    .min(1, { message: "Task title cannot be empty." })
+    .max(255, { message: "Task title is too long." }),
+  dueDate: Zod.string()
+    .datetime({ message: "Invalid due date." })
+    .optional()
+    .nullable(),
+  priority: taskPriorityEnum,
+  category: Zod.string()
+    .max(50, { message: "Category name is too long." })
+    .optional()
+    .nullable(),
+  tags: Zod.array(Zod.string().max(30, { message: "Tag is too long." })),
+  status: taskStatusEnum, // Added status to task schema
+});
+
+export type TaskFormValues = Zod.infer<typeof taskSchema>; // Export TaskFormValues
+
+/**
  * Zod schema for authentication, validating email and password.
  * Used for general authentication flows where both fields are required.
  */
@@ -38,51 +74,10 @@ export const signupSchema = Zod.object({
   (data: { password: string; confirmPassword: string }) =>
     data.password === data.confirmPassword,
   {
-    message: "Passwords don't match.",
+    message: "Passwords donod't match.",
     path: ["confirmPassword"],
   },
 );
-
-/**
- * Zod enum for defining task priorities.
- * Validates that a task's priority is one of "low", "medium", or "high".
- */
-export const taskPriorityEnum = Zod.enum(["low", "medium", "high"]);
-
-/**
- * Zod enum for defining task statuses.
- * Validates that a task's status is one of "todo", "in-progress", or "done".
- */
-export const taskStatusEnum = Zod.enum(["todo", "in-progress", "done"]); // New enum for task status
-
-/**
- * Zod schema for task validation.
- * Validates task properties such as title, due date, priority, category, and tags.
- * Ensures required fields are present and string lengths are within limits.
- */
-export const taskSchema = Zod.object({
-  title: Zod.string()
-    .min(1, { message: "Task title cannot be empty." })
-    .max(255, { message: "Task title is too long." }),
-  dueDate: Zod.string()
-    .datetime({ message: "Invalid due date." })
-    .optional()
-    .nullable(),
-  priority: taskPriorityEnum,
-  category: Zod.string()
-    .max(50, { message: "Category name is too long." })
-    .optional()
-    .nullable(),
-  tags: Zod.array(Zod.string().max(30, { message: "Tag is too long." })),
-  status: taskStatusEnum, // Added status to task schema
-})
-  .required({
-    title: true,
-    priority: true,
-    tags: true,
-    status: true, // Status is now required
-  })
-  .strict();
 
 /**
  * Zod schema for user profile validation.

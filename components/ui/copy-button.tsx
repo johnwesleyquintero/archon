@@ -51,7 +51,9 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
 
   return (
     <Button
-      onClick={handleCopy}
+      onClick={() => {
+        void handleCopy();
+      }}
       className={className}
       variant={variant}
       size={size}

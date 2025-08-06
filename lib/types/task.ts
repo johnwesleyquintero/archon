@@ -7,6 +7,8 @@ type BaseTask = Database["public"]["Tables"]["tasks"]["Row"];
 export type Task = Omit<BaseTask, "tags"> & {
   tags: string[] | null;
   status: "todo" | "in-progress" | "done";
+  parent_id: string | null; // New field for subtasks
+  subtasks?: Task[]; // Optional array for nested subtasks
 };
 
 export interface TaskItemProps extends Task {

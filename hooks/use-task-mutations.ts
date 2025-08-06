@@ -30,35 +30,43 @@ export function useTaskMutations({
   const { toast } = useToast();
 
   const handleAddTask = useCallback(
-    (input: TaskInsert) => {
-      if (!user) {
-        const msg = "You must be logged in to add tasks.";
-        setError(msg);
-        toast({ title: "Error", description: msg, variant: "destructive" });
-        return;
-      }
-      setError(null);
-      const tempId = `temp-${Date.now()}`;
-      startTransition(async () => {
-        const result = await addTaskToDb(input);
-
-        if (result && "error" in result) {
-          setError(result.error);
-          toast({
-            title: "Error",
-            description: result.error,
-            variant: "destructive",
-          });
-        } else if (result) {
-          toast({ title: "Success!", description: "Task added successfully." });
-        } else {
-          const msg = "Failed to add task.";
+    (input: TaskInsert): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        if (!user) {
+          const msg = "You must be logged in to add tasks.";
           setError(msg);
           toast({ title: "Error", description: msg, variant: "destructive" });
+          reject(new Error(msg));
+          return;
         }
+        setError(null);
+        startTransition(async () => {
+          const result = await addTaskToDb(input);
+
+          if (result && "error" in result) {
+            setError(result.error);
+            toast({
+              title: "Error",
+              description: result.error,
+              variant: "destructive",
+            });
+            reject(new Error(result.error));
+          } else if (result) {
+            toast({
+              title: "Success!",
+              description: "Task added successfully.",
+            });
+            resolve();
+          } else {
+            const msg = "Failed to add task.";
+            setError(msg);
+            toast({ title: "Error", description: msg, variant: "destructive" });
+            reject(new Error(msg));
+          }
+        });
       });
     },
-    [user, toast, setTasks],
+    [user, toast],
   );
 
   const handleToggleTask = useCallback(
