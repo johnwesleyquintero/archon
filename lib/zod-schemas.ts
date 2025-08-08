@@ -50,6 +50,10 @@ export const taskInsertSchema = Zod.object({
   tags: Zod.array(Zod.string()).nullable().optional(),
   status: Zod.enum(["todo", "in_progress", "done", "canceled"]).optional(),
   parent_id: Zod.string().nullable().optional(), // Added for subtasks
+  recurrence_pattern: Zod.string().nullable().optional(),
+  recurrence_end_date: Zod.string().nullable().optional(),
+  original_task_id: Zod.string().nullable().optional(),
+  shared_with_user_ids: Zod.array(Zod.string()).nullable().optional(),
 });
 
 export const taskUpdateSchema = Zod.object({
@@ -61,4 +65,8 @@ export const taskUpdateSchema = Zod.object({
   tags: Zod.array(Zod.string()).nullable().optional(),
   status: Zod.enum(["todo", "in_progress", "done", "canceled"]).optional(),
   parent_id: Zod.string().nullable().optional(), // Added for subtasks
+  recurrence_pattern: Zod.string().nullable().optional(),
+  recurrence_end_date: Zod.string().nullable().optional(),
+  original_task_id: Zod.string().nullable().optional(),
+  shared_with_user_ids: Zod.array(Zod.string()).nullable().optional(),
 });

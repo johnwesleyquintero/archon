@@ -56,6 +56,18 @@ export const convertRawTaskToTask = (rawTask: RawTask): Task => {
     tags: processedTags,
     status: processedStatus,
     parent_id: (rawTask as { parent_id?: string | null }).parent_id ?? null,
+    recurrence_pattern:
+      (rawTask as { recurrence_pattern?: string | null }).recurrence_pattern ??
+      null,
+    recurrence_end_date:
+      (rawTask as { recurrence_end_date?: string | null })
+        .recurrence_end_date ?? null,
+    original_task_id:
+      (rawTask as { original_task_id?: string | null }).original_task_id ??
+      null,
+    shared_with_user_ids:
+      (rawTask as { shared_with_user_ids?: string[] | null })
+        .shared_with_user_ids ?? null,
   };
 };
 

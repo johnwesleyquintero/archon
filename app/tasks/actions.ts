@@ -69,6 +69,10 @@ export const addTask = withErrorHandling(
         tags: validatedTaskData.tags || [],
         status: validatedTaskData.status || "todo", // Corrected to "todo" as default
         parent_id: validatedTaskData.parent_id, // Added parent_id
+        recurrence_pattern: validatedTaskData.recurrence_pattern,
+        recurrence_end_date: validatedTaskData.recurrence_end_date,
+        original_task_id: validatedTaskData.original_task_id,
+        shared_with_user_ids: validatedTaskData.shared_with_user_ids || [],
       })
       .select()
       .single();
