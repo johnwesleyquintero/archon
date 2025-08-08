@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { DragEndEvent, DragOverEvent } from "@dnd-kit/core";
+import { useState, useEffect, useCallback } from "react";
+import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Task } from "@/lib/types/task";
 import { Column } from "@/lib/types/kanban";
 import { updateTask } from "@/app/tasks/actions";
+import { toast } from "sonner"; // Import toast for user feedback
 
 export const useKanban = (initialTasks: Task[]) => {
   const [columns, setColumns] = useState<Column[]>(() => [
@@ -33,57 +34,93 @@ export const useKanban = (initialTasks: Task[]) => {
     setColumns(newColumns);
   }, [initialTasks]);
 
-  const findColumn = (id: string) => columns.find((col) => col.id === id);
+  const findColumn = useCallback(
+    (id: string) => columns.find((col) => col.id === id),
+    [columns],
+  );
+
+  const updateColumnTasks = useCallback(
+    (
+      sourceColId: string,
+      destColId: string,
+      activeTaskId: string | number,
+      overTaskId: string | number,
+    ) => {
+      setColumns((prev) => {
+        const newColumns = [...prev];
+        const sourceColIndex = newColumns.findIndex(
+          (c) => c.id === sourceColId,
+        );
+        const destColIndex = newColumns.findIndex((c) => c.id === destColId);
+
+        if (sourceColIndex === -1 || destColIndex === -1) return prev;
+
+        const activeColumn = newColumns[sourceColIndex];
+        const overColumn = newColumns[destColIndex];
+
+        const activeIndex = activeColumn.tasks.findIndex(
+          (t) => t.id === activeTaskId,
+        );
+        const overIndex = overColumn.tasks.findIndex(
+          (t) => t.id === overTaskId,
+        );
+
+        if (activeIndex === -1) return prev; // Should not happen if active.id is valid
+
+        if (sourceColId === destColId) {
+          // Reordering in the same column
+          newColumns[sourceColIndex].tasks = arrayMove(
+            activeColumn.tasks,
+            activeIndex,
+            overIndex,
+          );
+        } else {
+          // Moving to a different column
+          const [movedTask] = activeColumn.tasks.splice(activeIndex, 1);
+          if (movedTask) {
+            movedTask.status = destColId as Task["status"]; // Update task status optimistically
+            newColumns[destColIndex].tasks.splice(overIndex, 0, movedTask);
+          }
+        }
+        return newColumns;
+      });
+    },
+    [],
+  );
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const activeColumn = findColumn(active.data.current?.sortable.containerId);
-    const overColumn = findColumn(over.data.current?.sortable.containerId);
+    const activeColumnId = active.data.current?.sortable.containerId as string;
+    const overColumnId = over.data.current?.sortable.containerId as string;
 
-    if (!activeColumn || !overColumn) return;
+    if (!activeColumnId || !overColumnId) return;
 
-    const activeIndex = activeColumn.tasks.findIndex((t) => t.id === active.id);
-    const overIndex = overColumn.tasks.findIndex((t) => t.id === over.id);
-
-    const task = activeColumn.tasks[activeIndex];
+    const originalColumns = JSON.parse(JSON.stringify(columns)) as Column[]; // Deep copy for rollback
 
     // Optimistically update UI
-    setColumns((prev) => {
-      const newColumns = [...prev];
-      const sourceColIndex = newColumns.findIndex(
-        (c) => c.id === activeColumn.id,
-      );
-      const destColIndex = newColumns.findIndex((c) => c.id === overColumn.id);
+    updateColumnTasks(activeColumnId, overColumnId, active.id, over.id);
 
-      if (sourceColIndex === destColIndex) {
-        // Reordering in the same column
-        newColumns[sourceColIndex].tasks = arrayMove(
-          newColumns[sourceColIndex].tasks,
-          activeIndex,
-          overIndex,
-        );
-      } else {
-        // Moving to a different column
-        const [movedTask] = newColumns[sourceColIndex].tasks.splice(
-          activeIndex,
-          1,
-        );
-        newColumns[destColIndex].tasks.splice(overIndex, 0, movedTask);
-      }
-      return newColumns;
-    });
+    const taskToUpdate = originalColumns
+      .find((col) => col.id === activeColumnId)
+      ?.tasks.find((t) => t.id === active.id);
 
-    // Update backend
+    if (!taskToUpdate) {
+      toast.error("Task not found for update.");
+      setColumns(originalColumns); // Rollback
+      return;
+    }
+
     try {
-      await updateTask(task.id, {
-        status: overColumn.id as Task["status"],
+      await updateTask(taskToUpdate.id, {
+        status: overColumnId as Task["status"],
       });
-      // Optionally refresh data or handle success
+      toast.success("Task status updated successfully.");
     } catch (error) {
       console.error("Failed to update task status:", error);
-      // Revert state on error if needed
+      toast.error("Failed to update task status. Reverting changes.");
+      setColumns(originalColumns); // Revert state on error
     }
   };
 

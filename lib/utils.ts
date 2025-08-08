@@ -102,6 +102,13 @@ export class AppError extends Error {
 
 import * as Sentry from "@sentry/nextjs";
 
+/**
+ * Extracts a user-friendly error message from an unknown error type.
+ *
+ * @param error - The error object, which can be an Error instance, a string, or any other unknown type.
+ * @returns A string representing the error message. Defaults to "An unknown error occurred."
+ *          if the error type cannot be determined.
+ */
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
@@ -112,6 +119,16 @@ export function getErrorMessage(error: unknown): string {
   return "An unknown error occurred.";
 }
 
+/**
+ * Centralized error handling function for the Archon application.
+ * It converts various error types into a standardized `AppError`, logs the error,
+ * and optionally sends it to Sentry in production environments.
+ *
+ * @param error - The error to handle, which can be an `AppError`, a native `Error`, or any other unknown type.
+ * @param context - An optional string indicating the context where the error occurred (e.g., "API", "UI Component"). Defaults to "Application".
+ * @param messagePrefix - An optional prefix for the error message. Defaults to "An unexpected error occurred.".
+ * @returns A standardized `AppError` instance.
+ */
 export const handleError = (
   error: unknown,
   context: string = "Application",
@@ -150,6 +167,16 @@ export const handleError = (
   return appError;
 };
 
+/**
+ * Generates a standardized API error response.
+ * This function uses `handleError` to process the incoming error and then
+ * formats it into a `Response` object suitable for API endpoints, including
+ * a JSON body with error details and an appropriate HTTP status code.
+ *
+ * @param error - The error to be converted into an API response.
+ * @param context - An optional string indicating the API context. Defaults to "API".
+ * @returns A `Response` object with error details and an HTTP status code.
+ */
 export const apiErrorResponse = (
   error: unknown,
   context: string = "API",
@@ -166,6 +193,19 @@ export const apiErrorResponse = (
   );
 };
 
+/**
+ * A higher-order function that wraps an asynchronous action function with centralized error handling.
+ * This ensures that any errors thrown by the `actionFn` are caught, processed by `handleError`,
+ * and then re-thrown as a generic `Error` with a more descriptive message, preventing sensitive
+ * details from leaking while still providing a clear indication of failure.
+ *
+ * @template Args - A tuple type representing the arguments of the action function.
+ * @template Return - The return type of the action function.
+ * @param actionFn - The asynchronous function to be wrapped with error handling.
+ * @param context - A string indicating the context or purpose of the action (e.g., "fetching data", "submitting form").
+ * @returns A new asynchronous function that executes the original `actionFn` with error handling.
+ * @throws {Error} A generic error with a message indicating the failure and the processed error message.
+ */
 export const withErrorHandling = <Args extends unknown[], Return>(
   actionFn: (...args: Args) => Promise<Return>,
   context: string,

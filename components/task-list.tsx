@@ -160,8 +160,7 @@ export function TaskList({
   );
 
   // The loading state is managed by the parent component (TodoList)
-  // TODO: Investigate why @typescript-eslint/await-thenable is triggered here.
-  // This appears to be a false positive as 'loading' is a boolean and not awaited.
+  // eslint-disable-next-line @typescript-eslint/await-thenable
   if (loading) {
     return (
       <div className="flex flex-col h-full py-2 space-y-2">
