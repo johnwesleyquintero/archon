@@ -54,6 +54,10 @@ export const taskInsertSchema = Zod.object({
   recurrence_end_date: Zod.string().nullable().optional(),
   original_task_id: Zod.string().nullable().optional(),
   shared_with_user_ids: Zod.array(Zod.string()).nullable().optional(),
+  notes: Zod.string()
+    .max(1000, { message: "Notes are too long." })
+    .nullable()
+    .optional(), // New field for task notes
 });
 
 export const taskUpdateSchema = Zod.object({
@@ -69,4 +73,8 @@ export const taskUpdateSchema = Zod.object({
   recurrence_end_date: Zod.string().nullable().optional(),
   original_task_id: Zod.string().nullable().optional(),
   shared_with_user_ids: Zod.array(Zod.string()).nullable().optional(),
+  notes: Zod.string()
+    .max(1000, { message: "Notes are too long." })
+    .nullable()
+    .optional(), // New field for task notes
 });

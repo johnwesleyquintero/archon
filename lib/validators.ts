@@ -32,6 +32,17 @@ export const taskSchema = Zod.object({
     .nullable(),
   tags: Zod.array(Zod.string().max(30, { message: "Tag is too long." })),
   status: taskStatusEnum, // Added status to task schema
+  notes: Zod.string()
+    .max(1000, { message: "Notes are too long." })
+    .optional()
+    .nullable(), // New field for task notes
+  recurrence_pattern: Zod.enum(["none", "daily", "weekly", "monthly", "yearly"])
+    .optional()
+    .nullable(), // Added recurrence pattern
+  recurrence_end_date: Zod.string()
+    .datetime({ message: "Invalid recurrence end date." })
+    .optional()
+    .nullable(), // Added recurrence end date
 });
 
 export type TaskFormValues = Zod.infer<typeof taskSchema>; // Export TaskFormValues

@@ -52,7 +52,8 @@ export const getTasks = withErrorHandling(async (): Promise<Task[]> => {
     .from("tasks")
     .select("*")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order("sort_order", { ascending: true, nullsFirst: false }) // Order by sort_order first
+    .order("created_at", { ascending: false }); // Fallback to created_at
 
   if (error) {
     console.error("Error fetching tasks:", error);

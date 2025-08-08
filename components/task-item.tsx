@@ -37,6 +37,8 @@ import {
 
 import type { Task } from "@/lib/types/task";
 import type { TaskFormValues } from "@/lib/validators"; // Import TaskFormValues
+import { useSortable } from "@dnd-kit/sortable"; // Import useSortable
+import { CSS } from "@dnd-kit/utilities"; // Import CSS for transforms
 
 interface TaskItemProps extends Task {
   onToggle: (id: string, is_completed: boolean) => void | Promise<void>;
@@ -79,6 +81,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
     category,
     tags,
     status,
+    notes, // Destructure notes
     subtasks,
     onToggle,
     onDelete,
@@ -90,10 +93,22 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
     onSelect,
   } = props;
   const [showSubtaskInput, setShowSubtaskInput] = useState(false);
+  const [showFullNotes, setShowFullNotes] = useState(false); // State for notes expansion
 
-  // Simplified handlers, as modal will manage complex state
-  const handleToggle = async (checked: boolean) => {
-    await onToggle(id, checked);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging, // Add isDragging to apply visual feedback
+  } = useSortable({ id: id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 0, // Bring dragged item to front
+    opacity: isDragging ? 0.5 : 1, // Reduce opacity when dragging
   };
 
   const handleDelete = async () => {
@@ -116,8 +131,40 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
   };
 
   return (
-    <div className="group flex flex-col gap-1 py-2">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "group flex flex-col gap-1 py-2",
+        isDragging && "ring-2 ring-blue-500 rounded-md", // Visual feedback for dragging
+      )}
+    >
       <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 p-0 cursor-grab"
+          {...listeners}
+          {...attributes}
+          aria-label="Drag task"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4 text-slate-400"
+          >
+            <circle cx="12" cy="5" r="1" />
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="12" cy="19" r="1" />
+          </svg>
+        </Button>
         <Checkbox
           id={`select-${id}`}
           checked={isSelected}
@@ -130,7 +177,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
           checked={is_completed}
           disabled={disabled}
           onCheckedChange={(checked) => {
-            void handleToggle(!!checked);
+            void onToggle(id, !!checked);
           }}
           className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900 dark:border-slate-600 dark:data-[state=checked]:bg-slate-50 dark:data-[state=checked]:border-slate-50"
         />
@@ -289,6 +336,25 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
           </AlertDialogContent>
         </AlertDialog>
       </div>
+      {notes && (
+        <div className="ml-6 text-xs text-slate-600 dark:text-slate-300 mt-1">
+          <p className="whitespace-pre-wrap">
+            {showFullNotes
+              ? notes
+              : `${notes.substring(0, 150)}${notes.length > 150 ? "..." : ""}`}
+          </p>
+          {notes.length > 150 && (
+            <Button
+              variant="link"
+              size="sm"
+              onClick={() => setShowFullNotes(!showFullNotes)}
+              className="p-0 h-auto text-xs text-blue-600 dark:text-blue-400"
+            >
+              {showFullNotes ? "Show less" : "Read more"}
+            </Button>
+          )}
+        </div>
+      )}
       {(category || (tags && tags.length > 0)) && (
         <div className="flex items-center gap-2 ml-6 text-xs text-slate-500 dark:text-slate-400">
           <Popover>

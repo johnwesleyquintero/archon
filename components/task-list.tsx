@@ -7,14 +7,30 @@ import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ListTodo, Filter } from "lucide-react";
 import { Database } from "@/lib/supabase/types";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { TaskDetailsModal } from "./task-details-modal";
 import { Task } from "@/lib/types/task";
 import { Button } from "@/components/ui/button";
-import { deleteMultipleTasks } from "@/app/tasks/actions";
+import { deleteMultipleTasks, updateTaskSortOrder } from "@/app/tasks/actions"; // Import updateTaskSortOrder
 import { toast } from "sonner";
 
 import type { TaskFormValues } from "@/lib/validators"; // Import TaskFormValues
+
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
 
 interface TaskListProps {
   tasks: Task[];
@@ -31,12 +47,21 @@ export function TaskList({
   onAddTaskClick,
   onAddTask,
 }: TaskListProps) {
-  const { toggleTask, deleteTask, updateTask, isMutating } = useTasks();
+  const { toggleTask, deleteTask, updateTask, isMutating, setTasks } =
+    useTasks(tasks); // Destructure setTasks from useTasks
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
 
   const { filteredAndSortedTasks, sort, setSort, filters, setFilters } =
-    useTaskFiltersAndSort(tasks);
+    useTaskFiltersAndSort(tasks); // Pass tasks directly, as useTasks now manages the primary state
+
+  // DND Kit sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   // Extract all unique tags from the tasks for the filter bar
   const allAvailableTags = useMemo(() => {
@@ -93,6 +118,46 @@ export function TaskList({
       tags: [],
     });
   };
+
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+
+      if (active.id !== over?.id) {
+        const oldIndex = filteredAndSortedTasks.findIndex(
+          (task) => task.id === active.id,
+        );
+        const newIndex = filteredAndSortedTasks.findIndex(
+          (task) => task.id === over?.id,
+        );
+
+        if (oldIndex === -1 || newIndex === -1) return;
+
+        const newOrder = arrayMove(filteredAndSortedTasks, oldIndex, newIndex);
+
+        // Update local state immediately for responsiveness
+        // We need to update the main 'tasks' state, which will then flow through useTaskFiltersAndSort
+        setTasks(newOrder);
+
+        // Prepare updates for the database
+        const updatesToSend = newOrder.map((task, index) => ({
+          id: task.id,
+          sort_order: index, // Assign new sort_order based on array index
+        }));
+
+        try {
+          await updateTaskSortOrder(updatesToSend);
+          toast.success("Task order updated.");
+        } catch (error) {
+          console.error("Failed to update task order:", error);
+          toast.error("Failed to update task order.");
+          // Revert local state if API call fails
+          setTasks(tasks); // Revert to the original tasks state
+        }
+      }
+    },
+    [filteredAndSortedTasks, tasks, setTasks], // Add tasks and setTasks to dependencies
+  );
 
   // The loading state is managed by the parent component (TodoList)
   // TODO: Investigate why @typescript-eslint/await-thenable is triggered here.
@@ -185,23 +250,36 @@ export function TaskList({
               icon={Filter}
             />
           ) : (
-            <ul className="space-y-1">
-              {filteredAndSortedTasks.map((task) => (
-                <li key={task.id}>
-                  <TaskItem
-                    {...task}
-                    onToggle={handleToggle}
-                    onDelete={handleDelete}
-                    onUpdate={handleUpdate}
-                    onAddTask={onAddTask}
-                    onOpenModal={handleOpenModal}
-                    disabled={isMutating}
-                    isSelected={selectedTasks.includes(task.id)}
-                    onSelect={handleSelectTask}
-                  />
-                </li>
-              ))}
-            </ul>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={filteredAndSortedTasks.map((task) => task.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul className="space-y-1">
+                  {filteredAndSortedTasks.map((task) => (
+                    <li key={task.id}>
+                      <TaskItem
+                        {...task}
+                        onToggle={(id, is_completed) => {
+                          void handleToggle(id, is_completed);
+                        }}
+                        onDelete={handleDelete}
+                        onUpdate={handleUpdate}
+                        onAddTask={onAddTask}
+                        onOpenModal={handleOpenModal}
+                        disabled={isMutating}
+                        isSelected={selectedTasks.includes(task.id)}
+                        onSelect={handleSelectTask}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext>
           )}
         </div>
       </div>

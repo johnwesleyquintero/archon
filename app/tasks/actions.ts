@@ -86,6 +86,39 @@ export const addTask = withErrorHandling(
   },
 );
 
+export const updateTaskSortOrder = withErrorHandling(
+  async (updates: { id: string; sort_order: number }[]): Promise<void> => {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error("User not authenticated.");
+    }
+
+    // Use Promise.all to update multiple tasks concurrently
+    const updatePromises = updates.map(
+      (update) =>
+        supabase
+          .from("tasks")
+          .update({ sort_order: update.sort_order } as TaskUpdate) // Cast to TaskUpdate for partial update
+          .eq("id", update.id)
+          .eq("user_id", user.id), // Ensure user owns the task
+    );
+
+    const results = await Promise.all(updatePromises);
+
+    for (const { error } of results) {
+      if (error) {
+        throw new Error(`Failed to update task sort order: ${error.message}`);
+      }
+    }
+
+    revalidatePath("/tasks");
+  },
+);
+
 export const deleteMultipleTasks = withErrorHandling(
   async (ids: string[]): Promise<{ success: boolean }> => {
     const supabase = await createClient();

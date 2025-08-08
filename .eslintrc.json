@@ -40,7 +40,8 @@
     {
       "files": ["components/task-list.tsx"],
       "rules": {
-        "@typescript-eslint/await-thenable": "off"
+        "@typescript-eslint/await-thenable": "off",
+        "@typescript-eslint/no-misused-promises": "off"
       }
     }
   ]

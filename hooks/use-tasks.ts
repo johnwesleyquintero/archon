@@ -40,5 +40,6 @@ export function useTasks(initialRawTasks: RawTask[] = []) {
     deleteTask,
     updateTask,
     refetchTasks,
+    setTasks, // Return setTasks
   };
 }

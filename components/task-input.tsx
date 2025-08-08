@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea"; // Import Textarea
 import { Calendar } from "@/components/ui/calendar";
 import {
   Select,
@@ -16,7 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Plus, Loader2, Tag } from "lucide-react";
+import { CalendarIcon, Plus, Loader2, Tag, Repeat } from "lucide-react"; // Import Repeat icon
 import { Badge } from "@/components/ui/badge";
 import { taskSchema } from "@/lib/validators";
 import { useForm } from "react-hook-form";
@@ -32,6 +33,15 @@ import {
 } from "@/components/ui/form";
 
 type TaskFormValues = Zod.infer<typeof taskSchema>;
+
+// Define recurrence patterns
+const recurrencePatterns = [
+  { value: "none", label: "None" },
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+  { value: "yearly", label: "Yearly" },
+];
 
 interface TaskInputProps {
   onAddTask: (input: TaskFormValues) => Promise<void>;
@@ -63,6 +73,9 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
         category: null,
         dueDate: null,
         status: "todo", // Default status
+        notes: "", // Add notes field
+        recurrence_pattern: "none", // Default recurrence
+        recurrence_end_date: null, // Default recurrence end date
       },
       mode: "onBlur",
     });
@@ -77,6 +90,9 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
           category: data.category,
           dueDate: data.dueDate,
           status: data.status, // Include status
+          notes: data.notes, // Include notes
+          recurrence_pattern: data.recurrence_pattern, // Include recurrence pattern
+          recurrence_end_date: data.recurrence_end_date, // Include recurrence end date
         });
         form.reset();
       } catch (err: unknown) {
@@ -259,6 +275,91 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                 />
                 <FormField
                   control={form.control}
+                  name="recurrence_pattern" // New recurrence pattern field
+                  render={({ field }) => (
+                    <FormItem className="flex-none">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={`h-9 w-9 p-0 ${
+                              field.value && field.value !== "none"
+                                ? "text-slate-900 dark:text-slate-50"
+                                : "text-slate-400"
+                            }`}
+                            disabled={disabled || isAdding}
+                          >
+                            <Repeat className="h-4 w-4" />
+                            <span className="sr-only">Set recurrence</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value || "none"}
+                          >
+                            <SelectTrigger className="h-9 w-[120px]">
+                              <SelectValue placeholder="Recurrence" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {recurrencePatterns.map((pattern) => (
+                                <SelectItem
+                                  key={pattern.value}
+                                  value={pattern.value}
+                                >
+                                  {pattern.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </PopoverContent>
+                      </Popover>
+                    </FormItem>
+                  )}
+                />
+                {form.watch("recurrence_pattern") !== "none" && (
+                  <FormField
+                    control={form.control}
+                    name="recurrence_end_date" // New recurrence end date field
+                    render={({ field }) => (
+                      <FormItem className="flex-none">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={`h-9 w-9 p-0 ${
+                                field.value
+                                  ? "text-slate-900 dark:text-slate-50"
+                                  : "text-slate-400"
+                              }`}
+                              disabled={disabled || isAdding}
+                            >
+                              <CalendarIcon className="h-4 w-4" />
+                              <span className="sr-only">
+                                Pick recurrence end date
+                              </span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                              mode="single"
+                              selected={
+                                field.value ? new Date(field.value) : undefined
+                              }
+                              onSelect={(date) =>
+                                field.onChange(date ? date.toISOString() : null)
+                              }
+                              disabled={(date) => date < new Date()}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </FormItem>
+                    )}
+                  />
+                )}
+                <FormField
+                  control={form.control}
                   name="tags"
                   render={({ field }) => (
                     <FormItem className="flex-none">
@@ -325,6 +426,25 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                           </div>
                         </PopoverContent>
                       </Popover>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormControl>
+                        <Textarea
+                          placeholder="Add notes..."
+                          className="min-h-[60px] text-sm border-slate-200 focus:border-slate-400 focus:ring-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-600 dark:focus:ring-slate-600"
+                          disabled={disabled || isAdding}
+                          aria-label="Task notes"
+                          {...field}
+                          value={field.value ?? ""} // Ensure value is string or undefined
+                        />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />

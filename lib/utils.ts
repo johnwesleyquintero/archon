@@ -6,6 +6,8 @@ import type { Task } from "@/lib/types/task";
 // Define the raw task type from the database, ensuring it's sourced from the single source of truth.
 type RawTask = Database["public"]["Tables"]["tasks"]["Row"] & {
   status: Database["public"]["Enums"]["task_status"] | null;
+  notes?: string | null;
+  sort_order?: number | null;
 };
 
 /**
@@ -68,6 +70,8 @@ export const convertRawTaskToTask = (rawTask: RawTask): Task => {
     shared_with_user_ids:
       (rawTask as { shared_with_user_ids?: string[] | null })
         .shared_with_user_ids ?? null,
+    notes: rawTask.notes ?? null,
+    sort_order: rawTask.sort_order ?? null,
   };
 };
 
