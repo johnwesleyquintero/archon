@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/empty-state";
 import type { Database } from "@/lib/supabase/types";
 import { goalSchema } from "@/lib/validators";
 import { z } from "zod";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts"; // Import Recharts components
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 type GoalFormValues = z.infer<typeof goalSchema>;
@@ -24,14 +25,17 @@ const statusConfig = {
   pending: {
     color: "bg-gray-100 text-gray-800 border-gray-200",
     icon: "⚪ Not Started",
+    chartColor: "#A0AEC0", // Gray for pending
   },
   in_progress: {
     color: "bg-green-100 text-green-800 border-green-200",
     icon: "🟢 On Track",
+    chartColor: "#48BB78", // Green for in progress
   },
   completed: {
     color: "bg-blue-100 text-blue-800 border-blue-200",
     icon: "✅ Completed",
+    chartColor: "#4299E1", // Blue for completed
   },
 };
 
@@ -101,6 +105,25 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
   const totalGoals = goals.length;
   const completedGoals = goals.filter((g) => g.status === "completed").length;
   const onTrackGoals = goals.filter((g) => g.status === "in_progress").length;
+  const notStartedGoals = goals.filter((g) => g.status === "pending").length;
+
+  const chartData = [
+    {
+      name: "Completed",
+      value: completedGoals,
+      color: statusConfig.completed.chartColor,
+    },
+    {
+      name: "On Track",
+      value: onTrackGoals,
+      color: statusConfig.in_progress.chartColor,
+    },
+    {
+      name: "Not Started",
+      value: notStartedGoals,
+      color: statusConfig.pending.chartColor,
+    },
+  ].filter((data) => data.value > 0); // Only show segments with values greater than 0
 
   return (
     <>
@@ -127,6 +150,36 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
+          {goals.length > 0 && (
+            <div className="h-48 w-full">
+              {" "}
+              {/* Container for the chart */}
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    paddingAngle={5}
+                    dataKey="value"
+                    labelLine={false}
+                    label={({ name, percent }) =>
+                      `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                    }
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
           {goals.length > 0 ? (
             goals.map((goal) => (
               <Card
@@ -218,6 +271,12 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
                   <p className="text-xs text-slate-500">On Track</p>
                   <p className="text-lg font-semibold text-green-600">
                     {onTrackGoals}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-slate-500">Not Started</p>
+                  <p className="text-lg font-semibold text-gray-600">
+                    {notStartedGoals}
                   </p>
                 </div>
               </div>
