@@ -19,7 +19,14 @@ export async function GET() {
     const goals = await getGoals(user.id);
     return NextResponse.json(goals);
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("API Error in /api/goals:", error); // Server-side logging
+    // Return a generic error message to the client in production
+    const errorMessage =
+      process.env.NODE_ENV === "production"
+        ? "An unexpected error occurred."
+        : error instanceof Error
+          ? error.message
+          : String(error);
     return new NextResponse(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

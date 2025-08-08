@@ -19,6 +19,8 @@ export function Spinner({ size = "md", className }: SpinnerProps) {
         sizeClasses[size],
         className,
       )}
+      role="status" // Add ARIA role
+      aria-label="Loading..." // Add ARIA label
     />
   );
 }
