@@ -3,6 +3,7 @@ import { TaskFilterBar } from "./task-filter-bar";
 import { TaskSort } from "./task-sort";
 import { EmptyState } from "./empty-state";
 import { useTasks } from "@/hooks/use-tasks";
+import { useGoals } from "@/hooks/use-goals";
 import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ListTodo, Filter } from "lucide-react";
@@ -49,6 +50,7 @@ export function TaskList({
 }: TaskListProps) {
   const { toggleTask, deleteTask, updateTask, isMutating, setTasks } =
     useTasks(tasks); // Destructure setTasks from useTasks
+  const { goals } = useGoals();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
 
@@ -187,6 +189,7 @@ export function TaskList({
         onUpdate={async (id, updatedTask) => {
           await handleUpdate(id, updatedTask);
         }}
+        goals={goals}
       />
       <div className="flex flex-col h-full">
         <div className="flex flex-col gap-2 p-2 border-b border-slate-100 dark:border-slate-800">
@@ -263,6 +266,7 @@ export function TaskList({
                     <li key={task.id}>
                       <TaskItem
                         {...task}
+                        goal={goals.find((g) => g.id === task.goal_id)}
                         onToggle={(id, is_completed) => {
                           void handleToggle(id, is_completed);
                         }}

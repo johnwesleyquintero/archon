@@ -17,7 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Plus, Loader2, Tag, Repeat } from "lucide-react"; // Import Repeat icon
+import { CalendarIcon, Plus, Loader2, Tag, Repeat, Target } from "lucide-react"; // Import Repeat icon
 import { Badge } from "@/components/ui/badge";
 import { taskSchema } from "@/lib/validators";
 import { useForm } from "react-hook-form";
@@ -49,6 +49,7 @@ interface TaskInputProps {
   disabled?: boolean;
   autoFocus?: boolean; // Added autoFocus prop
   isSubtaskInput?: boolean; // Added isSubtaskInput prop
+  goals?: { id: string; title: string }[];
 }
 
 export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
@@ -59,6 +60,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
       disabled = false,
       autoFocus = false,
       isSubtaskInput = false,
+      goals = [],
     },
     _ref,
   ) => {
@@ -76,6 +78,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
         notes: "", // Add notes field
         recurrence_pattern: "none", // Default recurrence
         recurrence_end_date: null, // Default recurrence end date
+        goal_id: null,
       },
       mode: "onBlur",
     });
@@ -83,17 +86,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
     const handleAddTaskSubmit = async (data: TaskFormValues) => {
       setIsAdding(true);
       try {
-        await onAddTask({
-          title: data.title,
-          priority: data.priority,
-          tags: data.tags,
-          category: data.category,
-          dueDate: data.dueDate,
-          status: data.status, // Include status
-          notes: data.notes, // Include notes
-          recurrence_pattern: data.recurrence_pattern, // Include recurrence pattern
-          recurrence_end_date: data.recurrence_end_date, // Include recurrence end date
-        });
+        await onAddTask(data);
         form.reset();
       } catch (err: unknown) {
         handleError(err, "TaskInput");
@@ -164,6 +157,34 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
             />
             {!isSubtaskInput && ( // Conditionally render these fields for main task input
               <>
+                <FormField
+                  control={form.control}
+                  name="goal_id"
+                  render={({ field }) => (
+                    <FormItem className="flex-none">
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(value === "__none__" ? null : value)
+                        }
+                        value={field.value || "__none__"}
+                        disabled={disabled || isAdding}
+                      >
+                        <SelectTrigger className="h-9 w-[120px]">
+                          <Target className="h-4 w-4 mr-2" />
+                          <SelectValue placeholder="Goal" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">No Goal</SelectItem>
+                          {goals?.map((goal) => (
+                            <SelectItem key={goal.id} value={goal.id}>
+                              {goal.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="dueDate"
@@ -251,7 +272,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                 />
                 <FormField
                   control={form.control}
-                  name="status" // New status field
+                  name="status"
                   render={({ field }) => (
                     <FormItem className="flex-none">
                       <Select
@@ -275,7 +296,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                 />
                 <FormField
                   control={form.control}
-                  name="recurrence_pattern" // New recurrence pattern field
+                  name="recurrence_pattern"
                   render={({ field }) => (
                     <FormItem className="flex-none">
                       <Popover>
@@ -320,7 +341,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                 {form.watch("recurrence_pattern") !== "none" && (
                   <FormField
                     control={form.control}
-                    name="recurrence_end_date" // New recurrence end date field
+                    name="recurrence_end_date"
                     render={({ field }) => (
                       <FormItem className="flex-none">
                         <Popover>
@@ -388,7 +409,9 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                                     {tag}
                                     <button
                                       onClick={() => {
-                                        const newTags = [...field.value];
+                                        const newTags = [
+                                          ...(field.value || []),
+                                        ];
                                         newTags.splice(index, 1);
                                         field.onChange(newTags);
                                       }}

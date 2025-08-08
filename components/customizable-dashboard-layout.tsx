@@ -5,6 +5,13 @@ import { Layout } from "react-grid-layout";
 
 import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
 import { WelcomeWidget } from "./dashboard/welcome-widget";
+import { TodoList } from "./todo-list";
+import { GoalTracker } from "./goal-tracker";
+import { GoalsDisplay } from "./goals-display";
+import { JournalList } from "./journal-list";
+import { StatsGrid } from "./stats-grid";
+import { AdvancedStatsGrid } from "./advanced-stats-grid";
+import { PlaceholderInfographics } from "./placeholder-infographics";
 import { DashboardCustomizationControls } from "./dashboard/controls/dashboard-customization-controls";
 import { DashboardGrid } from "./dashboard/dashboard-grid";
 
@@ -113,8 +120,14 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
   const widgetComponentsMap: Record<string, ComponentType<P>> = useMemo(() => {
     return {
       "welcome-widget": WelcomeWidget,
-      // Add other widgets here as they are defined
-    };
+      "todo-list": TodoList,
+      "goal-tracker": GoalTracker,
+      "goals-display": GoalsDisplay,
+      "journal-list": JournalList,
+      "stats-grid": StatsGrid,
+      "advanced-stats-grid": AdvancedStatsGrid,
+      "placeholder-infographics": PlaceholderInfographics,
+    } as Record<string, ComponentType<P>>;
   }, []);
 
   const availableWidgets = useMemo(() => {

@@ -19,7 +19,7 @@ import { createGoal, updateGoal } from "@/app/goals/actions";
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 
 export interface GoalsDisplayProps extends Record<string, unknown> {
-  initialGoals: Goal[];
+  initialGoals?: Goal[];
 }
 
 type GoalFormData = {

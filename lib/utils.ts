@@ -72,6 +72,7 @@ export const convertRawTaskToTask = (rawTask: RawTask): Task => {
         .shared_with_user_ids ?? null,
     notes: rawTask.notes ?? null,
     sort_order: rawTask.sort_order ?? null,
+    goal_id: (rawTask as { goal_id?: string | null }).goal_id ?? null,
   };
 };
 

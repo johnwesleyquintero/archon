@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TaskInput } from "./task-input";
 import { TaskList } from "./task-list";
 import { useTasks } from "@/hooks/use-tasks";
+import { useGoals } from "@/hooks/use-goals";
 import { useAuth } from "@/contexts/auth-context";
 import { Task as TaskType } from "@/lib/types/task"; // Import Task as TaskType to avoid conflict
 import { TaskFormValues } from "@/lib/validators";
@@ -16,6 +17,7 @@ interface TodoListProps {
 
 export function TodoList({ initialTasks }: TodoListProps) {
   const { tasks, loading, addTask, isMutating } = useTasks(initialTasks);
+  const { goals } = useGoals();
   const { user } = useAuth();
   const taskInputRef = useRef<HTMLInputElement>(null);
 
@@ -49,6 +51,7 @@ export function TodoList({ initialTasks }: TodoListProps) {
           ref={taskInputRef}
           onAddTask={handleAddTask}
           disabled={isMutating || !user}
+          goals={goals}
         />
       </CardContent>
     </Card>

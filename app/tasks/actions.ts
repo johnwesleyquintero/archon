@@ -73,6 +73,7 @@ export const addTask = withErrorHandling(
         recurrence_end_date: validatedTaskData.recurrence_end_date,
         original_task_id: validatedTaskData.original_task_id,
         shared_with_user_ids: validatedTaskData.shared_with_user_ids || [],
+        goal_id: validatedTaskData.goal_id,
       })
       .select()
       .single();
@@ -82,6 +83,7 @@ export const addTask = withErrorHandling(
     }
 
     revalidatePath("/tasks");
+    revalidatePath("/goals");
     return data as Task;
   },
 );
@@ -228,6 +230,7 @@ export const updateTask = withErrorHandling(
     }
 
     revalidatePath("/tasks");
+    revalidatePath("/goals");
     return data as Task;
   },
 );

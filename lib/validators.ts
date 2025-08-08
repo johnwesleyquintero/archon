@@ -43,6 +43,7 @@ export const taskSchema = Zod.object({
     .datetime({ message: "Invalid recurrence end date." })
     .optional()
     .nullable(), // Added recurrence end date
+  goal_id: Zod.string().nullable().optional(),
 });
 
 export type TaskFormValues = Zod.infer<typeof taskSchema>; // Export TaskFormValues

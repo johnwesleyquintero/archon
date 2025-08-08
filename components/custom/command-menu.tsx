@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useEffect } from "react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -8,7 +9,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useCommandMenu } from "@/lib/state/use-command-menu";
+import { useCommandMenuContext } from "@/contexts/command-menu-context";
 import { useQuickAddTask } from "@/lib/state/use-quick-add-task";
 import { useQuickAddGoal } from "@/lib/state/use-quick-add-goal";
 import { useQuickAddJournal } from "@/lib/state/use-quick-add-journal";
@@ -18,11 +19,23 @@ import { CirclePlus, Goal, Book } from "lucide-react"; // Import icons
 
 export function CommandMenu() {
   const router = useRouter();
-  const { isOpen, close } = useCommandMenu();
+  const { isOpen, close, toggle } = useCommandMenuContext();
   const { open: openQuickAddTask } = useQuickAddTask();
   const { open: openQuickAddGoal } = useQuickAddGoal();
   const { open: openQuickAddJournal } = useQuickAddJournal();
   const { tasks } = useTasks(); // Assuming useTasks fetches all tasks
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        toggle();
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, [toggle]);
 
   const runCommand = (command: () => void) => {
     close();

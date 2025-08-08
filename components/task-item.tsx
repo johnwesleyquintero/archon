@@ -6,7 +6,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Calendar as CalendarIcon, Trash2, Edit, Plus } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  Trash2,
+  Edit,
+  Plus,
+  Target,
+} from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { TaskInput } from "./task-input";
 import { useState } from "react";
@@ -36,6 +42,7 @@ import {
 } from "@/components/ui/select";
 
 import type { Task } from "@/lib/types/task";
+import type { Goal } from "@/lib/types/goal";
 import type { TaskFormValues } from "@/lib/validators"; // Import TaskFormValues
 import { useSortable } from "@dnd-kit/sortable"; // Import useSortable
 import { CSS } from "@dnd-kit/utilities"; // Import CSS for transforms
@@ -51,6 +58,7 @@ interface TaskItemProps extends Task {
   disabled?: boolean;
   isSelected: boolean;
   onSelect: (id: string) => void;
+  goal?: Goal | null;
 }
 
 /**
@@ -91,6 +99,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
     disabled = false,
     isSelected,
     onSelect,
+    goal,
   } = props;
   const [showSubtaskInput, setShowSubtaskInput] = useState(false);
   const [showFullNotes, setShowFullNotes] = useState(false); // State for notes expansion
@@ -191,6 +200,15 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
         >
           {title}
         </label>
+        {goal && (
+          <Badge
+            variant="secondary"
+            className="text-xs font-medium bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200"
+          >
+            <Target className="h-3 w-3 mr-1" />
+            {goal.title}
+          </Badge>
+        )}
         <Popover>
           <PopoverTrigger asChild>
             <Button

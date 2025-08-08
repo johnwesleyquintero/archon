@@ -35,6 +35,7 @@ export type Task = Omit<
   priority: Database["public"]["Enums"]["task_priority"] | null; // Priority of the task
   notes: string | null; // Additional notes for the task
   sort_order: number | null; // New field for drag-and-drop reordering
+  goal_id: string | null;
 };
 
 export interface TaskItemProps extends Task {

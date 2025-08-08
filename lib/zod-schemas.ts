@@ -58,6 +58,7 @@ export const taskInsertSchema = Zod.object({
     .max(1000, { message: "Notes are too long." })
     .nullable()
     .optional(), // New field for task notes
+  goal_id: Zod.string().nullable().optional(),
 });
 
 export const taskUpdateSchema = Zod.object({
@@ -77,4 +78,5 @@ export const taskUpdateSchema = Zod.object({
     .max(1000, { message: "Notes are too long." })
     .nullable()
     .optional(), // New field for task notes
+  goal_id: Zod.string().nullable().optional(),
 });

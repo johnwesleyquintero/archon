@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/auth-context";
+import { CommandMenuProvider } from "@/contexts/command-menu-context";
+import { CommandMenu } from "@/components/custom/command-menu";
 
 import "./globals.css";
 
@@ -36,7 +38,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <TooltipProvider>{children}</TooltipProvider>
+            <CommandMenuProvider>
+              <TooltipProvider>{children}</TooltipProvider>
+              <CommandMenu />
+            </CommandMenuProvider>
             <Toaster />
           </AuthProvider>
         </ThemeProvider>

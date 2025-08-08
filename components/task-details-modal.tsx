@@ -26,7 +26,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Target } from "lucide-react";
 
 const recurrencePatterns = [
   { value: "none", label: "None" },
@@ -44,6 +44,7 @@ interface TaskDetailsModalProps {
     id: string,
     updatedTask: Partial<Database["public"]["Tables"]["tasks"]["Update"]>,
   ) => Promise<void>;
+  goals?: { id: string; title: string }[];
 }
 
 export function TaskDetailsModal({
@@ -51,15 +52,19 @@ export function TaskDetailsModal({
   isOpen,
   onClose,
   onUpdate,
+  goals = [],
 }: TaskDetailsModalProps) {
   const [title, setTitle] = useState(task?.title || "");
-  const [description, setDescription] = useState(task?.description || "");
+  const [description, setDescription] = useState<string | null>(
+    task?.description || "",
+  );
   const [recurrencePattern, setRecurrencePattern] = useState(
     task?.recurrence_pattern || "none",
   );
   const [recurrenceEndDate, setRecurrenceEndDate] = useState<Date | null>(
     task?.recurrence_end_date ? new Date(task.recurrence_end_date) : null,
   );
+  const [goalId, setGoalId] = useState<string | null>(task?.goal_id || null);
 
   useEffect(() => {
     if (task) {
@@ -69,6 +74,7 @@ export function TaskDetailsModal({
       setRecurrenceEndDate(
         task.recurrence_end_date ? new Date(task.recurrence_end_date) : null,
       );
+      setGoalId(task.goal_id || null);
     }
   }, [task]);
 
@@ -82,6 +88,7 @@ export function TaskDetailsModal({
       description,
       recurrence_pattern: recurrencePattern,
       recurrence_end_date: recurrenceEndDate?.toISOString() || null,
+      goal_id: goalId,
     } as Partial<Database["public"]["Tables"]["tasks"]["Update"]>); // Cast to partial update type
     onClose();
   };
@@ -110,16 +117,38 @@ export function TaskDetailsModal({
           </div>
           <div className="grid grid-cols-1 gap-4">
             <TipTapEditor
-              value={description}
-              onChange={setDescription}
+              value={description || ""}
+              onChange={(value) => setDescription(value)}
               placeholder="Add a more detailed description..."
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
+              <label className="text-sm font-medium">Goal</label>
+              <Select
+                value={goalId || "__none__"}
+                onValueChange={(value) =>
+                  setGoalId(value === "__none__" ? null : value)
+                }
+              >
+                <SelectTrigger>
+                  <Target className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Select a goal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">No Goal</SelectItem>
+                  {goals?.map((goal) => (
+                    <SelectItem key={goal.id} value={goal.id}>
+                      {goal.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <label className="text-sm font-medium">Recurrence</label>
               <Select
-                value={recurrencePattern}
+                value={recurrencePattern || "none"}
                 onValueChange={setRecurrencePattern}
               >
                 <SelectTrigger>
