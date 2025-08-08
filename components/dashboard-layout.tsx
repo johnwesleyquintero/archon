@@ -7,6 +7,8 @@ import { DashboardHeader } from "@/components/dashboard-header";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { cn } from "@/lib/utils";
 import { QuickAddTaskModal } from "./custom/quick-add-task-modal";
+import { QuickAddGoalModal } from "./custom/quick-add-goal-modal";
+import { QuickAddJournalModal } from "./custom/quick-add-journal-modal";
 import { CommandMenu } from "./custom/command-menu";
 import { useCommandMenu } from "@/lib/state/use-command-menu";
 import { useEffect } from "react";
@@ -46,6 +48,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </main>
       </div>
       <QuickAddTaskModal />
+      <QuickAddGoalModal />
+      <QuickAddJournalModal />
       <CommandMenu />
     </div>
   );

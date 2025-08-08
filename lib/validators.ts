@@ -121,6 +121,8 @@ export const goalSchema = Zod.object({
   attachments: Zod.array(Zod.string().url()).optional(), // Array of URLs for attachments
 });
 
+export type GoalFormValues = Zod.infer<typeof goalSchema>;
+
 /**
  * Zod schema for validating individual attachment objects.
  * Defines the structure for file attachments, including URL, filename, and type.
