@@ -7,7 +7,7 @@ import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ListTodo, Filter } from "lucide-react";
 import { Database } from "@/lib/supabase/types";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { TaskDetailsModal } from "./task-details-modal";
 import { Task } from "@/lib/types/task";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,15 @@ export function TaskList({
 
   const { filteredAndSortedTasks, sort, setSort, filters, setFilters } =
     useTaskFiltersAndSort(tasks);
+
+  // Extract all unique tags from the tasks for the filter bar
+  const allAvailableTags = useMemo(() => {
+    const tags = new Set<string>();
+    tasks.forEach((task) => {
+      task.tags?.forEach((tag) => tags.add(tag));
+    });
+    return Array.from(tags).sort();
+  }, [tasks]);
 
   const handleOpenModal = (task: Task) => {
     setSelectedTask(task);
@@ -73,6 +82,16 @@ export function TaskList({
     updatedTask: Partial<Database["public"]["Tables"]["tasks"]["Update"]>,
   ) => {
     await updateTask(id, updatedTask);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      status: "all",
+      priority: "all",
+      dueDate: "all",
+      category: null,
+      tags: [],
+    });
   };
 
   // The loading state is managed by the parent component (TodoList)
@@ -119,6 +138,16 @@ export function TaskList({
               onDueDateFilterChange={(dueDate) =>
                 setFilters({ ...filters, dueDate })
               }
+              categoryFilter={filters.category} // Pass new category filter prop
+              onCategoryFilterChange={(category) =>
+                setFilters({ ...filters, category })
+              } // Pass new category filter handler
+              tagFilter={filters.tags.length > 0 ? filters.tags[0] : null} // Pass first tag for now
+              onTagFilterChange={(tag) =>
+                setFilters({ ...filters, tags: tag ? [tag] : [] })
+              } // Pass tag filter handler
+              allAvailableTags={allAvailableTags} // Pass all unique tags
+              onClearFilters={handleClearFilters} // Pass clear filters handler
             />
             <TaskSort sort={sort} onSortChange={setSort} />
           </div>
@@ -152,15 +181,7 @@ export function TaskList({
               title="No matching tasks found."
               description="It seems no tasks match your current filter criteria. Try adjusting your filters to see more tasks!"
               actionLabel="Clear Filters"
-              onAction={() =>
-                setFilters({
-                  status: "all",
-                  priority: "all",
-                  dueDate: "all",
-                  category: null,
-                  tags: [],
-                })
-              }
+              onAction={handleClearFilters} // Use the new handler
               icon={Filter}
             />
           ) : (

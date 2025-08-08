@@ -1,5 +1,5 @@
 "use client";
-import { Filter, Calendar, Flag } from "lucide-react";
+import { Filter, Calendar, Flag, Tag, ListTodo } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -7,15 +7,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button"; // Import Button
 import { TaskFilters } from "@/hooks/use-task-filters-and-sort"; // Import TaskFilters
 
 interface TaskFilterBarProps {
-  currentFilter: TaskFilters["status"]; // Use TaskFilters for status
-  onFilterChange: (filter: TaskFilters["status"]) => void; // Use TaskFilters for status
+  currentFilter: TaskFilters["status"];
+  onFilterChange: (filter: TaskFilters["status"]) => void;
   priorityFilter: TaskFilters["priority"];
   onPriorityFilterChange: (priority: TaskFilters["priority"]) => void;
   dueDateFilter: TaskFilters["dueDate"];
   onDueDateFilterChange: (dueDate: TaskFilters["dueDate"]) => void;
+  categoryFilter: TaskFilters["category"]; // New prop for category filter
+  onCategoryFilterChange: (category: TaskFilters["category"]) => void; // New prop for category filter change
+  tagFilter: string | null; // New prop for single tag filter (for now)
+  onTagFilterChange: (tag: string | null) => void; // New prop for tag filter change
+  allAvailableTags: string[]; // New prop to pass all unique tags
+  onClearFilters: () => void; // New prop for clearing all filters
 }
 
 export function TaskFilterBar({
@@ -25,6 +32,12 @@ export function TaskFilterBar({
   onPriorityFilterChange,
   dueDateFilter,
   onDueDateFilterChange,
+  categoryFilter,
+  onCategoryFilterChange,
+  tagFilter,
+  onTagFilterChange,
+  allAvailableTags,
+  onClearFilters,
 }: TaskFilterBarProps) {
   return (
     <div className="flex flex-col gap-2 p-2 border-b border-slate-100 dark:border-slate-800">
@@ -33,6 +46,14 @@ export function TaskFilterBar({
           <Filter className="h-4 w-4" />
           <span>Filter Tasks</span>
         </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClearFilters}
+          className="text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-50"
+        >
+          Clear Filters
+        </Button>
       </div>
       <div className="flex flex-wrap items-center gap-4">
         {/* Status filter */}
@@ -54,6 +75,7 @@ export function TaskFilterBar({
               <SelectItem value="todo">Todo</SelectItem>
               <SelectItem value="in-progress">In Progress</SelectItem>
               <SelectItem value="done">Done</SelectItem>
+              <SelectItem value="canceled">Canceled</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -92,6 +114,57 @@ export function TaskFilterBar({
               <SelectItem value="overdue">Overdue</SelectItem>
               <SelectItem value="today">Today</SelectItem>
               <SelectItem value="week">This week</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Category filter */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-slate-500">
+            <ListTodo className="h-4 w-4 inline-block mr-1" />
+            Category:
+          </span>
+          <Select
+            value={categoryFilter || "all"} // Default to "all" if null
+            onValueChange={(value) =>
+              onCategoryFilterChange(value === "all" ? null : value)
+            }
+          >
+            <SelectTrigger className="h-8 w-[120px]">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="work">Work</SelectItem>
+              <SelectItem value="personal">Personal</SelectItem>
+              <SelectItem value="shopping">Shopping</SelectItem>
+              <SelectItem value="health">Health</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Tags filter */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-slate-500">
+            <Tag className="h-4 w-4 inline-block mr-1" />
+            Tag:
+          </span>
+          <Select
+            value={tagFilter || "all"} // Default to "all" if null
+            onValueChange={(value) =>
+              onTagFilterChange(value === "all" ? null : value)
+            }
+          >
+            <SelectTrigger className="h-8 w-[120px]">
+              <SelectValue placeholder="Tag" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              {allAvailableTags.map((tag) => (
+                <SelectItem key={tag} value={tag}>
+                  {tag}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
