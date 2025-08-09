@@ -2,7 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input"; // Import Input for search
+import { Badge } from "@/components/ui/badge"; // Import Badge for displaying tags
+import { Plus, Trash2, Search } from "lucide-react"; // Import Search icon
 import { cn } from "@/lib/utils";
 import type { Database } from "@/lib/supabase/types";
 import { Spinner } from "@/components/ui/spinner";
@@ -18,8 +20,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useState, useMemo } from "react"; // Import useState and useMemo
 
-type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
+type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"] & {
+  tags: string[] | null;
+};
 
 export interface JournalListProps extends Record<string, unknown> {
   entries?: JournalEntry[];
@@ -40,7 +45,27 @@ export function JournalList({
   isMutating = false,
   limit,
 }: JournalListProps) {
-  const displayedEntries = limit ? entries.slice(0, limit) : entries;
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredEntries = useMemo(() => {
+    let filtered = limit ? entries.slice(0, limit) : entries;
+
+    if (searchTerm) {
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (entry) =>
+          entry.title.toLowerCase().includes(lowerCaseSearchTerm) ||
+          (entry.content &&
+            entry.content.toLowerCase().includes(lowerCaseSearchTerm)) ||
+          (entry.tags &&
+            entry.tags.some((tag) =>
+              tag.toLowerCase().includes(lowerCaseSearchTerm),
+            )),
+      );
+    }
+    return filtered;
+  }, [entries, limit, searchTerm]);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -69,11 +94,20 @@ export function JournalList({
             )}
             New Entry
           </Button>
+          <div className="relative mt-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Search entries or tags..."
+              className="pl-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
       <ScrollArea className="flex-1 py-2">
-        {displayedEntries.length === 0 ? (
+        {filteredEntries.length === 0 ? (
           <EmptyState
             title="No Journal Entries Yet"
             description="Click 'New Entry' to record your thoughts."
@@ -82,7 +116,7 @@ export function JournalList({
           />
         ) : (
           <nav className="grid gap-1 p-2">
-            {displayedEntries.map((entry) => (
+            {filteredEntries.map((entry) => (
               <div
                 key={entry.id}
                 className={cn(
@@ -103,6 +137,15 @@ export function JournalList({
                   <p className="text-xs text-slate-500 mt-1">
                     {formatDate(entry.updated_at)}
                   </p>
+                  {entry.tags && entry.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {entry.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>

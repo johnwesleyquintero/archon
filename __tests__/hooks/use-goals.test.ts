@@ -99,6 +99,7 @@ const mockGoals = [
     target_date: "2025-12-31",
     status: "pending",
     attachments: [],
+    milestones: [],
     created_at: new Date().toISOString(),
     progress: 0,
     updated_at: new Date().toISOString(),
@@ -111,6 +112,7 @@ const mockGoals = [
     target_date: "2025-11-30",
     status: "in_progress",
     attachments: [],
+    milestones: [],
     created_at: new Date().toISOString(),
     progress: 50,
     updated_at: new Date().toISOString(),
@@ -192,6 +194,7 @@ describe("useGoals", () => {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       progress: 0,
+      milestones: [],
       ...newGoalData,
     };
 
@@ -227,6 +230,7 @@ describe("useGoals", () => {
       target_date: "",
       status: "pending",
       attachments: [],
+      milestones: [],
     };
 
     // Import the mocked addGoal function

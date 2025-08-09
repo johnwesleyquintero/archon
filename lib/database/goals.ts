@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
+import { Milestone } from "@/lib/types/goal";
 import { getAuthenticatedUser } from "@/lib/supabase/auth-utils";
 import { handleServerError, AppError } from "@/lib/error-utils";
 
@@ -16,19 +17,25 @@ export async function getGoals(userId: string): Promise<Goal[]> {
     const { data, error } = await supabase
       .from("goals")
       .select(
-        "id, created_at, title, description, progress, status, target_date, attachments, user_id, updated_at",
+        "id, created_at, title, description, progress, status, target_date, attachments, milestones, user_id, updated_at",
       ) // Explicitly select columns
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
     if (error) {
-      throw new AppError(`Failed to fetch goals: ${error.message}`, 500);
+      throw error;
     }
 
-    // No explicit cast needed if select statement aligns with Goal type
-    return data;
+    // Parse milestones from JSON to Milestone[]
+    const parsedData = data.map((goal) => ({
+      ...goal,
+      milestones: (goal.milestones || []) as Milestone[],
+    }));
+
+    return parsedData;
   } catch (error) {
-    throw handleServerError(error, "getGoals");
+    console.error("Error fetching goals:", error);
+    return [];
   }
 }
 
@@ -61,6 +68,7 @@ export async function addGoal(goalData: {
         goalData.target_date === null ? undefined : goalData.target_date,
       attachments:
         goalData.attachments === null ? undefined : goalData.attachments,
+      milestones: [], // Initialize milestones as an empty array
       user_id: user.id, // Explicitly add user_id
     };
 

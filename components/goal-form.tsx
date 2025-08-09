@@ -24,7 +24,15 @@ import { cn } from "@/lib/utils";
 
 import type { Database } from "@/lib/supabase/types";
 
-type Goal = Database["public"]["Tables"]["goals"]["Row"];
+type Milestone = {
+  id: string;
+  description: string;
+  completed: boolean;
+};
+
+type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
+  milestones: Milestone[] | null;
+};
 
 interface GoalFormProps {
   isOpen: boolean;
@@ -34,6 +42,8 @@ interface GoalFormProps {
     title: string;
     description: string;
     target_date?: string;
+    progress?: number;
+    milestones: Milestone[] | null;
   }) => void;
   initialGoal?: Goal | null;
 }
@@ -44,6 +54,13 @@ export const GoalForm: React.FC<GoalFormProps> = ({
   onSave,
   initialGoal,
 }) => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
+  const [progress, setProgress] = useState<number | undefined>(undefined);
+  const [milestonesJson, setMilestonesJson] = useState<string>("");
+  const [milestonesError, setMilestonesError] = useState<string | null>(null);
+
   useEffect(() => {
     if (initialGoal) {
       setTitle(initialGoal.title);
@@ -51,23 +68,61 @@ export const GoalForm: React.FC<GoalFormProps> = ({
       setTargetDate(
         initialGoal.target_date ? new Date(initialGoal.target_date) : undefined,
       );
+      setProgress(initialGoal.progress || 0);
+      setMilestonesJson(
+        initialGoal.milestones
+          ? JSON.stringify(initialGoal.milestones, null, 2)
+          : "",
+      );
     } else {
       setTitle("");
       setDescription("");
       setTargetDate(undefined);
+      setProgress(0);
+      setMilestonesJson("");
     }
+    setMilestonesError(null); // Clear error on form open/initialization
   }, [initialGoal, isOpen]);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
 
   const handleSubmit = () => {
     if (!title) return;
+
+    let parsedMilestones: Milestone[] | null = null;
+    if (milestonesJson) {
+      try {
+        const parsed = JSON.parse(milestonesJson) as Milestone[];
+        if (
+          Array.isArray(parsed) &&
+          parsed.every(
+            (m) =>
+              typeof m === "object" &&
+              m !== null &&
+              "id" in m &&
+              "description" in m &&
+              "completed" in m,
+          )
+        ) {
+          parsedMilestones = parsed;
+          setMilestonesError(null);
+        } else {
+          setMilestonesError(
+            "Invalid JSON format for milestones. Expected an array of objects with id, description, and completed properties.",
+          );
+          return;
+        }
+      } catch {
+        setMilestonesError("Invalid JSON format for milestones.");
+        return;
+      }
+    }
+
     onSave({
       ...(initialGoal && { id: initialGoal.id }),
       title,
       description,
       ...(targetDate && { target_date: format(targetDate, "yyyy-MM-dd") }),
+      progress,
+      milestones: parsedMilestones,
     });
     onClose();
   };
@@ -133,6 +188,41 @@ export const GoalForm: React.FC<GoalFormProps> = ({
                 />
               </PopoverContent>
             </Popover>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="progress" className="text-right">
+              Progress (%)
+            </Label>
+            <Input
+              id="progress"
+              type="number"
+              value={progress ?? ""}
+              onChange={(e) => setProgress(Number(e.target.value))}
+              className="col-span-3"
+              min="0"
+              max="100"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="milestones" className="text-right pt-2">
+              Milestones (JSON)
+            </Label>
+            <div className="col-span-3">
+              <Textarea
+                id="milestones"
+                value={milestonesJson}
+                onChange={(e) => setMilestonesJson(e.target.value)}
+                placeholder='[{"id": "1", "description": "Milestone 1", "completed": false}]'
+                className="min-h-[100px]"
+              />
+              {milestonesError && (
+                <p className="text-red-500 text-sm mt-1">{milestonesError}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Enter milestones as a JSON array of objects with `id`,
+                `description`, and `completed` properties.
+              </p>
+            </div>
           </div>
         </div>
         <DialogFooter>

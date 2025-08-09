@@ -24,6 +24,7 @@ export const journalEntryInsertSchema = Zod.object({
   title: Zod.string().min(1, "Title is required."),
   content: Zod.string().nullable().optional(),
   attachments: Zod.any().nullable().optional(),
+  tags: Zod.array(Zod.string()).nullable().optional(),
   user_id: Zod.string(),
 });
 
@@ -31,6 +32,7 @@ export const journalEntryUpdateSchema = Zod.object({
   title: Zod.string().min(1, "Title cannot be empty.").optional(),
   content: Zod.string().nullable().optional(),
   attachments: Zod.any().nullable().optional(),
+  tags: Zod.array(Zod.string()).nullable().optional(),
 });
 
 export const messageSchema = Zod.object({

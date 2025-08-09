@@ -45,6 +45,7 @@ interface TaskDetailsModalProps {
     updatedTask: Partial<Database["public"]["Tables"]["tasks"]["Update"]>,
   ) => Promise<void>;
   goals?: { id: string; title: string }[];
+  allTasks?: Task[]; // New prop for all tasks to select parent
 }
 
 export function TaskDetailsModal({
@@ -53,6 +54,7 @@ export function TaskDetailsModal({
   onClose,
   onUpdate,
   goals = [],
+  allTasks = [],
 }: TaskDetailsModalProps) {
   const [title, setTitle] = useState(task?.title || "");
   const [description, setDescription] = useState<string | null>(
@@ -65,6 +67,9 @@ export function TaskDetailsModal({
     task?.recurrence_end_date ? new Date(task.recurrence_end_date) : null,
   );
   const [goalId, setGoalId] = useState<string | null>(task?.goal_id || null);
+  const [parentId, setParentId] = useState<string | null>(
+    task?.parent_id || null,
+  );
 
   useEffect(() => {
     if (task) {
@@ -75,12 +80,17 @@ export function TaskDetailsModal({
         task.recurrence_end_date ? new Date(task.recurrence_end_date) : null,
       );
       setGoalId(task.goal_id || null);
+      setParentId(task.parent_id || null);
     }
   }, [task]);
 
   if (!task) {
     return null;
   }
+
+  const availableParentTasks = allTasks.filter(
+    (t) => t.id !== task.id && t.parent_id !== task.id, // Prevent self-selection and direct circular dependency
+  );
 
   const handleSave = () => {
     void onUpdate(task.id, {
@@ -89,7 +99,8 @@ export function TaskDetailsModal({
       recurrence_pattern: recurrencePattern,
       recurrence_end_date: recurrenceEndDate?.toISOString() || null,
       goal_id: goalId,
-    } as Partial<Database["public"]["Tables"]["tasks"]["Update"]>); // Cast to partial update type
+      parent_id: parentId,
+    } as Partial<Database["public"]["Tables"]["tasks"]["Update"]>);
     onClose();
   };
 
@@ -146,6 +157,27 @@ export function TaskDetailsModal({
               </Select>
             </div>
             <div>
+              <label className="text-sm font-medium">Parent Task</label>
+              <Select
+                value={parentId || "__none__"}
+                onValueChange={(value) =>
+                  setParentId(value === "__none__" ? null : value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a parent task" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">No Parent</SelectItem>
+                  {availableParentTasks.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <label className="text-sm font-medium">Recurrence</label>
               <Select
                 value={recurrencePattern || "none"}
@@ -186,7 +218,7 @@ export function TaskDetailsModal({
                     <Calendar
                       mode="single"
                       selected={recurrenceEndDate || undefined}
-                      onSelect={(date) => setRecurrenceEndDate(date || null)} // Correctly handle onSelect
+                      onSelect={(date) => setRecurrenceEndDate(date || null)}
                       initialFocus
                     />
                   </PopoverContent>

@@ -52,6 +52,7 @@ describe("createGoal", () => {
     const formData = {
       title: "Test Goal",
       description: "This is a test goal.",
+      milestones: null,
     };
 
     const result = await createGoal(formData);
@@ -74,6 +75,7 @@ describe("createGoal", () => {
     const formData = {
       title: "Test Goal",
       description: "This is a test goal.",
+      milestones: null,
     };
 
     await expect(createGoal(formData)).rejects.toThrow(
@@ -95,6 +97,7 @@ describe("createGoal", () => {
     const formData = {
       title: "Test Goal",
       description: "This is a test goal.",
+      milestones: null,
     };
 
     await expect(createGoal(formData)).rejects.toThrow(

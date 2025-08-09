@@ -7,9 +7,10 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/components/ui/use-toast";
+import type { JournalEntry } from "@/lib/types/journal";
 
-type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
-type JournalInsert = Database["public"]["Tables"]["journal_entries"]["Insert"];
+type JournalInsert = Omit<JournalEntry, "id" | "created_at" | "updated_at">;
+type JournalUpdate = Partial<JournalInsert>;
 
 export function useJournal(
   initialEntries: JournalEntry[] = [],
@@ -81,6 +82,7 @@ export function useJournal(
         title: "New Entry",
         content: "",
         attachments: [],
+        tags: [], // Initialize tags as an empty array
         user_id: userId,
       };
       const result = await addJournalEntry(newEntryData);
@@ -105,12 +107,13 @@ export function useJournal(
   const handleSaveEntry = useCallback(() => {
     if (selectedEntry && hasUnsavedChanges) {
       startTransition(async () => {
-        const { id, title, content, attachments } = selectedEntry;
+        const { id, title, content, attachments, tags } = selectedEntry;
         const result = await updateJournalEntry(id, {
           title,
           content,
           attachments,
-        });
+          tags,
+        } as JournalUpdate); // Cast to JournalUpdate to include tags
         if (result && "error" in result) {
           toast({
             title: "Error",

@@ -46,6 +46,8 @@ export function TodoList({ initialTasks }: TodoListProps) {
           loading={loading}
           onAddTaskClick={handleAddTaskClick}
           onAddTask={handleAddTask}
+          allTasks={tasks} // Pass all tasks for parent selection in modal
+          goals={goals} // Pass goals to TaskList for TaskDetailsModal
         />
         <TaskInput
           ref={taskInputRef}

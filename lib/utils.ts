@@ -73,7 +73,51 @@ export const convertRawTaskToTask = (rawTask: RawTask): Task => {
     notes: rawTask.notes ?? null,
     sort_order: rawTask.sort_order ?? null,
     goal_id: (rawTask as { goal_id?: string | null }).goal_id ?? null,
+  } as Task; // Cast to Task to ensure all properties are present
+};
+
+/**
+ * Builds a hierarchical structure of tasks from a flat list based on parent_id.
+ *
+ * @param tasks - A flat array of Task objects.
+ * @returns An array of top-level Task objects, with their subtasks nested.
+ */
+export const buildTaskHierarchy = (tasks: Task[]): Task[] => {
+  const taskMap = new Map<string, Task>();
+  const rootTasks: Task[] = [];
+
+  // First pass: Populate map and initialize subtasks array for each task
+  tasks.forEach((task) => {
+    taskMap.set(task.id, { ...task, subtasks: [] });
+  });
+
+  // Second pass: Assign subtasks to their parents
+  taskMap.forEach((task) => {
+    if (task.parent_id && taskMap.has(task.parent_id)) {
+      const parent = taskMap.get(task.parent_id);
+      if (parent) {
+        parent.subtasks?.push(task);
+      }
+    } else {
+      // If no parent_id or parent not found, it's a root task
+      rootTasks.push(task);
+    }
+  });
+
+  // Sort root tasks and their subtasks by sort_order if available, otherwise by created_at
+  const sortTasks = (a: Task, b: Task) => {
+    if (a.sort_order !== null && b.sort_order !== null) {
+      return a.sort_order - b.sort_order;
+    }
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   };
+
+  rootTasks.sort(sortTasks);
+  rootTasks.forEach((task) => {
+    task.subtasks?.sort(sortTasks);
+  });
+
+  return rootTasks;
 };
 
 /**

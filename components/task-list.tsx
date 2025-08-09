@@ -3,7 +3,6 @@ import { TaskFilterBar } from "./task-filter-bar";
 import { TaskSort } from "./task-sort";
 import { EmptyState } from "./empty-state";
 import { useTasks } from "@/hooks/use-tasks";
-import { useGoals } from "@/hooks/use-goals";
 import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ListTodo, Filter } from "lucide-react";
@@ -11,6 +10,7 @@ import { Database } from "@/lib/supabase/types";
 import { useState, useMemo, useCallback } from "react";
 import { TaskDetailsModal } from "./task-details-modal";
 import { Task } from "@/lib/types/task";
+import { Goal } from "@/lib/types/goal"; // Import Goal type
 import { Button } from "@/components/ui/button";
 import { deleteMultipleTasks, updateTaskSortOrder } from "@/app/tasks/actions"; // Import updateTaskSortOrder
 import { toast } from "sonner";
@@ -39,7 +39,9 @@ interface TaskListProps {
   onAddTaskClick: () => void;
   onAddTask: (
     taskData: TaskFormValues & { parent_id?: string },
-  ) => Promise<void>; // Added onAddTask prop
+  ) => Promise<void>;
+  allTasks?: Task[]; // New prop for all tasks to select parent
+  goals?: Goal[] | null; // New prop for goals, using the Goal type
 }
 
 export function TaskList({
@@ -47,17 +49,17 @@ export function TaskList({
   loading,
   onAddTaskClick,
   onAddTask,
+  allTasks = [], // Default to empty array
+  goals = [], // Default to empty array
 }: TaskListProps) {
   const { toggleTask, deleteTask, updateTask, isMutating, setTasks } =
-    useTasks(tasks); // Destructure setTasks from useTasks
-  const { goals } = useGoals();
+    useTasks(tasks);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
 
   const { filteredAndSortedTasks, sort, setSort, filters, setFilters } =
-    useTaskFiltersAndSort(tasks); // Pass tasks directly, as useTasks now manages the primary state
+    useTaskFiltersAndSort(tasks);
 
-  // DND Kit sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -65,7 +67,6 @@ export function TaskList({
     }),
   );
 
-  // Extract all unique tags from the tasks for the filter bar
   const allAvailableTags = useMemo(() => {
     const tags = new Set<string>();
     tasks.forEach((task) => {
@@ -137,14 +138,11 @@ export function TaskList({
 
         const newOrder = arrayMove(filteredAndSortedTasks, oldIndex, newIndex);
 
-        // Update local state immediately for responsiveness
-        // We need to update the main 'tasks' state, which will then flow through useTaskFiltersAndSort
         setTasks(newOrder);
 
-        // Prepare updates for the database
         const updatesToSend = newOrder.map((task, index) => ({
           id: task.id,
-          sort_order: index, // Assign new sort_order based on array index
+          sort_order: index,
         }));
 
         try {
@@ -153,16 +151,13 @@ export function TaskList({
         } catch (error) {
           console.error("Failed to update task order:", error);
           toast.error("Failed to update task order.");
-          // Revert local state if API call fails
-          setTasks(tasks); // Revert to the original tasks state
+          setTasks(tasks);
         }
       }
     },
-    [filteredAndSortedTasks, tasks, setTasks], // Add tasks and setTasks to dependencies
+    [filteredAndSortedTasks, tasks, setTasks],
   );
 
-  // The loading state is managed by the parent component (TodoList)
-  // eslint-disable-next-line @typescript-eslint/await-thenable
   if (loading) {
     return (
       <div className="flex flex-col h-full py-2 space-y-2">
@@ -189,7 +184,8 @@ export function TaskList({
         onUpdate={async (id, updatedTask) => {
           await handleUpdate(id, updatedTask);
         }}
-        goals={goals}
+        goals={goals?.map((goal) => ({ id: goal.id, title: goal.title }))}
+        allTasks={allTasks} // Pass all tasks to the modal
       />
       <div className="flex flex-col h-full">
         <div className="flex flex-col gap-2 p-2 border-b border-slate-100 dark:border-slate-800">
@@ -205,16 +201,16 @@ export function TaskList({
               onDueDateFilterChange={(dueDate) =>
                 setFilters({ ...filters, dueDate })
               }
-              categoryFilter={filters.category} // Pass new category filter prop
+              categoryFilter={filters.category}
               onCategoryFilterChange={(category) =>
                 setFilters({ ...filters, category })
-              } // Pass new category filter handler
-              tagFilter={filters.tags.length > 0 ? filters.tags[0] : null} // Pass first tag for now
+              }
+              tagFilter={filters.tags.length > 0 ? filters.tags[0] : null}
               onTagFilterChange={(tag) =>
                 setFilters({ ...filters, tags: tag ? [tag] : [] })
-              } // Pass tag filter handler
-              allAvailableTags={allAvailableTags} // Pass all unique tags
-              onClearFilters={handleClearFilters} // Pass clear filters handler
+              }
+              allAvailableTags={allAvailableTags}
+              onClearFilters={handleClearFilters}
             />
             <TaskSort sort={sort} onSortChange={setSort} />
           </div>
@@ -248,7 +244,7 @@ export function TaskList({
               title="No matching tasks found."
               description="It seems no tasks match your current filter criteria. Try adjusting your filters to see more tasks!"
               actionLabel="Clear Filters"
-              onAction={handleClearFilters} // Use the new handler
+              onAction={handleClearFilters}
               icon={Filter}
             />
           ) : (
@@ -266,7 +262,7 @@ export function TaskList({
                     <li key={task.id}>
                       <TaskItem
                         {...task}
-                        goal={goals.find((g) => g.id === task.goal_id)}
+                        goal={goals?.find((g) => g.id === task.goal_id)}
                         onToggle={(id, is_completed) => {
                           void handleToggle(id, is_completed);
                         }}

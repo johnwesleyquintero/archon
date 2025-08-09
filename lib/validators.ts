@@ -144,4 +144,7 @@ export const journalEntrySchema = Zod.object({
     .max(255, { message: "Journal title is too long." }),
   content: Zod.string().optional(),
   attachments: Zod.array(attachmentSchema).optional(),
+  tags: Zod.array(
+    Zod.string().max(50, { message: "Tag is too long." }),
+  ).optional(),
 });

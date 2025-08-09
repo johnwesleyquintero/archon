@@ -1,4 +1,6 @@
-﻿export type Json =
+import { Milestone } from "@/lib/types/goal";
+
+export type Json =
   | string
   | number
   | boolean
@@ -44,6 +46,7 @@ export type Database = {
           created_at: string;
           description: string | null;
           id: string;
+          milestones: Milestone[] | null;
           progress: number | null;
           status: string;
           target_date: string | null;
@@ -56,6 +59,7 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           id?: string;
+          milestones?: Milestone[] | null;
           progress?: number | null;
           status?: string;
           target_date?: string | null;
@@ -68,6 +72,7 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           id?: string;
+          milestones?: Milestone[] | null;
           progress?: number | null;
           status?: string;
           target_date?: string | null;
@@ -83,6 +88,7 @@ export type Database = {
           content: string | null;
           created_at: string;
           id: string;
+          tags: string[] | null;
           title: string;
           updated_at: string;
           user_id: string;
@@ -92,6 +98,7 @@ export type Database = {
           content?: string | null;
           created_at?: string;
           id?: string;
+          tags?: string[] | null;
           title: string;
           updated_at?: string;
           user_id: string;
@@ -101,6 +108,7 @@ export type Database = {
           content?: string | null;
           created_at?: string;
           id?: string;
+          tags?: string[] | null;
           title?: string;
           updated_at?: string;
           user_id?: string;

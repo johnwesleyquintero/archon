@@ -7,7 +7,7 @@ import type { Database } from "@/lib/supabase/types";
 import type { Task } from "@/lib/types/task";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/use-toast";
-import { convertRawTaskToTask } from "@/lib/utils";
+import { convertRawTaskToTask, buildTaskHierarchy } from "@/lib/utils"; // Import buildTaskHierarchy
 
 // Define the raw task type from the database
 type RawTask = Database["public"]["Tables"]["tasks"]["Row"];
@@ -15,7 +15,7 @@ type RawTask = Database["public"]["Tables"]["tasks"]["Row"];
 export function useTaskFetching(initialTasks: Task[] = []) {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [loading, setLoading] = useState(true); // Always start as loading
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const supabase = createClient();
@@ -30,9 +30,9 @@ export function useTaskFetching(initialTasks: Task[] = []) {
     setError(null);
     try {
       const rawTasks = await getTasks();
-      // Convert raw tasks to proper Task type with correct tags format
       const processedTasks = rawTasks.map(convertRawTaskToTask);
-      setTasks(processedTasks);
+      const hierarchicalTasks = buildTaskHierarchy(processedTasks); // Build hierarchy
+      setTasks(hierarchicalTasks);
     } catch (err) {
       console.error("Failed to fetch tasks:", err);
       setError("Failed to load tasks. Please try again.");
@@ -44,16 +44,13 @@ export function useTaskFetching(initialTasks: Task[] = []) {
   // Setup realtime subscription and initial fetch
   useEffect(() => {
     if (!user) {
-      setLoading(false); // If no user, stop loading
+      setLoading(false);
       return;
     }
 
-    // If initialTasks are provided, we assume they are already loaded
-    // and we don't need to fetch immediately.
-    // Otherwise, fetch tasks on mount.
     if (initialTasks.length > 0) {
-      setLoading(false); // If initial tasks are present, we are not loading
-      setTasks(initialTasks); // Ensure tasks are set
+      setLoading(false);
+      setTasks(buildTaskHierarchy(initialTasks)); // Build hierarchy for initial tasks too
     } else {
       fetchTasks();
     }
@@ -70,22 +67,9 @@ export function useTaskFetching(initialTasks: Task[] = []) {
           filter: `user_id=eq.${user?.id}`,
         },
         (payload) => {
-          // Handle different event types for granular updates
-          if (payload.eventType === "INSERT") {
-            const newTask = convertRawTaskToTask(payload.new as RawTask);
-            setTasks((prev) => [newTask, ...prev]);
-          } else if (payload.eventType === "UPDATE") {
-            const updatedTask = convertRawTaskToTask(payload.new as RawTask);
-            setTasks((prev) =>
-              prev.map((task) =>
-                task.id === updatedTask.id ? updatedTask : task,
-              ),
-            );
-          } else if (payload.eventType === "DELETE") {
-            setTasks((prev) =>
-              prev.filter((task) => task.id !== payload.old.id),
-            );
-          }
+          // Re-fetch all tasks to rebuild the hierarchy on any change
+          // This is simpler than trying to incrementally update the nested structure
+          void fetchTasks();
         },
       )
       .subscribe();
@@ -100,6 +84,6 @@ export function useTaskFetching(initialTasks: Task[] = []) {
     loading,
     error,
     refetchTasks: fetchTasks,
-    setTasks, // Expose for mutations to update
+    setTasks,
   };
 }

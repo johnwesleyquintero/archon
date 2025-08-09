@@ -15,8 +15,17 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit } from "lucide-react";
 import { GoalForm } from "@/components/goal-form";
 import { createGoal, updateGoal } from "@/app/goals/actions";
+import { Progress } from "@/components/ui/progress"; // Assuming a progress component exists or will be created
 
-type Goal = Database["public"]["Tables"]["goals"]["Row"];
+type Milestone = {
+  id: string;
+  description: string;
+  completed: boolean;
+};
+
+type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
+  milestones: Milestone[] | null;
+};
 
 export interface GoalsDisplayProps extends Record<string, unknown> {
   initialGoals?: Goal[];
@@ -27,6 +36,8 @@ type GoalFormData = {
   title: string;
   description: string;
   target_date?: string;
+  progress?: number;
+  milestones: Milestone[] | null;
 };
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -54,6 +65,8 @@ export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
           title: goalData.title,
           description: goalData.description,
           target_date: goalData.target_date,
+          progress: goalData.progress,
+          milestones: goalData.milestones,
         });
       } else {
         // Create new goal
@@ -173,6 +186,29 @@ export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
                     Target Date:{" "}
                     {new Date(goal.target_date).toLocaleDateString()}
                   </p>
+                )}
+                {goal.progress !== null && goal.progress !== undefined && (
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-500">
+                      Progress: {goal.progress}%
+                    </p>
+                    <Progress value={goal.progress} className="w-[60%]" />
+                  </div>
+                )}
+                {goal.milestones && goal.milestones.length > 0 && (
+                  <div className="mt-2">
+                    <h4 className="text-sm font-medium">Milestones:</h4>
+                    <ul className="list-disc list-inside text-xs text-gray-600">
+                      {goal.milestones.map((milestone) => (
+                        <li
+                          key={milestone.id}
+                          className={milestone.completed ? "line-through" : ""}
+                        >
+                          {milestone.description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
               <Button

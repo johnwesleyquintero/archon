@@ -3,11 +3,13 @@
 import { JournalList } from "@/components/journal-list";
 import { JournalEditorWithAttachments } from "@/components/journal-editor-with-attachments";
 import { Skeleton } from "@/components/ui/skeleton";
+type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"] & {
+  tags: string[] | null;
+};
 import type { Database } from "@/lib/supabase/types";
 import { useJournal } from "@/hooks/use-journal";
 import { updateJournalEntry } from "@/app/journal/actions";
 
-type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"];
 type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];
 
 interface JournalInterfaceProps {

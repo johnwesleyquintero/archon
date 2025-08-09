@@ -102,6 +102,7 @@ export function useGoals(initialGoals: Goal[] = []) {
             target_date: newGoalData.target_date || null,
             status: newGoalData.status || "todo", // Default to "todo"
             attachments: (newGoalData.attachments || null) as Json,
+            milestones: [], // Initialize milestones as an empty array
             progress: newGoalData.progress ?? 0,
           };
           setGoals((prev) => [optimisticGoal, ...prev]);
