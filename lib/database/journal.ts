@@ -12,7 +12,7 @@ export async function getJournalEntries(userId: string) {
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("journal_entries")
-    .select("*, tags")
+    .select("*")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 

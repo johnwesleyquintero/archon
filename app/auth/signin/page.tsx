@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { handleAuthAction } from "@/lib/auth/actions"; // Import the server action
 
 export default function SignInPage() {
   return (
@@ -32,11 +31,10 @@ export default function SignInPage() {
         </CardHeader>
         <CardContent>
           <Suspense fallback={<div>Loading...</div>}>
-            <AuthForm handleAuthAction={handleAuthAction} />{" "}
-            {/* Pass the server action as a prop */}
+            <AuthForm /> {/* Pass the server action as a prop */}
           </Suspense>
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
+            Don't have an account?{" "}
             <Link
               href="/auth/signup"
               className="underline text-muted-foreground hover:text-foreground"

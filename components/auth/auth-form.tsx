@@ -8,14 +8,13 @@ import { Separator } from "@/components/ui/separator";
 import { EmailSignInForm } from "./email-sign-in-form";
 import { ForgotPasswordForm } from "./forgot-password-form";
 import { SocialSignInButtons } from "./social-sign-in-buttons";
-import { handleAuthAction } from "@/lib/auth/actions"; // Import the type for handleAuthAction
+import { handleAuthAction } from "@/lib/auth/actions";
 
 interface AuthFormProps {
   mode?: "signIn" | "signUp";
-  handleAuthAction: typeof handleAuthAction; // Add the new prop
 }
 
-export function AuthForm({ mode = "signIn", handleAuthAction }: AuthFormProps) {
+export function AuthForm({ mode = "signIn" }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const router = useRouter();
@@ -49,7 +48,6 @@ export function AuthForm({ mode = "signIn", handleAuthAction }: AuthFormProps) {
         setIsLoading={setIsLoading}
         onForgotPasswordClick={() => setShowForgotPassword(true)}
         onSignUpSuccess={handleSignUpSuccess}
-        handleAuthAction={handleAuthAction} // Pass the server action down
       />
     </div>
   );
