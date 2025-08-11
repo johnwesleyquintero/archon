@@ -18,11 +18,9 @@ jest.mock("@/components/auth/email-sign-in-form", () => ({
   EmailSignInForm: ({
     mode,
     onForgotPasswordClick,
-    handleAuthAction, // Add handleAuthAction to mock props
   }: {
     mode: "signIn" | "signUp";
     onForgotPasswordClick: () => void;
-    handleAuthAction: jest.Mock; // Mock the type
   }) => (
     <div data-testid="email-sign-in-form">
       <h2>{mode === "signIn" ? "Sign In" : "Sign Up"}</h2>
@@ -50,15 +48,6 @@ jest.mock("@/components/auth/email-sign-in-form", () => ({
         onClick={() => {
           // Mock the call to handleAuthAction
           if (mode === "signIn") {
-            void handleAuthAction("signIn", {
-              email: "test@example.com",
-              password: "password123",
-            });
-          } else {
-            void handleAuthAction("signUp", {
-              email: "test@example.com",
-              password: "password123",
-            });
           }
         }}
       >
@@ -106,7 +95,6 @@ describe("EmailSignInForm", () => {
   });
 
   it("renders sign-in form correctly", () => {
-    const mockHandleAuthAction = jest.fn();
     render(
       <EmailSignInFormModule.EmailSignInForm
         mode="signIn"
@@ -114,7 +102,6 @@ describe("EmailSignInForm", () => {
         setIsLoading={mockSetIsLoading}
         onForgotPasswordClick={mockOnForgotPasswordClick}
         onSignUpSuccess={mockOnSignUpSuccess}
-        handleAuthAction={mockHandleAuthAction}
       />,
     );
 
@@ -136,7 +123,6 @@ describe("EmailSignInForm", () => {
         setIsLoading={mockSetIsLoading}
         onForgotPasswordClick={mockOnForgotPasswordClick}
         onSignUpSuccess={mockOnSignUpSuccess}
-        handleAuthAction={mockHandleAuthAction}
       />,
     );
 
@@ -155,7 +141,6 @@ describe("EmailSignInForm", () => {
         setIsLoading={mockSetIsLoading}
         onForgotPasswordClick={mockOnForgotPasswordClick}
         onSignUpSuccess={mockOnSignUpSuccess}
-        handleAuthAction={mockHandleAuthAction}
       />,
     );
 
@@ -172,7 +157,6 @@ describe("EmailSignInForm", () => {
         setIsLoading={mockSetIsLoading}
         onForgotPasswordClick={mockOnForgotPasswordClick}
         onSignUpSuccess={mockOnSignUpSuccess}
-        handleAuthAction={mockHandleAuthAction}
       />,
     );
 
@@ -198,7 +182,6 @@ describe("EmailSignInForm", () => {
         setIsLoading={mockSetIsLoading}
         onForgotPasswordClick={mockOnForgotPasswordClick}
         onSignUpSuccess={mockOnSignUpSuccess}
-        handleAuthAction={mockHandleAuthAction}
       />,
     );
 

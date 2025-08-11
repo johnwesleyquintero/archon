@@ -10,8 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { handleAuthAction } from "@/lib/auth/actions";
-
 export default function SignUpPage() {
   return (
     // Changed 'bg-slate-100' to 'bg-background' to utilize the theme's background color,
@@ -35,7 +33,7 @@ export default function SignUpPage() {
         </CardHeader>
         <CardContent>
           <Suspense fallback={<div>Loading...</div>}>
-            <AuthForm mode="signUp" handleAuthAction={handleAuthAction} />
+            <AuthForm mode="signUp" />
           </Suspense>
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}

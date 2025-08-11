@@ -8,8 +8,6 @@ import { Separator } from "@/components/ui/separator";
 import { EmailSignInForm } from "./email-sign-in-form";
 import { ForgotPasswordForm } from "./forgot-password-form";
 import { SocialSignInButtons } from "./social-sign-in-buttons";
-import { handleAuthAction } from "@/lib/auth/actions";
-
 interface AuthFormProps {
   mode?: "signIn" | "signUp";
 }

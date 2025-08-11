@@ -48,6 +48,8 @@ export const GoalForm: React.FC<GoalFormProps> = ({
   const [description, setDescription] = useState("");
   const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
   const [progress, setProgress] = useState<number | undefined>(undefined);
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [progressError, setProgressError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialGoal) {
@@ -62,11 +64,31 @@ export const GoalForm: React.FC<GoalFormProps> = ({
       setDescription("");
       setTargetDate(undefined);
       setProgress(0);
+      setTitleError(null);
+      setProgressError(null);
     }
   }, [initialGoal, isOpen]);
 
   const handleSubmit = () => {
-    if (!title) return;
+    let isValid = true;
+
+    if (!title.trim()) {
+      setTitleError("Title is required.");
+      isValid = false;
+    } else {
+      setTitleError(null);
+    }
+
+    if (progress !== undefined && (progress < 0 || progress > 100)) {
+      setProgressError("Progress must be between 0 and 100.");
+      isValid = false;
+    } else {
+      setProgressError(null);
+    }
+
+    if (!isValid) {
+      return;
+    }
 
     onSave({
       ...(initialGoal && { id: initialGoal.id }),
@@ -97,7 +119,13 @@ export const GoalForm: React.FC<GoalFormProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="col-span-3"
+              aria-invalid={titleError ? "true" : "false"}
             />
+            {titleError && (
+              <p className="col-span-4 text-right text-sm text-red-500">
+                {titleError}
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="description" className="text-right">
@@ -153,7 +181,13 @@ export const GoalForm: React.FC<GoalFormProps> = ({
               className="col-span-3"
               min="0"
               max="100"
+              aria-invalid={progressError ? "true" : "false"}
             />
+            {progressError && (
+              <p className="col-span-4 text-right text-sm text-red-500">
+                {progressError}
+              </p>
+            )}
           </div>
         </div>
         <DialogFooter>

@@ -12,7 +12,6 @@ jest.mock("@/components/auth/email-sign-in-form", () => ({
       setIsLoading,
       onForgotPasswordClick,
       onSignUpSuccess,
-      handleAuthAction, // Add handleAuthAction to mock props
     }) => (
       <div data-testid="email-sign-in-form">
         <h2>{mode === "signIn" ? "Sign In" : "Sign Up"}</h2>
@@ -29,18 +28,7 @@ jest.mock("@/components/auth/email-sign-in-form", () => ({
         <button
           onClick={() => {
             // Mock the call to handleAuthAction
-            if (mode === "signIn") {
-              void handleAuthAction("signIn", {
-                email: "test@example.com",
-                password: "password123",
-              });
-            } else {
-              void handleAuthAction("signUp", {
-                email: "test@example.com",
-                password: "password123",
-              });
-              if (onSignUpSuccess) onSignUpSuccess();
-            }
+            if (onSignUpSuccess) onSignUpSuccess();
           }}
         >
           {mode === "signIn" ? "Sign In" : "Sign Up"}
@@ -127,8 +115,7 @@ describe("AuthForm", () => {
   });
 
   it("renders sign-in form by default", () => {
-    const mockHandleAuthAction = jest.fn();
-    render(<AuthForm handleAuthAction={mockHandleAuthAction} />);
+    render(<AuthForm />);
     expect(
       screen.getByRole("heading", { name: /Sign In/i }),
     ).toBeInTheDocument();
@@ -142,8 +129,7 @@ describe("AuthForm", () => {
   });
 
   it("renders sign-up form when mode is signUp", () => {
-    const mockHandleAuthAction = jest.fn();
-    render(<AuthForm mode="signUp" handleAuthAction={mockHandleAuthAction} />);
+    render(<AuthForm mode="signUp" />);
 
     // In our mocked component, we should look for the heading directly
     expect(
@@ -162,8 +148,7 @@ describe("AuthForm", () => {
   });
 
   it("shows forgot password form when forgot password is clicked", () => {
-    const mockHandleAuthAction = jest.fn();
-    render(<AuthForm handleAuthAction={mockHandleAuthAction} />);
+    render(<AuthForm />);
     fireEvent.click(screen.getByText(/Forgot your password?/i));
     expect(screen.getByTestId("forgot-password-form")).toBeInTheDocument();
     expect(
@@ -172,8 +157,7 @@ describe("AuthForm", () => {
   });
 
   it("returns to sign-in form when cancel is clicked on forgot password form", () => {
-    const mockHandleAuthAction = jest.fn();
-    render(<AuthForm handleAuthAction={mockHandleAuthAction} />);
+    render(<AuthForm />);
     fireEvent.click(screen.getByText(/Forgot your password?/i));
     fireEvent.click(screen.getByText(/Cancel/i));
     expect(
@@ -182,37 +166,30 @@ describe("AuthForm", () => {
   });
 
   it("calls signIn with correct credentials on sign-in form submission", async () => {
-    const mockHandleAuthAction = jest
-      .fn()
-      .mockResolvedValueOnce({ error: null });
-    render(<AuthForm handleAuthAction={mockHandleAuthAction} />);
+    render(<AuthForm />);
     fireEvent.click(screen.getByRole("button", { name: /Sign In/i }));
     await waitFor(() => {
-      expect(mockHandleAuthAction).toHaveBeenCalledWith("signIn", {
-        email: "test@example.com",
-        password: "password123",
-      });
+      expect(mockSignIn).toHaveBeenCalledWith(
+        "test@example.com",
+        "password123",
+      );
     });
   });
 
   it("calls signUp with correct credentials on sign-up form submission", async () => {
-    const mockHandleAuthAction = jest
-      .fn()
-      .mockResolvedValueOnce({ error: null });
-    render(<AuthForm mode="signUp" handleAuthAction={mockHandleAuthAction} />);
+    render(<AuthForm mode="signUp" />);
     fireEvent.click(screen.getByRole("button", { name: /Sign Up/i }));
     await waitFor(() => {
-      expect(mockHandleAuthAction).toHaveBeenCalledWith("signUp", {
-        email: "test@example.com",
-        password: "password123",
-      });
+      expect(mockSignUp).toHaveBeenCalledWith(
+        "test@example.com",
+        "password123",
+      );
     });
   });
 
   it("calls resetPassword with correct email on forgot password form submission", async () => {
     mockResetPassword.mockResolvedValueOnce({ error: null });
-    const mockHandleAuthAction = jest.fn();
-    render(<AuthForm handleAuthAction={mockHandleAuthAction} />);
+    render(<AuthForm />);
     fireEvent.click(screen.getByText(/Forgot your password?/i));
     fireEvent.click(screen.getByRole("button", { name: /Send Reset Link/i }));
     await waitFor(() => {
@@ -221,35 +198,35 @@ describe("AuthForm", () => {
   });
 
   it("shows success toast when sign-in is successful", async () => {
-    const mockHandleAuthAction = jest
-      .fn()
-      .mockResolvedValueOnce({ error: null });
-    render(<AuthForm handleAuthAction={mockHandleAuthAction} />);
+    mockSignIn.mockResolvedValueOnce({ error: null });
+    render(<AuthForm />);
     fireEvent.click(screen.getByRole("button", { name: /Sign In/i }));
     await waitFor(() => {
-      expect(mockHandleAuthAction).toHaveBeenCalled();
+      expect(toast.success).toHaveBeenCalledWith("Signed in successfully!");
     });
   });
 
   it("shows error toast when sign-in fails", async () => {
-    const mockHandleAuthAction = jest.fn().mockResolvedValueOnce({
+    mockSignIn.mockResolvedValueOnce({
       error: { message: "Invalid credentials" },
     });
-    render(<AuthForm handleAuthAction={mockHandleAuthAction} />);
+    render(<AuthForm />);
     fireEvent.click(screen.getByRole("button", { name: /Sign In/i }));
     await waitFor(() => {
-      expect(mockHandleAuthAction).toHaveBeenCalled();
+      expect(toast.error).toHaveBeenCalledWith("Invalid credentials");
     });
   });
 
   it("redirects to verify-email page on successful sign-up", async () => {
-    const mockHandleAuthAction = jest
-      .fn()
-      .mockResolvedValueOnce({ error: null });
-    render(<AuthForm mode="signUp" handleAuthAction={mockHandleAuthAction} />);
+    mockSignUp.mockResolvedValueOnce({ error: null });
+    const mockRouterPush = jest.fn();
+    require("next/navigation").useRouter.mockReturnValue({
+      push: mockRouterPush,
+    });
+    render(<AuthForm mode="signUp" />);
     fireEvent.click(screen.getByRole("button", { name: /Sign Up/i }));
     await waitFor(() => {
-      expect(mockHandleAuthAction).toHaveBeenCalled();
+      expect(mockRouterPush).toHaveBeenCalledWith("/auth/verify-email");
     });
   });
 });
