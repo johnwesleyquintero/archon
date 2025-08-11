@@ -22,13 +22,12 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const userName =
-    (user?.user_metadata?.full_name as string) || user?.email || "User";
-
-  // Redirect unauthenticated users to the sign-in page
   if (!user) {
     redirect("/auth/signin");
   }
+
+  const userName =
+    (user?.user_metadata?.full_name as string) || user?.email || "User";
 
   let initialGoals: Goal[] = [];
   let initialLayout = DEFAULT_LAYOUT;
