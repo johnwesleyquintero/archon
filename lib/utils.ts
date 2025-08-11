@@ -1,14 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import type { Database } from "@/lib/supabase/types";
-import type { Task } from "@/lib/types/task";
-
-// Define the raw task type from the database, ensuring it's sourced from the single source of truth.
-type RawTask = Database["public"]["Tables"]["tasks"]["Row"] & {
-  status: Database["public"]["Enums"]["task_status"] | null;
-  notes?: string | null;
-  sort_order?: number | null;
-};
+import { Task, TaskStatus, RawTask } from "@/lib/types/task"; // Import Task, TaskStatus, and RawTask
 
 /**
  * Combines Tailwind CSS classes and other class values into a single string.
@@ -45,13 +37,7 @@ export const convertRawTaskToTask = (rawTask: RawTask): Task => {
     }
   }
 
-  const processedStatus: Task["status"] =
-    rawTask.status === "todo" ||
-    rawTask.status === "in_progress" || // Corrected typo
-    rawTask.status === "done" ||
-    rawTask.status === "canceled" // Added canceled status
-      ? rawTask.status
-      : "todo"; // Default to 'todo' if status is null or invalid
+  const processedStatus: Task["status"] = rawTask.status as TaskStatus | null;
 
   return {
     ...rawTask,

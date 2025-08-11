@@ -10,7 +10,9 @@ import type { Database } from "@/lib/supabase/types";
 import { DashboardLoadingSkeleton } from "@/components/dashboard/dashboard-loading-skeleton";
 import { redirect } from "next/navigation";
 
-type Goal = Database["public"]["Tables"]["goals"]["Row"];
+type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
+  tags: string[] | null;
+};
 import { mergeLayouts } from "@/lib/dashboard-utils";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 

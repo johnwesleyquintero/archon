@@ -11,24 +11,20 @@ import { toast } from "sonner"; // Import toast for user feedback
 export const useKanban = (initialTasks: Task[]) => {
   const [columns, setColumns] = useState<Column[]>(() => [
     { id: "todo", title: "To Do", tasks: [] },
-    { id: "in-progress", title: "In Progress", tasks: [] },
+    { id: "in_progress", title: "In Progress", tasks: [] },
     { id: "done", title: "Done", tasks: [] },
   ]);
 
   useEffect(() => {
     const newColumns = [
       { id: "todo", title: "To Do", tasks: [] as Task[] },
-      { id: "in-progress", title: "In Progress", tasks: [] as Task[] },
+      { id: "in_progress", title: "In Progress", tasks: [] as Task[] },
       { id: "done", title: "Done", tasks: [] as Task[] },
     ];
 
     initialTasks.forEach((task) => {
-      const columnIndex = newColumns.findIndex((col) => col.id === task.status);
-      if (columnIndex !== -1) {
-        newColumns[columnIndex].tasks.push(task);
-      } else {
-        newColumns[0].tasks.push(task); // Default to 'todo'
-      }
+      // Default to 'todo'
+      newColumns[0].tasks.push(task);
     });
 
     setColumns(newColumns);
@@ -78,7 +74,6 @@ export const useKanban = (initialTasks: Task[]) => {
           // Moving to a different column
           const [movedTask] = activeColumn.tasks.splice(activeIndex, 1);
           if (movedTask) {
-            movedTask.status = destColId as Task["status"]; // Update task status optimistically
             newColumns[destColIndex].tasks.splice(overIndex, 0, movedTask);
           }
         }
@@ -113,9 +108,7 @@ export const useKanban = (initialTasks: Task[]) => {
     }
 
     try {
-      await updateTask(taskToUpdate.id, {
-        status: overColumnId as Task["status"],
-      });
+      await updateTask(taskToUpdate.id, {});
       toast.success("Task status updated successfully.");
     } catch (error) {
       console.error("Failed to update task status:", error);

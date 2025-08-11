@@ -1,18 +1,11 @@
 "use client";
 
-import type { Database } from "@/lib/supabase/types";
 import { useTaskFetching } from "./use-task-fetching";
 import { useTaskMutations } from "./use-task-mutations";
-import { convertRawTaskToTask } from "@/lib/utils";
-
-// Define the raw task type from the database
-type RawTask = Database["public"]["Tables"]["tasks"]["Row"];
+import { Task, RawTask } from "@/lib/types/task"; // Import Task and RawTask
 
 // Compose fetching and mutation hooks
-export function useTasks(initialRawTasks: RawTask[] = []) {
-  // Convert initial raw tasks to proper Task type
-  const initialTasks = initialRawTasks.map(convertRawTaskToTask);
-
+export function useTasks(initialTasks: Task[] = []) {
   const {
     tasks,
     loading,

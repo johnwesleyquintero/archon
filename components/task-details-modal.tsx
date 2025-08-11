@@ -11,8 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TipTapEditor } from "./quill-editor";
-import { Task } from "@/lib/types/task";
-import { Database } from "@/lib/supabase/types";
+import { Task, TaskStatus, TaskPriority } from "@/lib/types/task"; // Changed to regular import
+import type { Database } from "@/lib/supabase/types";
 import {
   Select,
   SelectContent,
@@ -26,7 +26,18 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Target } from "lucide-react";
+import { CalendarIcon, Target, Archive, Trash2 } from "lucide-react"; // Import Archive and Trash2 icons
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const recurrencePatterns = [
   { value: "none", label: "None" },
@@ -44,6 +55,8 @@ interface TaskDetailsModalProps {
     id: string,
     updatedTask: Partial<Database["public"]["Tables"]["tasks"]["Update"]>,
   ) => Promise<void>;
+  onArchive: (id: string) => void | Promise<void>; // New prop for archiving
+  onDeletePermanently: (id: string) => void | Promise<void>; // New prop for permanent delete
   goals?: { id: string; title: string }[];
   allTasks?: Task[]; // New prop for all tasks to select parent
 }
@@ -53,6 +66,8 @@ export function TaskDetailsModal({
   isOpen,
   onClose,
   onUpdate,
+  onArchive, // Destructure new props
+  onDeletePermanently, // Destructure new props
   goals = [],
   allTasks = [],
 }: TaskDetailsModalProps) {
@@ -70,6 +85,10 @@ export function TaskDetailsModal({
   const [parentId, setParentId] = useState<string | null>(
     task?.parent_id || null,
   );
+  const [priority, setPriority] = useState<TaskPriority | null>(
+    task?.priority || null,
+  );
+  const [status, setStatus] = useState<TaskStatus | null>(task?.status || null);
 
   useEffect(() => {
     if (task) {
@@ -81,6 +100,8 @@ export function TaskDetailsModal({
       );
       setGoalId(task.goal_id || null);
       setParentId(task.parent_id || null);
+      setPriority(task.priority || null);
+      setStatus(task.status || null);
     }
   }, [task]);
 
@@ -89,7 +110,7 @@ export function TaskDetailsModal({
   }
 
   const availableParentTasks = allTasks.filter(
-    (t) => t.id !== task.id && t.parent_id !== task.id, // Prevent self-selection and direct circular dependency
+    (t) => t.id !== task.id && t.parent_id !== task.id,
   );
 
   const handleSave = () => {
@@ -100,6 +121,8 @@ export function TaskDetailsModal({
       recurrence_end_date: recurrenceEndDate?.toISOString() || null,
       goal_id: goalId,
       parent_id: parentId,
+      priority, // Include priority
+      status, // Include status
     } as Partial<Database["public"]["Tables"]["tasks"]["Update"]>);
     onClose();
   };
@@ -178,6 +201,47 @@ export function TaskDetailsModal({
               </Select>
             </div>
             <div>
+              <label className="text-sm font-medium">Priority</label>
+              <Select
+                value={priority || "__none__"}
+                onValueChange={(value) =>
+                  setPriority(
+                    value === "__none__" ? null : (value as TaskPriority),
+                  )
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">No Priority</SelectItem>
+                  {Object.values(TaskPriority).map((p) => (
+                    <SelectItem key={p} value={p}>
+                      {p.charAt(0).toUpperCase() + p.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Status</label>
+              <Select
+                value={status || TaskStatus.Todo}
+                onValueChange={(value) => setStatus(value as TaskStatus)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(TaskStatus).map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s.replace(/_/g, " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <label className="text-sm font-medium">Recurrence</label>
               <Select
                 value={recurrencePattern || "none"}
@@ -227,11 +291,51 @@ export function TaskDetailsModal({
             )}
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Save Changes</Button>
+        <DialogFooter className="flex justify-between items-center">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                void onArchive(task.id);
+                onClose();
+              }}
+            >
+              <Archive className="mr-2 h-4 w-4" /> Archive
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete Permanently
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    your task.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      void onDeletePermanently(task.id);
+                      onClose();
+                    }}
+                  >
+                    Continue
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>Save Changes</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

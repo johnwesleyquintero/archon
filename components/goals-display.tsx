@@ -2,7 +2,6 @@
 
 import useSWR from "swr";
 import { useState, useMemo } from "react";
-import type { Database } from "@/lib/supabase/types";
 import {
   Select,
   SelectContent,
@@ -16,19 +15,10 @@ import { PlusCircle, Edit } from "lucide-react";
 import { GoalForm } from "@/components/goal-form";
 import { createGoal, updateGoal } from "@/app/goals/actions";
 import { Progress } from "@/components/ui/progress"; // Assuming a progress component exists or will be created
-
-type Milestone = {
-  id: string;
-  description: string;
-  completed: boolean;
-};
-
-type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
-  milestones: Milestone[] | null;
-};
+import { Goal as GoalFromLib } from "@/lib/types/goal"; // Import the Goal type and alias it
 
 export interface GoalsDisplayProps extends Record<string, unknown> {
-  initialGoals?: Goal[];
+  initialGoals?: GoalFromLib[];
 }
 
 type GoalFormData = {
@@ -37,7 +27,6 @@ type GoalFormData = {
   description: string;
   target_date?: string;
   progress?: number;
-  milestones: Milestone[] | null;
 };
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -47,12 +36,12 @@ export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
     data: goals,
     error,
     mutate,
-  } = useSWR<Goal[], Error>("/api/goals", fetcher, {
+  } = useSWR<GoalFromLib[], Error>("/api/goals", fetcher, {
     fallbackData: initialGoals,
   });
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [editingGoal, setEditingGoal] = useState<GoalFromLib | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -66,7 +55,6 @@ export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
           description: goalData.description,
           target_date: goalData.target_date,
           progress: goalData.progress,
-          milestones: goalData.milestones,
         });
       } else {
         // Create new goal
@@ -81,7 +69,7 @@ export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
     }
   };
 
-  const handleEditClick = (goal: Goal) => {
+  const handleEditClick = (goal: GoalFromLib) => {
     setEditingGoal(goal);
     setIsFormOpen(true);
   };
@@ -193,21 +181,6 @@ export const GoalsDisplay: React.FC<GoalsDisplayProps> = ({ initialGoals }) => {
                       Progress: {goal.progress}%
                     </p>
                     <Progress value={goal.progress} className="w-[60%]" />
-                  </div>
-                )}
-                {goal.milestones && goal.milestones.length > 0 && (
-                  <div className="mt-2">
-                    <h4 className="text-sm font-medium">Milestones:</h4>
-                    <ul className="list-disc list-inside text-xs text-gray-600">
-                      {goal.milestones.map((milestone) => (
-                        <li
-                          key={milestone.id}
-                          className={milestone.completed ? "line-through" : ""}
-                        >
-                          {milestone.description}
-                        </li>
-                      ))}
-                    </ul>
                   </div>
                 )}
               </div>

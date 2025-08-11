@@ -82,7 +82,7 @@ export function useJournal(
         title: "New Entry",
         content: "",
         attachments: [],
-        tags: [], // Initialize tags as an empty array
+        tags: [],
         user_id: userId,
       };
       const result = await addJournalEntry(newEntryData);
@@ -113,7 +113,7 @@ export function useJournal(
           content,
           attachments,
           tags,
-        } as JournalUpdate); // Cast to JournalUpdate to include tags
+        } as JournalUpdate);
         if (result && "error" in result) {
           toast({
             title: "Error",

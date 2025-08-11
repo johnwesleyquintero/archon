@@ -1,22 +1,20 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+"use client";
+
+import { useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TaskInput } from "./task-input";
 import { TaskList } from "./task-list";
 import { useTasks } from "@/hooks/use-tasks";
 import { useGoals } from "@/hooks/use-goals";
 import { useAuth } from "@/contexts/auth-context";
+import { useState } from "react";
 import { Task as TaskType } from "@/lib/types/task";
 import { TaskFormValues } from "@/lib/validators";
-import {
-  useTaskFiltersAndSort,
-  TaskFilters,
-} from "@/hooks/use-task-filters-and-sort";
-import { TaskFilterBar } from "./task-filter-bar";
-import { TaskSort } from "./task-sort";
+import { TaskEditModal } from "@/components/task-edit-modal";
 
-interface TodoListProps {
+export interface TodoListProps {
   initialTasks?: TaskType[];
 }
 
@@ -26,23 +24,8 @@ export function TodoList({ initialTasks }: TodoListProps) {
   const { user } = useAuth();
   const taskInputRef = useRef<HTMLInputElement>(null);
 
-  const {
-    filteredAndSortedTasks,
-    sort,
-    setSort,
-    filters,
-    setFilters,
-  } = useTaskFiltersAndSort(tasks);
-
-  const allAvailableTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    tasks.forEach((task) => {
-      if (task.tags) {
-        task.tags.forEach((tag) => tagSet.add(tag));
-      }
-    });
-    return Array.from(tagSet);
-  }, [tasks]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<TaskType | null>(null);
 
   const handleAddTaskClick = () => {
     taskInputRef.current?.focus();
@@ -53,65 +36,50 @@ export function TodoList({ initialTasks }: TodoListProps) {
       await addTask({
         ...input,
         user_id: user.id,
-        status: "todo",
       });
     }
   };
 
-  const handleClearFilters = () => {
-    setFilters({
-      status: "all",
-      priority: "all",
-      dueDate: "all",
-      category: null,
-      tags: [],
-    });
+  const handleEditTask = (task: TaskType) => {
+    setTaskToEdit(task);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setTaskToEdit(null);
   };
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Todo List</CardTitle>
-        <TaskSort sort={sort} onSortChange={setSort} />
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-4">
-        <TaskFilterBar
-          currentFilter={filters.status}
-          onFilterChange={(status) => setFilters({ ...filters, status })}
-          priorityFilter={filters.priority}
-          onPriorityFilterChange={(priority) =>
-            setFilters({ ...filters, priority })
-          }
-          dueDateFilter={filters.dueDate}
-          onDueDateFilterChange={(dueDate) =>
-            setFilters({ ...filters, dueDate })
-          }
-          categoryFilter={filters.category}
-          onCategoryFilterChange={(category) =>
-            setFilters({ ...filters, category })
-          }
-          tagFilter={filters.tags.length > 0 ? filters.tags[0] : null}
-          onTagFilterChange={(tag) =>
-            setFilters({ ...filters, tags: tag ? [tag] : [] })
-          }
-          allAvailableTags={allAvailableTags}
-          onClearFilters={handleClearFilters}
-        />
-        <TaskList
-          tasks={filteredAndSortedTasks}
-          loading={loading}
-          onAddTaskClick={handleAddTaskClick}
-          onAddTask={handleAddTask}
-          allTasks={tasks}
-          goals={goals}
-        />
-        <TaskInput
-          ref={taskInputRef}
-          onAddTask={handleAddTask}
-          disabled={isMutating || !user}
-          goals={goals}
-        />
-      </CardContent>
-    </Card>
+    <>
+      <Card className="h-full flex flex-col">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Todo List</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col p-4">
+          <TaskList
+            tasks={tasks}
+            loading={loading}
+            onAddTaskClick={handleAddTaskClick}
+            onAddTask={handleAddTask}
+            allTasks={tasks}
+            goals={goals}
+            onEditTask={handleEditTask}
+          />
+        </CardContent>
+      </Card>
+      <TaskInput
+        ref={taskInputRef}
+        onAddTask={handleAddTask}
+        disabled={isMutating || !user}
+        goals={goals}
+      />
+      <TaskEditModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        task={taskToEdit}
+        goals={goals}
+      />
+    </>
   );
 }

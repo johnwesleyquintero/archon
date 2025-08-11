@@ -4,7 +4,7 @@ import { useState, useCallback, useTransition } from "react";
 import {
   addTask as addTaskToDb,
   toggleTask as toggleTaskInDb,
-  deleteTask as deleteTaskFromDb,
+  deletePermanentlyTask as deleteTaskFromDb, // Changed to deletePermanentlyTask
   updateTask as updateTaskInDb,
 } from "@/app/tasks/actions";
 import type { Database, TablesUpdate } from "@/lib/supabase/types";
@@ -14,12 +14,6 @@ import { useToast } from "@/components/ui/use-toast";
 
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 type TaskUpdate = TablesUpdate<"tasks">;
-type TaskStatus = "todo" | "in-progress" | "done";
-
-const isValidStatus = (status: any): status is TaskStatus => {
-  return ["todo", "in-progress", "done"].includes(status);
-};
-
 export function useTaskMutations({
   setTasks,
 }: {
@@ -151,36 +145,51 @@ export function useTaskMutations({
   );
 
   const handleUpdateTask = useCallback(
-    (id: string, updatedTask: Partial<TaskUpdate>) => {
-      if (!user) return;
-      let originalTasks: Task[] = [];
-      setTasks((prev) => {
-        originalTasks = prev;
-        return prev.map((task) =>
-          task.id === id ? { ...task, ...updatedTask } : task,
-        ) as Task[];
-      });
-      startTransition(async () => {
-        const result = await updateTaskInDb(id, updatedTask);
-
-        if (result && "error" in result) {
-          setTasks(originalTasks);
-          toast({
-            title: "Error",
-            description: result.error,
-            variant: "destructive",
-          });
-        } else if (result) {
-          setTasks((prev) => prev.map((t) => (t.id === id ? result : t)));
-          toast({ title: "Success!", description: "Task updated." });
-        } else {
-          setTasks(originalTasks);
-          toast({
-            title: "Error",
-            description: "Failed to update task.",
-            variant: "destructive",
-          });
+    (id: string, updatedTask: Partial<TaskUpdate>): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        if (!user) {
+          const msg = "You must be logged in to update tasks.";
+          setError(msg);
+          toast({ title: "Error", description: msg, variant: "destructive" });
+          reject(new Error(msg));
+          return;
         }
+        setError(null);
+        let originalTasks: Task[] = [];
+        setTasks((prev) => {
+          originalTasks = prev;
+          return prev.map((task) =>
+            task.id === id ? { ...task, ...updatedTask } : task,
+          ) as Task[];
+        });
+        startTransition(async () => {
+          const result = await updateTaskInDb(id, updatedTask);
+
+          if (result && "error" in result) {
+            setTasks(originalTasks);
+            setError(result.error);
+            toast({
+              title: "Error",
+              description: result.error,
+              variant: "destructive",
+            });
+            reject(new Error(result.error));
+          } else if (result) {
+            setTasks((prev) => prev.map((t) => (t.id === id ? result : t)));
+            toast({ title: "Success!", description: "Task updated." });
+            resolve();
+          } else {
+            setTasks(originalTasks);
+            const msg = "Failed to update task.";
+            setError(msg);
+            toast({
+              title: "Error",
+              description: msg,
+              variant: "destructive",
+            });
+            reject(new Error(msg));
+          }
+        });
       });
     },
     [user, toast, setTasks],

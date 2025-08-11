@@ -8,20 +8,30 @@ export const taskPriorityEnum = Zod.enum(["low", "medium", "high"]);
 
 /**
  * Zod enum for defining task statuses.
- * Validates that a task's status is one of "todo", "in-progress", or "done".
+ * Validates that a task's status is one of "todo", "in-progress", "done", "canceled", or "archived".
  */
-export const taskStatusEnum = Zod.enum(["todo", "in-progress", "done"]); // New enum for task status
+export const taskStatusEnum = Zod.enum([
+  "todo",
+  "in_progress",
+  "done",
+  "canceled",
+  "archived",
+]);
 
 /**
  * Zod schema for task validation.
- * Validates task properties such as title, due date, priority, category, and tags.
+ * Validates task properties such as title, description, due date, priority, category, and tags.
  * Ensures required fields are present and string lengths are within limits.
  */
 export const taskSchema = Zod.object({
   title: Zod.string()
     .min(1, { message: "Task title cannot be empty." })
     .max(255, { message: "Task title is too long." }),
-  dueDate: Zod.string()
+  description: Zod.string() // Added description field
+    .max(1000, { message: "Description is too long." })
+    .optional()
+    .nullable(),
+  due_date: Zod.string() // Changed to due_date (snake_case)
     .datetime({ message: "Invalid due date." })
     .optional()
     .nullable(),
@@ -31,19 +41,20 @@ export const taskSchema = Zod.object({
     .optional()
     .nullable(),
   tags: Zod.array(Zod.string().max(30, { message: "Tag is too long." })),
-  status: taskStatusEnum, // Added status to task schema
+  status: taskStatusEnum,
   notes: Zod.string()
     .max(1000, { message: "Notes are too long." })
     .optional()
-    .nullable(), // New field for task notes
+    .nullable(),
   recurrence_pattern: Zod.enum(["none", "daily", "weekly", "monthly", "yearly"])
     .optional()
-    .nullable(), // Added recurrence pattern
+    .nullable(),
   recurrence_end_date: Zod.string()
     .datetime({ message: "Invalid recurrence end date." })
     .optional()
-    .nullable(), // Added recurrence end date
+    .nullable(),
   goal_id: Zod.string().nullable().optional(),
+  parent_id: Zod.string().nullable().optional(), // Added parent_id for subtasks
 });
 
 export type TaskFormValues = Zod.infer<typeof taskSchema>; // Export TaskFormValues

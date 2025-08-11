@@ -1,18 +1,22 @@
 import { TaskItem } from "./task-item";
-import { TaskFilterBar } from "./task-filter-bar";
-import { TaskSort } from "./task-sort";
 import { EmptyState } from "./empty-state";
 import { useTasks } from "@/hooks/use-tasks";
-import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ListTodo, Filter } from "lucide-react";
+import { ListTodo } from "lucide-react";
 import { Database } from "@/lib/supabase/types";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { TaskDetailsModal } from "./task-details-modal";
 import { Task } from "@/lib/types/task";
 import { Goal } from "@/lib/types/goal"; // Import Goal type
 import { Button } from "@/components/ui/button";
-import { deleteMultipleTasks, updateTaskSortOrder } from "@/app/tasks/actions"; // Import updateTaskSortOrder
+import {
+  deleteMultipleTasks,
+  updateTaskOrder,
+  archiveMultipleTasks,
+  unarchiveMultipleTasks,
+  archiveTask,
+  deletePermanentlyTask,
+} from "@/app/tasks/actions"; // Import new actions
 import { toast } from "sonner";
 
 import type { TaskFormValues } from "@/lib/validators"; // Import TaskFormValues
@@ -42,6 +46,7 @@ interface TaskListProps {
   ) => Promise<void>;
   allTasks?: Task[]; // New prop for all tasks to select parent
   goals?: Goal[] | null; // New prop for goals, using the Goal type
+  onEditTask: (task: Task) => void; // New prop for editing tasks
 }
 
 export function TaskList({
@@ -51,14 +56,11 @@ export function TaskList({
   onAddTask,
   allTasks = [], // Default to empty array
   goals = [], // Default to empty array
+  onEditTask,
 }: TaskListProps) {
-  const { toggleTask, deleteTask, updateTask, isMutating, setTasks } =
-    useTasks(tasks);
+  const { toggleTask, updateTask, isMutating, setTasks } = useTasks(tasks); // Removed deleteTask from here, will use specific archive/delete
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
-
-  const { filteredAndSortedTasks, sort, setSort, filters, setFilters } =
-    useTaskFiltersAndSort(tasks);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -66,14 +68,6 @@ export function TaskList({
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
-
-  const allAvailableTags = useMemo(() => {
-    const tags = new Set<string>();
-    tasks.forEach((task) => {
-      task.tags?.forEach((tag) => tags.add(tag));
-    });
-    return Array.from(tags).sort();
-  }, [tasks]);
 
   const handleOpenModal = (task: Task) => {
     setSelectedTask(task);
@@ -91,9 +85,21 @@ export function TaskList({
     );
   };
 
-  const handleDeleteSelected = () => {
-    void deleteMultipleTasks(selectedTasks);
-    toast.success(`${selectedTasks.length} tasks deleted.`);
+  const handleArchiveSelected = async () => {
+    await archiveMultipleTasks(selectedTasks);
+    toast.success(`${selectedTasks.length} tasks archived.`);
+    setSelectedTasks([]);
+  };
+
+  const handleUnarchiveSelected = async () => {
+    await unarchiveMultipleTasks(selectedTasks);
+    toast.success(`${selectedTasks.length} tasks unarchived.`);
+    setSelectedTasks([]);
+  };
+
+  const handleDeletePermanentlySelected = async () => {
+    await deleteMultipleTasks(selectedTasks); // This is the original hard delete
+    toast.success(`${selectedTasks.length} tasks permanently deleted.`);
     setSelectedTasks([]);
   };
 
@@ -101,8 +107,14 @@ export function TaskList({
     await toggleTask(id, is_completed);
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteTask(id);
+  const handleArchive = async (id: string) => {
+    await archiveTask(id);
+    toast.success("Task archived.");
+  };
+
+  const handleDeletePermanently = async (id: string) => {
+    await deletePermanentlyTask(id);
+    toast.success("Task permanently deleted.");
   };
 
   const handleUpdate = async (
@@ -112,41 +124,27 @@ export function TaskList({
     await updateTask(id, updatedTask);
   };
 
-  const handleClearFilters = () => {
-    setFilters({
-      status: "all",
-      priority: "all",
-      dueDate: "all",
-      category: null,
-      tags: [],
-    });
-  };
-
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       const { active, over } = event;
 
       if (active.id !== over?.id) {
-        const oldIndex = filteredAndSortedTasks.findIndex(
-          (task) => task.id === active.id,
-        );
-        const newIndex = filteredAndSortedTasks.findIndex(
-          (task) => task.id === over?.id,
-        );
+        const oldIndex = tasks.findIndex((task) => task.id === active.id);
+        const newIndex = tasks.findIndex((task) => task.id === over?.id);
 
         if (oldIndex === -1 || newIndex === -1) return;
 
-        const newOrder = arrayMove(filteredAndSortedTasks, oldIndex, newIndex);
+        const newOrder = arrayMove(tasks, oldIndex, newIndex);
 
         setTasks(newOrder);
 
         const updatesToSend = newOrder.map((task, index) => ({
           id: task.id,
-          sort_order: index,
+          position: index,
         }));
 
         try {
-          await updateTaskSortOrder(updatesToSend);
+          await updateTaskOrder(updatesToSend);
           toast.success("Task order updated.");
         } catch (error) {
           console.error("Failed to update task order:", error);
@@ -155,7 +153,7 @@ export function TaskList({
         }
       }
     },
-    [filteredAndSortedTasks, tasks, setTasks],
+    [tasks, setTasks],
   );
 
   if (loading) {
@@ -181,54 +179,52 @@ export function TaskList({
         isOpen={!!selectedTask}
         onClose={handleCloseModal}
         task={selectedTask}
-        onUpdate={async (id, updatedTask) => {
-          await handleUpdate(id, updatedTask);
-        }}
+        onUpdate={handleUpdate}
+        onArchive={handleArchive}
+        onDeletePermanently={handleDeletePermanently}
         goals={goals?.map((goal) => ({ id: goal.id, title: goal.title }))}
-        allTasks={allTasks} // Pass all tasks to the modal
+        allTasks={allTasks}
       />
       <div className="flex flex-col h-full">
         <div className="flex flex-col gap-2 p-2 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between">
-            <TaskFilterBar
-              currentFilter={filters.status}
-              onFilterChange={(status) => setFilters({ ...filters, status })}
-              priorityFilter={filters.priority}
-              onPriorityFilterChange={(priority) =>
-                setFilters({ ...filters, priority })
-              }
-              dueDateFilter={filters.dueDate}
-              onDueDateFilterChange={(dueDate) =>
-                setFilters({ ...filters, dueDate })
-              }
-              categoryFilter={filters.category}
-              onCategoryFilterChange={(category) =>
-                setFilters({ ...filters, category })
-              }
-              tagFilter={filters.tags.length > 0 ? filters.tags[0] : null}
-              onTagFilterChange={(tag) =>
-                setFilters({ ...filters, tags: tag ? [tag] : [] })
-              }
-              allAvailableTags={allAvailableTags}
-              onClearFilters={handleClearFilters}
-            />
-            <TaskSort sort={sort} onSortChange={setSort} />
+            {/* TaskFilterBar and TaskSort components will be handled in app/tasks/page.tsx */}
+            <p>Filter and Sort controls will go here.</p>
           </div>
         </div>
 
         <div className="flex-1 overflow-auto py-2">
           {selectedTasks.length > 0 && (
-            <div className="p-2 border-b flex items-center justify-between bg-slate-50 dark:bg-slate-800">
+            <div className="sticky top-0 z-10 p-2 border-b flex items-center justify-between bg-slate-50 dark:bg-slate-800">
               <span className="text-sm font-medium">
                 {selectedTasks.length} selected
               </span>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => void handleDeleteSelected()}
-              >
-                Delete Selected
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleArchiveSelected}
+                  disabled={isMutating}
+                >
+                  Archive Selected
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUnarchiveSelected}
+                  disabled={isMutating}
+                >
+                  Unarchive Selected
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeletePermanentlySelected}
+                  disabled={isMutating}
+                >
+                  Delete Permanently
+                </Button>
+              </div>
             </div>
           )}
           {tasks.length === 0 ? (
@@ -239,14 +235,6 @@ export function TaskList({
               onAction={onAddTaskClick}
               icon={ListTodo}
             />
-          ) : filteredAndSortedTasks.length === 0 ? (
-            <EmptyState
-              title="No matching tasks found."
-              description="It seems no tasks match your current filter criteria. Try adjusting your filters to see more tasks!"
-              actionLabel="Clear Filters"
-              onAction={handleClearFilters}
-              icon={Filter}
-            />
           ) : (
             <DndContext
               sensors={sensors}
@@ -254,11 +242,11 @@ export function TaskList({
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={filteredAndSortedTasks.map((task) => task.id)}
+                items={tasks.map((task) => task.id)}
                 strategy={verticalListSortingStrategy}
               >
                 <ul className="space-y-1">
-                  {filteredAndSortedTasks.map((task) => (
+                  {tasks.map((task) => (
                     <li key={task.id}>
                       <TaskItem
                         {...task}
@@ -266,13 +254,15 @@ export function TaskList({
                         onToggle={(id, is_completed) => {
                           void handleToggle(id, is_completed);
                         }}
-                        onDelete={handleDelete}
+                        onArchive={handleArchive} // New prop for archiving
+                        onDeletePermanently={handleDeletePermanently} // New prop for permanent delete
                         onUpdate={handleUpdate}
                         onAddTask={onAddTask}
                         onOpenModal={handleOpenModal}
                         disabled={isMutating}
                         isSelected={selectedTasks.includes(task.id)}
                         onSelect={handleSelectTask}
+                        onEdit={onEditTask}
                       />
                     </li>
                   ))}

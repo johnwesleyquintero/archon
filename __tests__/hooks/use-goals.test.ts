@@ -104,6 +104,7 @@ const mockGoals = [
     progress: 0,
     updated_at: new Date().toISOString(),
     user_id: "test-user-id",
+    tags: null, // Added missing tags property
   },
   {
     id: "goal-2",
@@ -117,6 +118,7 @@ const mockGoals = [
     progress: 50,
     updated_at: new Date().toISOString(),
     user_id: "test-user-id",
+    tags: null, // Added missing tags property
   },
 ];
 
@@ -187,6 +189,7 @@ describe("useGoals", () => {
       target_date: "2026-01-01",
       status: "pending",
       attachments: [],
+      tags: null, // Added missing tags property
     };
     const returnedGoal = {
       id: "new-goal-id",

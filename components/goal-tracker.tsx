@@ -12,9 +12,11 @@ import { EmptyState } from "@/components/empty-state";
 import type { Database } from "@/lib/supabase/types";
 import { goalSchema } from "@/lib/validators";
 import { z } from "zod";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts"; // Import Recharts components
+import { ChartContainer, ChartPrimitive } from "@/components/ui/chart"; // Import ChartContainer and ChartPrimitive
 
-type Goal = Database["public"]["Tables"]["goals"]["Row"];
+type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
+  tags: string[] | null;
+};
 type GoalFormValues = z.infer<typeof goalSchema>;
 
 export interface GoalTrackerProps extends Record<string, unknown> {
@@ -125,6 +127,21 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
     },
   ].filter((data) => data.value > 0); // Only show segments with values greater than 0
 
+  const chartConfig = {
+    completed: {
+      label: "Completed",
+      color: statusConfig.completed.chartColor,
+    },
+    onTrack: {
+      label: "On Track",
+      color: statusConfig.in_progress.chartColor,
+    },
+    notStarted: {
+      label: "Not Started",
+      color: statusConfig.pending.chartColor,
+    },
+  };
+
   return (
     <>
       <CreateGoalModal
@@ -151,33 +168,32 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {goals.length > 0 && (
-            <div className="h-48 w-full">
-              {" "}
-              {/* Container for the chart */}
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    paddingAngle={5}
-                    dataKey="value"
-                    labelLine={false}
-                    label={({ name, percent }) =>
-                      `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
-                    }
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            <ChartContainer config={chartConfig} className="h-48 w-full">
+              <ChartPrimitive.PieChart>
+                <ChartPrimitive.Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  paddingAngle={5}
+                  dataKey="value"
+                  labelLine={false}
+                  label={({ name, percent }) =>
+                    `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                  }
+                >
+                  {chartData.map((entry, index) => (
+                    <ChartPrimitive.Cell
+                      key={`cell-${index}`}
+                      fill={entry.color}
+                    />
+                  ))}
+                </ChartPrimitive.Pie>
+                <ChartPrimitive.Legend />
+              </ChartPrimitive.PieChart>
+            </ChartContainer>
           )}
 
           {goals.length > 0 ? (

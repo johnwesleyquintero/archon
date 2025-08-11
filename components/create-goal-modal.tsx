@@ -43,7 +43,11 @@ interface CreateGoalModalProps {
     goalId?: string,
   ) => Promise<void>;
   isSaving: boolean;
-  initialData?: Database["public"]["Tables"]["goals"]["Row"] | null;
+  initialData?:
+    | (Database["public"]["Tables"]["goals"]["Row"] & {
+        tags: string[] | null;
+      })
+    | null;
 }
 
 type GoalFormValues = z.infer<typeof goalSchema>;

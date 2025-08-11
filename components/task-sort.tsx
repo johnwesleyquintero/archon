@@ -10,16 +10,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import type { TaskSort } from "@/hooks/use-task-filters-and-sort";
+import type { TaskSortOptions } from "@/lib/database/tasks";
 
 interface TaskSortProps {
-  sort: TaskSort;
-  onSortChange: (sort: TaskSort) => void;
+  sort: TaskSortOptions;
+  onSortChange: (sort: TaskSortOptions) => void;
 }
 
 const sortOptions = [
   { value: "due_date", label: "Due Date" },
-  { value: "priority", label: "Priority" },
+  { value: "status", label: "Status" },
   { value: "created_at", label: "Created" },
   { value: "updated_at", label: "Updated" },
   { value: "title", label: "Title" },
@@ -29,16 +29,16 @@ export function TaskSort({ sort, onSortChange }: TaskSortProps) {
   const toggleDirection = () => {
     onSortChange({
       ...sort,
-      direction: sort.direction === "asc" ? "desc" : "asc",
+      sortOrder: sort.sortOrder === "asc" ? "desc" : "asc",
     });
   };
 
   return (
     <div className="flex items-center gap-2">
       <Select
-        value={sort.field}
-        onValueChange={(value: TaskSort["field"]) =>
-          onSortChange({ ...sort, field: value })
+        value={sort.sortBy}
+        onValueChange={(value) =>
+          onSortChange({ ...sort, sortBy: value as TaskSortOptions["sortBy"] })
         }
       >
         <SelectTrigger className="h-8 w-[120px]">
@@ -60,11 +60,11 @@ export function TaskSort({ sort, onSortChange }: TaskSortProps) {
       >
         <ArrowUpDown
           className={`h-4 w-4 transition-transform ${
-            sort.direction === "desc" ? "rotate-180" : ""
+            sort.sortOrder === "desc" ? "rotate-180" : ""
           }`}
         />
         <span className="sr-only">
-          Sort {sort.direction === "asc" ? "descending" : "ascending"}
+          Sort {sort.sortOrder === "asc" ? "descending" : "ascending"}
         </span>
       </Button>
     </div>

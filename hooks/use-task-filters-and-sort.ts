@@ -1,133 +1,76 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Task } from "@/lib/types/task"; // Import the Task type from lib/types/task
+import { useState } from "react";
+import { TaskStatus, TaskPriority } from "@/lib/types/task";
+import { TaskFilterOptions, TaskSortOptions } from "@/lib/database/tasks";
 
-export type TaskSort = {
-  field: "due_date" | "priority" | "created_at" | "updated_at" | "title";
-  direction: "asc" | "desc";
-};
+export type TaskSort = TaskSortOptions; // Renamed for import compatibility
 
 export type TaskFilters = {
-  status: "all" | "todo" | "in-progress" | "done"; // Added status filter
-  priority: "all" | "high" | "medium" | "low";
-  dueDate: "all" | "overdue" | "today" | "week";
-  category: string | null;
-  tags: string[];
+  isCompleted?: boolean;
+  status?: TaskStatus | "all";
+  priority?: TaskPriority;
+  dueDate?: "overdue" | "today" | "upcoming" | "none" | "all";
+  category?: string;
+  tags?: string[];
+  search?: string;
+  includeArchived?: boolean;
 };
 
-const priorityOrder: { [key: string]: number } = {
-  high: 3,
-  medium: 2,
-  low: 1,
-};
+export type TaskFilterState = TaskFilters;
+export type TaskSortState = TaskSort;
 
-export function useTaskFiltersAndSort(tasks: Task[]) {
-  const [sort, setSort] = useState<TaskSort>({
-    field: "created_at",
-    direction: "desc",
+export function useTaskFiltersAndSort(
+  initialFilters: TaskFilters = {}, // Changed type to TaskFilters
+  initialSorts: TaskSortOptions = {},
+) {
+  const [sort, setSortState] = useState<TaskSortState>({
+    sortBy: initialSorts.sortBy || "created_at",
+    sortOrder: initialSorts.sortOrder || "desc",
   });
-  const [filters, setFilters] = useState<TaskFilters>({
-    status: "all", // Default status filter
-    priority: "all",
-    dueDate: "all",
-    category: null,
-    tags: [],
+  const [filters, setFiltersState] = useState<TaskFilterState>({
+    status: initialFilters.status || "all", // Default to "all"
+    dueDate: initialFilters.dueDate || "all", // Default to "all"
+    category: initialFilters.category || undefined,
+    tags: initialFilters.tags || [],
+    search: initialFilters.search || undefined,
+    includeArchived: initialFilters.includeArchived || false,
+    isCompleted: initialFilters.isCompleted || undefined,
+    priority: initialFilters.priority || undefined,
   });
 
-  const filteredAndSortedTasks = useMemo(() => {
-    // First, apply filters
-    let result = tasks.filter((task) => {
-      // Status filter
-      if (filters.status !== "all" && task.status !== filters.status)
-        return false;
+  const setFilter = <K extends keyof TaskFilterState>(
+    key: K,
+    value: TaskFilterState[K],
+  ) => {
+    setFiltersState((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
-      // Priority filter
-      if (filters.priority !== "all" && task.priority !== filters.priority)
-        return false;
-
-      // Due date filter
-      if (filters.dueDate !== "all" && task.due_date) {
-        const dueDate = new Date(task.due_date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-
-        const weekEnd = new Date(today);
-        weekEnd.setDate(weekEnd.getDate() + 7);
-
-        switch (filters.dueDate) {
-          case "overdue":
-            if (dueDate >= today) return false;
-            break;
-          case "today":
-            if (dueDate < today || dueDate >= tomorrow) return false;
-            break;
-          case "week":
-            if (dueDate < today || dueDate >= weekEnd) return false;
-            break;
-        }
-      }
-
-      // Category filter
-      if (filters.category && task.category !== filters.category) return false;
-
-      // Tags filter
-      if (
-        filters.tags.length > 0 &&
-        !filters.tags.every((tag) => (task.tags || []).includes(tag))
-      )
-        return false;
-
-      return true;
+  const clearFilters = () => {
+    setFiltersState({
+      status: "all", // Clear to "all"
+      dueDate: "all", // Clear to "all"
+      category: undefined,
+      tags: [],
+      search: undefined,
+      includeArchived: false,
+      isCompleted: undefined,
+      priority: undefined,
     });
+  };
 
-    // Then, apply sorting
-    result.sort((a, b) => {
-      switch (sort.field) {
-        case "due_date":
-          if (!a.due_date && !b.due_date) return 0;
-          if (!a.due_date) return sort.direction === "asc" ? 1 : -1;
-          if (!b.due_date) return sort.direction === "asc" ? -1 : 1;
-          return sort.direction === "asc"
-            ? new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
-            : new Date(b.due_date).getTime() - new Date(a.due_date).getTime();
-
-        case "priority":
-          const aPriority = a.priority ? priorityOrder[a.priority] || 0 : 0;
-          const bPriority = b.priority ? priorityOrder[b.priority] || 0 : 0;
-          return sort.direction === "asc"
-            ? aPriority - bPriority
-            : bPriority - aPriority;
-
-        case "title":
-          return sort.direction === "asc"
-            ? a.title.localeCompare(b.title)
-            : b.title.localeCompare(a.title);
-
-        case "created_at":
-        case "updated_at":
-          return sort.direction === "asc"
-            ? new Date(a[sort.field]).getTime() -
-                new Date(b[sort.field]).getTime()
-            : new Date(b[sort.field]).getTime() -
-                new Date(a[sort.field]).getTime();
-
-        default:
-          return 0;
-      }
-    });
-
-    return result;
-  }, [tasks, sort, filters]);
+  const setSort = (newSort: TaskSortState) => {
+    setSortState(newSort);
+  };
 
   return {
-    filteredAndSortedTasks,
     sort,
     setSort,
     filters,
-    setFilters,
+    setFilter,
+    clearFilters,
   };
 }

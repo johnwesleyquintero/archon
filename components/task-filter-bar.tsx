@@ -1,5 +1,5 @@
 "use client";
-import { Filter, Calendar, Flag, Tag, ListTodo } from "lucide-react";
+import { Filter, Calendar, Tag, ListTodo } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -8,17 +8,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button"; // Import Button
-import { TaskFilters } from "@/hooks/use-task-filters-and-sort"; // Import TaskFilters
+import { TaskFilterState } from "@/hooks/use-task-filters-and-sort"; // Import TaskFilterState
 
 interface TaskFilterBarProps {
-  currentFilter: TaskFilters["status"];
-  onFilterChange: (filter: TaskFilters["status"]) => void;
-  priorityFilter: TaskFilters["priority"];
-  onPriorityFilterChange: (priority: TaskFilters["priority"]) => void;
-  dueDateFilter: TaskFilters["dueDate"];
-  onDueDateFilterChange: (dueDate: TaskFilters["dueDate"]) => void;
-  categoryFilter: TaskFilters["category"]; // New prop for category filter
-  onCategoryFilterChange: (category: TaskFilters["category"]) => void; // New prop for category filter change
+  currentFilter: TaskFilterState["status"];
+  onFilterChange: (filter: TaskFilterState["status"]) => void;
+
+  dueDateFilter: TaskFilterState["dueDate"];
+  onDueDateFilterChange: (dueDate: TaskFilterState["dueDate"]) => void;
+  categoryFilter: TaskFilterState["category"]; // New prop for category filter
+  onCategoryFilterChange: (category: TaskFilterState["category"]) => void; // New prop for category filter change
   tagFilter: string | null; // New prop for single tag filter (for now)
   onTagFilterChange: (tag: string | null) => void; // New prop for tag filter change
   allAvailableTags: string[]; // New prop to pass all unique tags
@@ -28,8 +27,7 @@ interface TaskFilterBarProps {
 export function TaskFilterBar({
   currentFilter,
   onFilterChange,
-  priorityFilter,
-  onPriorityFilterChange,
+
   dueDateFilter,
   onDueDateFilterChange,
   categoryFilter,
@@ -61,10 +59,9 @@ export function TaskFilterBar({
           <span className="text-sm text-slate-500">Status:</span>
           <Select
             value={currentFilter}
-            onValueChange={(value: TaskFilters["status"]) => {
-              if (value) {
-                onFilterChange(value);
-              }
+            onValueChange={(value) => {
+              // Removed explicit type for value
+              onFilterChange(value as TaskFilterState["status"]); // Cast value here
             }}
           >
             <SelectTrigger className="h-8 w-[120px]">
@@ -73,28 +70,9 @@ export function TaskFilterBar({
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="todo">Todo</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
               <SelectItem value="done">Done</SelectItem>
               <SelectItem value="canceled">Canceled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Priority filter */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-500">
-            <Flag className="h-4 w-4 inline-block mr-1" />
-            Priority:
-          </span>
-          <Select value={priorityFilter} onValueChange={onPriorityFilterChange}>
-            <SelectTrigger className="h-8 w-[100px]">
-              <SelectValue placeholder="Priority" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -105,7 +83,13 @@ export function TaskFilterBar({
             <Calendar className="h-4 w-4 inline-block mr-1" />
             Due:
           </span>
-          <Select value={dueDateFilter} onValueChange={onDueDateFilterChange}>
+          <Select
+            value={dueDateFilter}
+            onValueChange={(value) => {
+              // Removed explicit type for value
+              onDueDateFilterChange(value as TaskFilterState["dueDate"]); // Cast value here
+            }}
+          >
             <SelectTrigger className="h-8 w-[100px]">
               <SelectValue placeholder="Due date" />
             </SelectTrigger>
@@ -127,7 +111,7 @@ export function TaskFilterBar({
           <Select
             value={categoryFilter || "all"} // Default to "all" if null
             onValueChange={(value) =>
-              onCategoryFilterChange(value === "all" ? null : value)
+              onCategoryFilterChange(value === "all" ? undefined : value)
             }
           >
             <SelectTrigger className="h-8 w-[120px]">

@@ -24,8 +24,6 @@ import Image from "next/image";
 import { Spinner } from "@/components/ui/spinner";
 import { useDebounce } from "@/hooks/use-debounce";
 import dynamic from "next/dynamic";
-import { Label } from "@/components/ui/label"; // Import Label for the tags input
-import { Badge } from "@/components/ui/badge"; // Import Badge for displaying tags
 
 const TipTapEditor = dynamic(
   () => import("./quill-editor").then((mod) => mod.TipTapEditor),
@@ -93,23 +91,12 @@ export function JournalEditorWithAttachments({
     500,
   );
 
-  const debouncedOnUpdateEntryTags = useDebounce(
-    useCallback(
-      (entryId: string, tags: string[]) => {
-        void updateEntry(entryId, { tags });
-      },
-      [updateEntry],
-    ),
-    500,
-  );
-
   const form = useForm<JournalFormValues>({
     resolver: zodResolver(journalEntrySchema),
     defaultValues: {
       title: "",
       content: "",
       attachments: [],
-      tags: [],
     },
     mode: "onBlur",
   });
@@ -199,14 +186,12 @@ export function JournalEditorWithAttachments({
               .filter((att): att is string => typeof att === "string")
               .map(createAttachmentFromUrl)
           : [],
-        tags: entry.tags || [],
       });
     } else {
       form.reset({
         title: "",
         content: "",
         attachments: [],
-        tags: [],
       });
     }
   }, [entry, form]);
@@ -218,21 +203,6 @@ export function JournalEditorWithAttachments({
     });
     if (entry) {
       void debouncedOnUpdateEntryContent(entry.id, newContent);
-    }
-  };
-
-  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const tagsString = e.target.value;
-    const tagsArray = tagsString
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter((tag) => tag.length > 0);
-    form.setValue("tags", tagsArray, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-    if (entry) {
-      void debouncedOnUpdateEntryTags(entry.id, tagsArray);
     }
   };
 
@@ -343,41 +313,6 @@ export function JournalEditorWithAttachments({
                 {hasUnsavedChanges ? "Save" : "Saved"}
               </Button>
             </div>
-          </div>
-
-          {/* Tags Input */}
-          <div className="px-4 pb-2">
-            <FormField
-              control={form.control}
-              name="tags"
-              render={({ field }) => (
-                <FormItem>
-                  <Label htmlFor="tags" className="sr-only">
-                    Tags
-                  </Label>
-                  <FormControl>
-                    <Input
-                      id="tags"
-                      placeholder="Add tags (comma-separated)"
-                      value={field.value?.join(", ") || ""}
-                      onChange={handleTagsChange}
-                      className="text-sm border-0 px-0 shadow-none focus-visible:ring-0 placeholder:text-slate-400"
-                      disabled={isMutating}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {form.watch("tags") && form.watch("tags")!.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {form.watch("tags")!.map((tag, index) => (
-                  <Badge key={index} variant="secondary">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Toolbar for TipTap */}

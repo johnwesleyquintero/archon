@@ -22,17 +22,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import type { Database } from "@/lib/supabase/types";
-
-type Milestone = {
-  id: string;
-  description: string;
-  completed: boolean;
-};
-
-type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
-  milestones: Milestone[] | null;
-};
+import { Goal } from "@/lib/types/goal"; // Import the Goal type
 
 interface GoalFormProps {
   isOpen: boolean;
@@ -43,7 +33,7 @@ interface GoalFormProps {
     description: string;
     target_date?: string;
     progress?: number;
-    milestones: Milestone[] | null;
+    tags?: string[] | null;
   }) => void;
   initialGoal?: Goal | null;
 }
@@ -58,8 +48,6 @@ export const GoalForm: React.FC<GoalFormProps> = ({
   const [description, setDescription] = useState("");
   const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
   const [progress, setProgress] = useState<number | undefined>(undefined);
-  const [milestonesJson, setMilestonesJson] = useState<string>("");
-  const [milestonesError, setMilestonesError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialGoal) {
@@ -69,52 +57,16 @@ export const GoalForm: React.FC<GoalFormProps> = ({
         initialGoal.target_date ? new Date(initialGoal.target_date) : undefined,
       );
       setProgress(initialGoal.progress || 0);
-      setMilestonesJson(
-        initialGoal.milestones
-          ? JSON.stringify(initialGoal.milestones, null, 2)
-          : "",
-      );
     } else {
       setTitle("");
       setDescription("");
       setTargetDate(undefined);
       setProgress(0);
-      setMilestonesJson("");
     }
-    setMilestonesError(null); // Clear error on form open/initialization
   }, [initialGoal, isOpen]);
 
   const handleSubmit = () => {
     if (!title) return;
-
-    let parsedMilestones: Milestone[] | null = null;
-    if (milestonesJson) {
-      try {
-        const parsed = JSON.parse(milestonesJson) as Milestone[];
-        if (
-          Array.isArray(parsed) &&
-          parsed.every(
-            (m) =>
-              typeof m === "object" &&
-              m !== null &&
-              "id" in m &&
-              "description" in m &&
-              "completed" in m,
-          )
-        ) {
-          parsedMilestones = parsed;
-          setMilestonesError(null);
-        } else {
-          setMilestonesError(
-            "Invalid JSON format for milestones. Expected an array of objects with id, description, and completed properties.",
-          );
-          return;
-        }
-      } catch {
-        setMilestonesError("Invalid JSON format for milestones.");
-        return;
-      }
-    }
 
     onSave({
       ...(initialGoal && { id: initialGoal.id }),
@@ -122,7 +74,7 @@ export const GoalForm: React.FC<GoalFormProps> = ({
       description,
       ...(targetDate && { target_date: format(targetDate, "yyyy-MM-dd") }),
       progress,
-      milestones: parsedMilestones,
+      tags: initialGoal?.tags || [],
     });
     onClose();
   };
@@ -202,27 +154,6 @@ export const GoalForm: React.FC<GoalFormProps> = ({
               min="0"
               max="100"
             />
-          </div>
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="milestones" className="text-right pt-2">
-              Milestones (JSON)
-            </Label>
-            <div className="col-span-3">
-              <Textarea
-                id="milestones"
-                value={milestonesJson}
-                onChange={(e) => setMilestonesJson(e.target.value)}
-                placeholder='[{"id": "1", "description": "Milestone 1", "completed": false}]'
-                className="min-h-[100px]"
-              />
-              {milestonesError && (
-                <p className="text-red-500 text-sm mt-1">{milestonesError}</p>
-              )}
-              <p className="text-xs text-gray-500 mt-1">
-                Enter milestones as a JSON array of objects with `id`,
-                `description`, and `completed` properties.
-              </p>
-            </div>
           </div>
         </div>
         <DialogFooter>

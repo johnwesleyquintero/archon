@@ -29,8 +29,8 @@ export function useTaskFetching(initialTasks: Task[] = []) {
     setLoading(true);
     setError(null);
     try {
-      const rawTasks = await getTasks();
-      const processedTasks = rawTasks.map(convertRawTaskToTask);
+      const tasks = await getTasks();
+      const processedTasks = (tasks as any[]).map(convertRawTaskToTask);
       const hierarchicalTasks = buildTaskHierarchy(processedTasks); // Build hierarchy
       setTasks(hierarchicalTasks);
     } catch (err) {

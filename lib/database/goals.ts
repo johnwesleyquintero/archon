@@ -3,11 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
-import { Milestone } from "@/lib/types/goal";
 import { getAuthenticatedUser } from "@/lib/supabase/auth-utils";
 import { handleServerError, AppError } from "@/lib/error-utils";
 
-type Goal = Database["public"]["Tables"]["goals"]["Row"];
+type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
+  tags: string[] | null;
+};
 type GoalInsert = Database["public"]["Tables"]["goals"]["Insert"];
 type GoalUpdate = Database["public"]["Tables"]["goals"]["Update"];
 
@@ -17,7 +18,7 @@ export async function getGoals(userId: string): Promise<Goal[]> {
     const { data, error } = await supabase
       .from("goals")
       .select(
-        "id, created_at, title, description, progress, status, target_date, attachments, milestones, user_id, updated_at",
+        "id, created_at, title, description, progress, status, target_date, attachments, user_id, updated_at, tags",
       ) // Explicitly select columns
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
@@ -26,13 +27,7 @@ export async function getGoals(userId: string): Promise<Goal[]> {
       throw error;
     }
 
-    // Parse milestones from JSON to Milestone[]
-    const parsedData = data.map((goal) => ({
-      ...goal,
-      milestones: (goal.milestones || []) as Milestone[],
-    }));
-
-    return parsedData;
+    return data;
   } catch (error) {
     console.error("Error fetching goals:", error);
     return [];
@@ -46,6 +41,7 @@ export async function addGoal(goalData: {
   status?: string | null;
   target_date?: string | null;
   attachments?: Json | null;
+  tags?: string[] | null;
 }): Promise<Goal | null> {
   const supabase = await createServerSupabaseClient();
   const user = await getAuthenticatedUser();
@@ -68,8 +64,8 @@ export async function addGoal(goalData: {
         goalData.target_date === null ? undefined : goalData.target_date,
       attachments:
         goalData.attachments === null ? undefined : goalData.attachments,
-      milestones: [], // Initialize milestones as an empty array
       user_id: user.id, // Explicitly add user_id
+      tags: goalData.tags === null ? undefined : goalData.tags,
     };
 
     const { data, error } = await supabase

@@ -1,5 +1,3 @@
-import { Milestone } from "@/lib/types/goal";
-
 export type Json =
   | string
   | number
@@ -46,11 +44,11 @@ export type Database = {
           created_at: string;
           description: string | null;
           id: string;
-          milestones: Milestone[] | null;
-          progress: number | null;
+          progress: number;
           status: string;
           target_date: string | null;
           title: string;
+          tags: string[] | null;
           updated_at: string;
           user_id: string;
         };
@@ -59,11 +57,11 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           id?: string;
-          milestones?: Milestone[] | null;
-          progress?: number | null;
+          progress?: number;
           status?: string;
           target_date?: string | null;
           title: string;
+          tags?: string[] | null;
           updated_at?: string;
           user_id: string;
         };
@@ -72,11 +70,11 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           id?: string;
-          milestones?: Milestone[] | null;
-          progress?: number | null;
+          progress?: number;
           status?: string;
           target_date?: string | null;
           title?: string;
+          tags?: string[] | null;
           updated_at?: string;
           user_id?: string;
         };
@@ -172,10 +170,13 @@ export type Database = {
           created_at: string;
           description: string | null;
           due_date: string | null;
+          goal_id: string | null;
           id: string;
           is_completed: boolean;
-          priority: Database["public"]["Enums"]["task_priority"] | null;
+          parent_id: string | null;
+          position: number | null;
           status: Database["public"]["Enums"]["task_status"] | null;
+          sort_order: number | null;
           tags: string[] | null;
           title: string;
           updated_at: string;
@@ -186,10 +187,13 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           due_date?: string | null;
+          goal_id?: string | null;
           id?: string;
           is_completed?: boolean;
-          priority?: Database["public"]["Enums"]["task_priority"] | null;
+          parent_id?: string | null;
+          position?: number | null;
           status?: Database["public"]["Enums"]["task_status"] | null;
+          sort_order?: number | null;
           tags?: string[] | null;
           title: string;
           updated_at?: string;
@@ -200,16 +204,34 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           due_date?: string | null;
+          goal_id?: string | null;
           id?: string;
           is_completed?: boolean;
-          priority?: Database["public"]["Enums"]["task_priority"] | null;
+          parent_id?: string | null;
+          position?: number | null;
           status?: Database["public"]["Enums"]["task_status"] | null;
+          sort_order?: number | null;
           tags?: string[] | null;
           title?: string;
           updated_at?: string;
           user_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "tasks_goal_id_fkey";
+            columns: ["goal_id"];
+            isOneToOne: false;
+            referencedRelation: "goals";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tasks_parent_id_fkey";
+            columns: ["parent_id"];
+            isOneToOne: false;
+            referencedRelation: "tasks";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       user_dashboard_settings: {
         Row: {
@@ -236,13 +258,20 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: {
-      task_priority: "low" | "medium" | "high";
-      task_status: "todo" | "in_progress" | "done" | "canceled";
+    Views: {
+      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+      [_ in never]: never;
     };
-    CompositeTypes: Record<string, never>;
+    CompositeTypes: {
+      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+      [_ in never]: never;
+    };
+    Enums: {
+      task_status: "todo" | "in_progress" | "done" | "canceled" | "archived";
+    };
+    Functions: {
+      [_ in never]: never;
+    };
   };
 };
 
@@ -365,11 +394,6 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never;
-
-export type GoalInsert = TablesInsert<"goals">;
-export type GoalUpdate = TablesUpdate<"goals">;
-export type DashboardSettingsRow = Tables<"dashboard_settings">;
-export type TaskUpdate = TablesUpdate<"tasks">;
 
 export const Constants = {
   public: {

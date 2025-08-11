@@ -24,7 +24,7 @@ export function QuickAddTaskModal() {
       toast.error("You must be logged in to add a task.");
       return;
     }
-    await addTask({ ...input, user_id: user.id, status: "todo" });
+    await addTask({ ...input, user_id: user.id });
     toast.success("Task added successfully!");
     close();
   };

@@ -12,7 +12,9 @@ import type { Database } from "@/lib/supabase/types";
 import { GoalTrackerProps } from "@/components/goal-tracker";
 import { GoalsDisplayProps } from "@/components/goals-display";
 
-type Goal = Database["public"]["Tables"]["goals"]["Row"];
+type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
+  tags: string[] | null;
+};
 
 interface NavItem {
   href: string;

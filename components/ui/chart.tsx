@@ -180,4 +180,6 @@ export const ChartLegendContent = ({
   );
 };
 
-export { ChartContainer, ChartStyle };
+const ChartPrimitive = RechartsPrimitive;
+
+export { ChartContainer, ChartStyle, ChartPrimitive };

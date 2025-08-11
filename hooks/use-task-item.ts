@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import type { Task } from "@/lib/types/task";
+import type { Task, TaskStatus } from "@/lib/types/task";
 import { handleError } from "@/lib/utils";
 
 export function useTaskItem({
   id,
   title,
   due_date,
-  priority,
   category,
   tags,
   status, // Added status
@@ -20,10 +19,10 @@ export function useTaskItem({
   id: string;
   title: string;
   due_date: string | null;
-  priority: "low" | "medium" | "high" | null;
+
   category: string | null;
   tags: string[] | null;
-  status: "todo" | "in_progress" | "done" | "canceled"; // Added status type
+  status: TaskStatus | null; // Added status type
   onToggle: (id: string, is_completed: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onUpdate: (id: string, updatedTask: Partial<Task>) => Promise<void>;
@@ -34,7 +33,7 @@ export function useTaskItem({
   const [isEditing, setIsEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(title);
   const [newDueDate, setNewDueDate] = useState(due_date);
-  const [newPriority, setNewPriority] = useState(priority);
+
   const [newCategory, setNewCategory] = useState(category);
   const [newTags, setNewTags] = useState(tags);
   const [newStatus, setNewStatus] = useState(status); // Added newStatus state
@@ -75,9 +74,7 @@ export function useTaskItem({
     if (newDueDate !== due_date) {
       updates.due_date = newDueDate;
     }
-    if (newPriority !== priority) {
-      updates.priority = newPriority;
-    }
+
     if (newCategory !== category) {
       updates.category = newCategory;
     }
@@ -111,7 +108,7 @@ export function useTaskItem({
       setIsEditing(false);
       setNewTitle(title);
       setNewDueDate(due_date);
-      setNewPriority(priority);
+
       setNewCategory(category);
       setNewTags(tags);
       setNewStatus(status); // Reset newStatus on escape
@@ -131,8 +128,7 @@ export function useTaskItem({
     handleKeyDown,
     newDueDate,
     setNewDueDate,
-    newPriority,
-    setNewPriority,
+
     newCategory,
     setNewCategory,
     newTags,

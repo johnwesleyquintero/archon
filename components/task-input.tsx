@@ -17,13 +17,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Plus, Loader2, Tag, Repeat, Target } from "lucide-react"; // Import Repeat icon
+import { CalendarIcon, Plus, Loader2, Tag, Repeat, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { taskSchema } from "@/lib/validators";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Zod from "zod";
 import { handleError } from "@/lib/utils";
+import { format } from "date-fns"; // Import format
 import {
   Form,
   FormControl,
@@ -44,11 +45,13 @@ const recurrencePatterns = [
 ];
 
 interface TaskInputProps {
-  onAddTask: (input: TaskFormValues) => Promise<void>;
-  onCancel?: () => void; // Added onCancel prop
+  onAddTask?: (input: TaskFormValues) => Promise<void>; // Made optional for editing
+  onSave?: (input: TaskFormValues) => Promise<void>; // New prop for saving edits
+  initialData?: Partial<TaskFormValues>; // New prop for pre-filling form
+  onCancel?: () => void;
   disabled?: boolean;
-  autoFocus?: boolean; // Added autoFocus prop
-  isSubtaskInput?: boolean; // Added isSubtaskInput prop
+  autoFocus?: boolean;
+  isSubtaskInput?: boolean;
   goals?: { id: string; title: string }[];
 }
 
@@ -56,6 +59,8 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
   (
     {
       onAddTask,
+      onSave,
+      initialData,
       onCancel,
       disabled = false,
       autoFocus = false,
@@ -64,30 +69,34 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
     },
     _ref,
   ) => {
-    const [isAdding, setIsAdding] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm<TaskFormValues>({
       resolver: zodResolver(taskSchema),
-      defaultValues: {
+      defaultValues: initialData || {
         title: "",
         priority: "medium",
         tags: [],
         category: null,
-        dueDate: null,
-        status: "todo", // Default status
-        notes: "", // Add notes field
-        recurrence_pattern: "none", // Default recurrence
-        recurrence_end_date: null, // Default recurrence end date
+        due_date: null, // Changed from dueDate to due_date
+        status: "todo",
+        notes: "",
+        recurrence_pattern: "none",
+        recurrence_end_date: null,
         goal_id: null,
       },
       mode: "onBlur",
     });
 
     const handleAddTaskSubmit = async (data: TaskFormValues) => {
-      setIsAdding(true);
+      setIsSubmitting(true);
       try {
-        await onAddTask(data);
-        form.reset();
+        if (onAddTask) {
+          await onAddTask(data);
+          form.reset();
+        } else if (onSave) {
+          await onSave(data);
+        }
       } catch (err: unknown) {
         handleError(err, "TaskInput");
         if (err instanceof Zod.ZodError) {
@@ -116,7 +125,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
           });
         }
       } finally {
-        setIsAdding(false);
+        setIsSubmitting(false);
       }
     };
 
@@ -139,10 +148,10 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                     <Input
                       placeholder="Add a new task..."
                       className="h-9 text-sm border-slate-200 focus:border-slate-400 focus:ring-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-600 dark:focus:ring-slate-600"
-                      disabled={disabled || isAdding}
+                      disabled={disabled || isSubmitting}
                       aria-label="New task title"
                       onKeyPress={(e) => {
-                        if (e.key === "Enter" && !disabled && !isAdding) {
+                        if (e.key === "Enter" && !disabled && !isSubmitting) {
                           e.preventDefault();
                           void form.handleSubmit(handleAddTaskSubmit)();
                         }
@@ -167,7 +176,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                           field.onChange(value === "__none__" ? null : value)
                         }
                         value={field.value || "__none__"}
-                        disabled={disabled || isAdding}
+                        disabled={disabled || isSubmitting}
                       >
                         <SelectTrigger className="h-9 w-[120px]">
                           <Target className="h-4 w-4 mr-2" />
@@ -187,7 +196,54 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                 />
                 <FormField
                   control={form.control}
-                  name="dueDate"
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem className="flex-none">
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={disabled || isSubmitting}
+                      >
+                        <SelectTrigger className="h-9 w-[120px]">
+                          <SelectValue placeholder="Priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem className="flex-none">
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={disabled || isSubmitting}
+                      >
+                        <SelectTrigger className="h-9 w-[120px]">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todo">Todo</SelectItem>
+                          <SelectItem value="in_progress">
+                            In Progress
+                          </SelectItem>
+                          <SelectItem value="done">Done</SelectItem>
+                          <SelectItem value="canceled">Canceled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="due_date" // Changed from dueDate to due_date
                   render={({ field }) => (
                     <FormItem className="flex-none">
                       <Popover>
@@ -199,7 +255,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                                 ? "text-slate-900 dark:text-slate-50"
                                 : "text-slate-400"
                             }`}
-                            disabled={disabled || isAdding}
+                            disabled={disabled || isSubmitting}
                           >
                             <CalendarIcon className="h-4 w-4" />
                             <span className="sr-only">Pick a due date</span>
@@ -224,28 +280,6 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                 />
                 <FormField
                   control={form.control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem className="flex-none">
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        disabled={disabled || isAdding}
-                      >
-                        <SelectTrigger className="h-9 w-[100px]">
-                          <SelectValue placeholder="Priority" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="category"
                   render={({ field }) => (
                     <FormItem className="flex-none">
@@ -254,7 +288,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                           field.onChange(value === "__none__" ? null : value)
                         }
                         value={field.value || "__none__"}
-                        disabled={disabled || isAdding}
+                        disabled={disabled || isSubmitting}
                       >
                         <SelectTrigger className="h-9 w-[120px]">
                           <SelectValue placeholder="Category" />
@@ -272,69 +306,29 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                 />
                 <FormField
                   control={form.control}
-                  name="status"
+                  name="recurrence_pattern"
                   render={({ field }) => (
                     <FormItem className="flex-none">
                       <Select
                         onValueChange={field.onChange}
-                        value={field.value}
-                        disabled={disabled || isAdding}
+                        defaultValue={field.value || "none"}
+                        disabled={disabled || isSubmitting}
                       >
                         <SelectTrigger className="h-9 w-[120px]">
-                          <SelectValue placeholder="Status" />
+                          <Repeat className="h-4 w-4 mr-2" />
+                          <SelectValue placeholder="Recurrence" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="todo">Todo</SelectItem>
-                          <SelectItem value="in-progress">
-                            In Progress
-                          </SelectItem>
-                          <SelectItem value="done">Done</SelectItem>
+                          {recurrencePatterns.map((pattern) => (
+                            <SelectItem
+                              key={pattern.value}
+                              value={pattern.value}
+                            >
+                              {pattern.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="recurrence_pattern"
-                  render={({ field }) => (
-                    <FormItem className="flex-none">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={`h-9 w-9 p-0 ${
-                              field.value && field.value !== "none"
-                                ? "text-slate-900 dark:text-slate-50"
-                                : "text-slate-400"
-                            }`}
-                            disabled={disabled || isAdding}
-                          >
-                            <Repeat className="h-4 w-4" />
-                            <span className="sr-only">Set recurrence</span>
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="end">
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value || "none"}
-                          >
-                            <SelectTrigger className="h-9 w-[120px]">
-                              <SelectValue placeholder="Recurrence" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {recurrencePatterns.map((pattern) => (
-                                <SelectItem
-                                  key={pattern.value}
-                                  value={pattern.value}
-                                >
-                                  {pattern.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </PopoverContent>
-                      </Popover>
                     </FormItem>
                   )}
                 />
@@ -348,33 +342,31 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
-                              className={`h-9 w-9 p-0 ${
-                                field.value
-                                  ? "text-slate-900 dark:text-slate-50"
-                                  : "text-slate-400"
-                              }`}
-                              disabled={disabled || isAdding}
+                              className="h-9 w-[120px] justify-start text-left font-normal"
+                              disabled={disabled || isSubmitting}
                             >
-                              <CalendarIcon className="h-4 w-4" />
-                              <span className="sr-only">
-                                Pick recurrence end date
-                              </span>
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {field.value ? (
+                                format(new Date(field.value), "PPP")
+                              ) : (
+                                <span>End Date</span>
+                              )}
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="end">
+                          <PopoverContent className="w-auto p-0">
                             <Calendar
                               mode="single"
                               selected={
                                 field.value ? new Date(field.value) : undefined
                               }
                               onSelect={(date) =>
-                                field.onChange(date ? date.toISOString() : null)
+                                field.onChange(date?.toISOString() || null)
                               }
-                              disabled={(date) => date < new Date()}
                               initialFocus
                             />
                           </PopoverContent>
                         </Popover>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -389,7 +381,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                           <Button
                             variant="outline"
                             className="h-9 w-9 p-0"
-                            disabled={disabled || isAdding}
+                            disabled={disabled || isSubmitting}
                           >
                             <Tag className="h-4 w-4" />
                             <span className="sr-only">Add tags</span>
@@ -461,7 +453,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                         <Textarea
                           placeholder="Add notes..."
                           className="min-h-[60px] text-sm border-slate-200 focus:border-slate-400 focus:ring-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-600 dark:focus:ring-slate-600"
-                          disabled={disabled || isAdding}
+                          disabled={disabled || isSubmitting}
                           aria-label="Task notes"
                           {...field}
                           value={field.value ?? ""} // Ensure value is string or undefined
@@ -477,9 +469,9 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
               type="submit"
               size="sm"
               className="h-9 w-9 p-0 bg-slate-900 hover:bg-slate-800 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200"
-              disabled={!form.formState.isValid || disabled || isAdding}
+              disabled={!form.formState.isValid || disabled || isSubmitting}
             >
-              {isAdding ? (
+              {isSubmitting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Plus className="h-4 w-4" />
@@ -493,7 +485,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                 size="sm"
                 className="h-9 w-9 p-0"
                 onClick={onCancel}
-                disabled={disabled || isAdding}
+                disabled={disabled || isSubmitting}
               >
                 Cancel
               </Button>

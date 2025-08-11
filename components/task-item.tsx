@@ -1,5 +1,7 @@
 "use client";
 
+"use client";
+
 import React from "react";
 import { format, isPast, isToday } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,7 +14,8 @@ import {
   Edit,
   Plus,
   Target,
-} from "lucide-react";
+  Archive,
+} from "lucide-react"; // Import Archive icon
 import { Calendar } from "@/components/ui/calendar";
 import { TaskInput } from "./task-input";
 import { useState } from "react";
@@ -41,20 +44,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import type { Task } from "@/lib/types/task";
+import { Task, TaskStatus, TaskPriority } from "@/lib/types/task"; // Changed to regular import
+import type { Database } from "@/lib/supabase/types";
+
 import type { Goal } from "@/lib/types/goal";
-import type { TaskFormValues } from "@/lib/validators"; // Import TaskFormValues
-import { useSortable } from "@dnd-kit/sortable"; // Import useSortable
-import { CSS } from "@dnd-kit/utilities"; // Import CSS for transforms
+import type { TaskFormValues } from "@/lib/validators";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface TaskItemProps extends Task {
   onToggle: (id: string, is_completed: boolean) => void | Promise<void>;
-  onDelete: (id: string) => void | Promise<void>;
-  onUpdate: (id: string, updatedTask: Partial<Task>) => Promise<void>;
+  onArchive: (id: string) => void | Promise<void>; // New prop for archiving
+  onDeletePermanently: (id: string) => void | Promise<void>; // New prop for permanent delete
+  onUpdate: (
+    id: string,
+    updatedTask: Partial<Database["public"]["Tables"]["tasks"]["Update"]>,
+  ) => Promise<void>;
   onAddTask: (
     taskData: TaskFormValues & { parent_id?: string },
   ) => Promise<void>;
-  onOpenModal: (task: Task) => void; // New prop to open the modal
+  onOpenModal: (task: Task) => void;
+  onEdit: (task: Task) => void; // New prop for editing tasks
   disabled?: boolean;
   isSelected: boolean;
   onSelect: (id: string) => void;
@@ -70,11 +80,11 @@ interface TaskItemProps extends Task {
  *   title="Complete project documentation"
  *   is_completed={false}
  *   due_date="2023-12-31"
- *   priority="high"
  *   category="Work"
  *   tags={["documentation", "urgent"]}
  *   onToggle={handleToggle}
- *   onDelete={handleDelete}
+ *   onArchive={handleArchive}
+ *   onDeletePermanently={handleDeletePermanently}
  *   onUpdate={handleUpdate}
  * />
  * ```
@@ -85,24 +95,26 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
     title,
     is_completed,
     due_date,
-    priority,
     category,
     tags,
     status,
-    notes, // Destructure notes
+    notes,
     subtasks,
+    priority, // Destructure priority
     onToggle,
-    onDelete,
+    onArchive, // Use new archive prop
+    onDeletePermanently, // Use new permanent delete prop
     onUpdate,
     onAddTask,
     onOpenModal,
+    onEdit,
     disabled = false,
     isSelected,
     onSelect,
     goal,
   } = props;
   const [showSubtaskInput, setShowSubtaskInput] = useState(false);
-  const [showFullNotes, setShowFullNotes] = useState(false); // State for notes expansion
+  const [showFullNotes, setShowFullNotes] = useState(false);
 
   const {
     attributes,
@@ -110,33 +122,36 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
     setNodeRef,
     transform,
     transition,
-    isDragging, // Add isDragging to apply visual feedback
-  } = useSortable({ id: id });
+    isDragging,
+  } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 10 : 0, // Bring dragged item to front
-    opacity: isDragging ? 0.5 : 1, // Reduce opacity when dragging
+    zIndex: isDragging ? 10 : 0,
+    opacity: isDragging ? 0.5 : 1,
   };
 
-  const handleDelete = async () => {
-    await onDelete(id);
-  };
-
-  const priorityColors = {
-    low: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-    medium:
-      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-    high: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  };
-
-  const statusColors: Record<Task["status"], string> = {
-    todo: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
-    in_progress:
+  const statusColors: Record<TaskStatus, string> = {
+    [TaskStatus.Todo]:
+      "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
+    [TaskStatus.InProgress]:
       "bg-purple-100 text-purple-800 dark:bg-purple-700 dark:text-purple-200",
-    done: "bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-200",
-    canceled: "bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-200",
+    [TaskStatus.Done]:
+      "bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-200",
+    [TaskStatus.Canceled]:
+      "bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-200",
+    [TaskStatus.Archived]:
+      "bg-blue-100 text-blue-800 dark:bg-blue-700 dark:text-blue-200", // Added archived status color
+  };
+
+  const priorityColors: Record<TaskPriority, string> = {
+    [TaskPriority.Low]:
+      "bg-blue-100 text-blue-800 dark:bg-blue-700 dark:text-blue-200",
+    [TaskPriority.Medium]:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200",
+    [TaskPriority.High]:
+      "bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-200",
   };
 
   return (
@@ -145,7 +160,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
       style={style}
       className={cn(
         "group flex flex-col gap-1 py-2",
-        isDragging && "ring-2 ring-blue-500 rounded-md", // Visual feedback for dragging
+        isDragging && "ring-2 ring-blue-500 rounded-md",
       )}
     >
       <div className="flex items-center gap-2">
@@ -184,11 +199,11 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
         <Checkbox
           id={`task-${id}`}
           checked={is_completed}
-          disabled={disabled}
-          onCheckedChange={(checked) => {
-            void onToggle(id, !!checked);
-          }}
-          className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-slate-900 data-[state=checked]:border-slate-900 dark:border-slate-600 dark:data-[state=checked]:bg-slate-50 dark:data-[state=checked]:border-slate-50"
+          onCheckedChange={(checked) => void onToggle(id, !!checked)}
+          className="h-4 w-4 rounded border-slate-300"
+          aria-label={
+            is_completed ? "Mark task as incomplete" : "Mark task as complete"
+          }
         />
         <label
           htmlFor={`task-${id}`}
@@ -200,6 +215,26 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
         >
           {title}
         </label>
+        {priority && (
+          <Badge
+            variant="outline"
+            className={cn(
+              "px-2 py-0.5 text-xs font-semibold",
+              priorityColors[priority],
+            )}
+          >
+            {priority.charAt(0).toUpperCase() + priority.slice(1)}
+          </Badge>
+        )}
+
+        {status && (
+          <Badge
+            variant="outline"
+            className={cn("text-xs font-medium", statusColors[status])}
+          >
+            {status}
+          </Badge>
+        )}
         {goal && (
           <Badge
             variant="secondary"
@@ -247,38 +282,6 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
             />
           </PopoverContent>
         </Popover>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Badge
-              variant="secondary"
-              className={cn(
-                "text-xs font-medium cursor-pointer",
-                priority ? priorityColors[priority] : "",
-              )}
-            >
-              {priority || "Set Priority"}
-            </Badge>
-          </PopoverTrigger>
-          <PopoverContent className="w-[160px] p-0" align="start">
-            <Select
-              value={priority || ""}
-              onValueChange={(newPriority) => {
-                void onUpdate(id, {
-                  priority: newPriority as Task["priority"],
-                });
-              }}
-            >
-              <SelectTrigger className="h-8 text-sm">
-                <SelectValue placeholder="Select Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-              </SelectContent>
-            </Select>
-          </PopoverContent>
-        </Popover>
 
         {/* Status Select */}
         <Popover>
@@ -290,15 +293,15 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
                 status ? statusColors[status] : "",
               )}
             >
-              {status || "Set Status"}
+              {status ? status.replace(/_/g, " ") : "Set Status"}
             </Badge>
           </PopoverTrigger>
           <PopoverContent className="w-[160px] p-0" align="start">
             <Select
-              value={status || "todo"}
+              value={status || TaskStatus.Todo}
               onValueChange={(newStatusValue) => {
                 void onUpdate(id, {
-                  status: newStatusValue as Task["status"],
+                  status: newStatusValue as TaskStatus,
                 });
               }}
             >
@@ -306,53 +309,128 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
                 <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="todo">Todo</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="done">Done</SelectItem>
-                <SelectItem value="canceled">Canceled</SelectItem>
+                {Object.values(TaskStatus)
+                  .filter((s) => s !== TaskStatus.Archived) // Filter out archived status
+                  .map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s.replace(/_/g, " ")}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </PopoverContent>
         </Popover>
 
         <Button
-          size="icon"
           variant="ghost"
-          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => onOpenModal(props)}
-          disabled={disabled}
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => onEdit(props)}
+          aria-label="Edit task"
         >
           <Edit className="h-4 w-4" />
-          <span className="sr-only">Edit task</span>
         </Button>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => setShowSubtaskInput(!showSubtaskInput)}
+          aria-label="Add subtask"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+        <Popover>
+          <PopoverTrigger asChild>
             <Button
-              size="icon"
               variant="ghost"
-              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-              disabled={disabled}
+              size="sm"
+              className="h-8 w-8 p-0 text-slate-400 hover:text-slate-600"
+              aria-label="More options"
             >
-              <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Delete task</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4"
+              >
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="19" cy="12" r="1" />
+                <circle cx="5" cy="12" r="1" />
+              </svg>
             </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your
-                task.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => void handleDelete()}>
-                Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          </PopoverTrigger>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-slate-400 hover:text-slate-600"
+            onClick={() => setShowSubtaskInput(!showSubtaskInput)}
+            aria-label="Add subtask"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <PopoverContent className="w-40 p-0" align="end">
+            <div className="flex flex-col">
+              <Button
+                variant="ghost"
+                className="justify-start text-sm"
+                onClick={() => onEdit(props)}
+              >
+                <Edit className="mr-2 h-4 w-4" /> Edit
+              </Button>
+              {goal && (
+                <Button
+                  variant="ghost"
+                  className="justify-start text-sm"
+                  onClick={() => onOpenModal(props)}
+                >
+                  <Target className="mr-2 h-4 w-4" /> View Goal
+                </Button>
+              )}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="justify-start text-sm text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Are you absolutely sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete
+                      your task and remove your data from our servers.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => void onDeletePermanently(id)}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button
+                variant="ghost"
+                className="justify-start text-sm"
+                onClick={() => void onArchive(id)}
+              >
+                <Archive className="mr-2 h-4 w-4" /> Archive
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
       {notes && (
         <div className="ml-6 text-xs text-slate-600 dark:text-slate-300 mt-1">
@@ -473,13 +551,15 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
                 <TaskItem
                   {...subtask}
                   onToggle={onToggle}
-                  onDelete={onDelete}
+                  onArchive={onArchive} // Pass onArchive to subtasks
+                  onDeletePermanently={onDeletePermanently} // Pass onDeletePermanently to subtasks
                   onUpdate={onUpdate}
                   onAddTask={onAddTask}
-                  onOpenModal={onOpenModal} // Pass onOpenModal to subtasks
+                  onOpenModal={onOpenModal}
                   disabled={disabled}
                   isSelected={isSelected}
                   onSelect={onSelect}
+                  onEdit={onEdit} // Pass onEdit to subtasks
                 />
               </li>
             ))}

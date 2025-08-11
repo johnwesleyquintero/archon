@@ -24,7 +24,6 @@ export const journalEntryInsertSchema = Zod.object({
   title: Zod.string().min(1, "Title is required."),
   content: Zod.string().nullable().optional(),
   attachments: Zod.any().nullable().optional(),
-  tags: Zod.array(Zod.string()).nullable().optional(),
   user_id: Zod.string(),
 });
 
@@ -32,7 +31,6 @@ export const journalEntryUpdateSchema = Zod.object({
   title: Zod.string().min(1, "Title cannot be empty.").optional(),
   content: Zod.string().nullable().optional(),
   attachments: Zod.any().nullable().optional(),
-  tags: Zod.array(Zod.string()).nullable().optional(),
 });
 
 export const messageSchema = Zod.object({
@@ -50,7 +48,6 @@ export const taskInsertSchema = Zod.object({
   priority: Zod.enum(["low", "medium", "high"]).nullable().optional(),
   category: Zod.string().nullable().optional(),
   tags: Zod.array(Zod.string()).nullable().optional(),
-  status: Zod.enum(["todo", "in_progress", "done", "canceled"]).optional(),
   parent_id: Zod.string().nullable().optional(), // Added for subtasks
   recurrence_pattern: Zod.string().nullable().optional(),
   recurrence_end_date: Zod.string().nullable().optional(),
@@ -61,6 +58,9 @@ export const taskInsertSchema = Zod.object({
     .nullable()
     .optional(), // New field for task notes
   goal_id: Zod.string().nullable().optional(),
+  status: Zod.enum(["todo", "in_progress", "done", "canceled"])
+    .optional()
+    .nullable(), // Modified status field
 });
 
 export const taskUpdateSchema = Zod.object({
@@ -70,7 +70,9 @@ export const taskUpdateSchema = Zod.object({
   priority: Zod.enum(["low", "medium", "high"]).nullable().optional(),
   category: Zod.string().nullable().optional(),
   tags: Zod.array(Zod.string()).nullable().optional(),
-  status: Zod.enum(["todo", "in_progress", "done", "canceled"]).optional(),
+  status: Zod.enum(["todo", "in_progress", "done", "canceled"])
+    .optional()
+    .nullable(), // Modified status field
   parent_id: Zod.string().nullable().optional(), // Added for subtasks
   recurrence_pattern: Zod.string().nullable().optional(),
   recurrence_end_date: Zod.string().nullable().optional(),
@@ -80,5 +82,6 @@ export const taskUpdateSchema = Zod.object({
     .max(1000, { message: "Notes are too long." })
     .nullable()
     .optional(), // New field for task notes
+  position: Zod.number().nullable().optional(), // New field for task position
   goal_id: Zod.string().nullable().optional(),
 });
