@@ -1,3 +1,5 @@
+"use client";
+
 import { TaskList } from "@/components/task-list";
 import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
 import { DashboardLayout } from "@/components/dashboard-layout";
@@ -19,8 +21,9 @@ import {
   useTaskFiltersAndSort,
   TaskFilters,
 } from "@/hooks/use-task-filters-and-sort";
-import { useEffect, useState, useCallback } from "react"; // Import useCallback
+import { useEffect, useState, useCallback, Suspense } from "react"; // Import useCallback
 import { useAuth } from "@/contexts/auth-context"; // Import useAuth
+import { useSearchParams } from "next/navigation";
 
 // Helper function to parse search params into filter and sort options
 const parseSearchParams = (searchParams: {
@@ -110,19 +113,26 @@ const parseSearchParams = (searchParams: {
   return { filters: filters as TaskFilters, sorts };
 };
 
-export default function TasksPage({
-  // Removed async
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
-  const { filters, sorts } = parseSearchParams(searchParams);
+function TaskView() {
+  const searchParams = useSearchParams();
+  const params: { [key: string]: string | string[] | undefined } = {};
+  for (const key of searchParams.keys()) {
+    const allValues = searchParams.getAll(key);
+    params[key] = allValues.length === 1 ? allValues[0] : allValues;
+  }
 
+  const { filters, sorts } = parseSearchParams(params);
+  return <TaskControls initialFilters={filters} initialSorts={sorts} />;
+}
+
+export default function TasksPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-6">
         <h1 className="text-2xl font-bold text-slate-900">Tasks</h1>
-        <TaskControls initialFilters={filters} initialSorts={sorts} />
+        <Suspense fallback={<LoadingSkeleton />}>
+          <TaskView />
+        </Suspense>
       </div>
     </DashboardLayout>
   );
