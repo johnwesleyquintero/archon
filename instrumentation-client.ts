@@ -24,16 +24,12 @@ if (!SENTRY_DSN) {
               maskAllText: true,
               blockAllMedia: true,
             }),
-          ]
-        : []),
-      ...(process.env.NODE_ENV === "development"
-        ? []
-        : [
             Sentry.consoleLoggingIntegration({
               levels: ["log", "error", "warn"],
             }),
             Sentry.browserTracingIntegration(),
-          ]),
+          ]
+        : []),
     ],
 
     // Enable logs to be sent to Sentry

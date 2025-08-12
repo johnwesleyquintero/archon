@@ -34,27 +34,28 @@ const nextConfig = {
   },
 };
 
-import { withSentryConfig } from "@sentry/nextjs";
+// import { withSentryConfig } from "@sentry/nextjs";
 
 // Make sure adding Sentry options is the last code to run before exporting, to ensure that
 // other plugins can't change the webpack config after Sentry has moved the sourcemaps.
-export default withSentryConfig(nextConfig, {
-  // For all available options, see:  https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+export default nextConfig;
+// export default withSentryConfig(nextConfig, {
+//   // For all available options, see:  https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
-  // Upload a larger set of source maps for prettier stack traces (useful for debugging, but creates larger builds).
-  // Set this to false when you're ready to deploy to production.
-  // This option cannot be configured via the environment variable SENTRY_INCLUDE_SERVER_SCHEMAS.
-  includeServerSchemas: false,
+//   // Upload a larger set of source maps for prettier stack traces (useful for debugging, but creates larger builds).
+//   // Set this to false when you're ready to deploy to production.
+//   // This option cannot be configured via the environment variable SENTRY_INCLUDE_SERVER_SCHEMAS.
+//   includeServerSchemas: false,
 
-  // For all available options, see: https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+//   // For all available options, see: https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
-  // Hides source maps from generated client bundles.
-  hideSourceMaps: true,
+//   // Hides source maps from generated client bundles.
+//   hideSourceMaps: true,
 
-  // Automatically tree-shake Sentry logger statements to reduce bundle size.
-  disableLogger: true,
+//   // Automatically tree-shake Sentry logger statements to reduce bundle size.
+//   disableLogger: true,
 
-  // Enables automatic instrumentation of Vercel Cron Jobs. For more information see:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/features/#vercel-cron-job-auto-instrumentation
-  // autoInstrumentServerFunctions: true,
-});
+//   // Enables automatic instrumentation of Vercel Cron Jobs. For more information see:
+//   // https://docs.sentry.io/platforms/javascript/guides/nextjs/features/#vercel-cron-job-auto-instrumentation
+//   // autoInstrumentServerFunctions: true,
+// });

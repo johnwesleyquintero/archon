@@ -46,14 +46,6 @@ export default function RootLayout({
             </CommandMenuProvider>
             <Toaster />
           </AuthProvider>
-          {/* 
-            If you encounter a script error like "Cannot render a sync or defer <script> outside the main document",
-            it's likely a third-party script being injected. You might need to identify that script's URL
-            and add it here with the appropriate strategy. For example:
-            <Script src="https://example.com/problematic-script.js" strategy="beforeInteractive" async />
-            For now, this is a placeholder to demonstrate the solution approach.
-          */}
-          {/* <Script src="/path/to/your/problematic-script.js" strategy="beforeInteractive" async /> */}
         </body>
       </html>
     </ThemeProvider>
