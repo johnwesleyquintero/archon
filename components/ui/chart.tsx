@@ -1,20 +1,20 @@
 "use client";
 
+"use client";
+
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 import { cn } from "@/lib/utils";
+import dynamic from "next/dynamic";
+import { ChartConfig } from "./chart-style";
 
-// Format: { THEME_NAME: CSS_SELECTOR }
-const THEMES = { light: "", dark: ".dark" } as const;
-
-// Define ChartConfig type
-export type ChartConfig = {
-  [key: string]: {
-    label: string;
-    color?: string;
-    icon?: React.ElementType;
-  };
-};
+const DynamicChartStyle = dynamic(
+  () =>
+    import("./chart-style").then((mod) => ({
+      default: mod.ChartStyle,
+    })),
+  { ssr: false },
+);
 
 type ChartContextProps = {
   config: ChartConfig;
@@ -46,7 +46,7 @@ const ChartContainer = React.forwardRef<HTMLDivElement, ChartContainerProps>(
           )}
           {...props}
         >
-          <ChartStyle id={chartId} config={config} />
+          <DynamicChartStyle id={chartId} config={config} />
           <RechartsPrimitive.ResponsiveContainer>
             {children}
           </RechartsPrimitive.ResponsiveContainer>
@@ -56,38 +56,6 @@ const ChartContainer = React.forwardRef<HTMLDivElement, ChartContainerProps>(
   },
 );
 ChartContainer.displayName = "Chart";
-
-const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(
-    ([, itemConfig]) => itemConfig.color,
-  );
-
-  if (!colorConfig.length) {
-    return null;
-  }
-
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            ([_theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color = itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
-  })
-  .join("\n")}
-}
-`,
-          )
-          .join("\n"),
-      }}
-    />
-  );
-};
 
 // Define ChartTooltip and ChartLegend (simplified placeholders)
 export const ChartTooltip = ({ children }: { children: React.ReactNode }) => (
@@ -182,4 +150,4 @@ export const ChartLegendContent = ({
 
 const ChartPrimitive = RechartsPrimitive;
 
-export { ChartContainer, ChartStyle, ChartPrimitive };
+export { ChartContainer, ChartPrimitive };
