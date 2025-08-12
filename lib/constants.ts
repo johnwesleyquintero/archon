@@ -4,6 +4,7 @@ import {
   ListTodo,
   BookOpen,
   Kanban,
+  Settings,
   LucideIcon,
 } from "lucide-react";
 import type { Database } from "@/lib/supabase/types";
@@ -13,10 +14,11 @@ type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
   tags: string[] | null;
 };
 
-interface NavItem {
+export interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
+  sub?: NavItem[];
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -25,6 +27,15 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/tasks", label: "Tasks", icon: ListTodo },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/kanban", label: "Kanban", icon: Kanban },
+  {
+    href: "/settings",
+    label: "Settings",
+    icon: Settings,
+    sub: [
+      { href: "/settings/profile", label: "Profile", icon: Target },
+      { href: "/settings/appearance", label: "Appearance", icon: Target },
+    ],
+  },
 ];
 
 export const SIGN_OUT_LABEL = "Sign Out";

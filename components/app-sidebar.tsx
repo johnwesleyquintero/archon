@@ -15,15 +15,15 @@ import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { SidebarNav } from "./sidebar-nav"; // Import the new component
 
-interface AppSidebarProps {
-  isCollapsed?: boolean;
-}
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useSidebar } from "@/hooks/use-sidebar";
 
-export function AppSidebar({ isCollapsed = false }: AppSidebarProps) {
+export function AppSidebar() {
   // const pathname = usePathname(); // Removed unused pathname
   const { signOut } = useAuth();
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const { isCollapsed, toggleSidebar } = useSidebar();
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -55,7 +55,29 @@ export function AppSidebar({ isCollapsed = false }: AppSidebarProps) {
         </Link>
       </div>
       <SidebarNav isCollapsed={isCollapsed} />
-      <div className="mt-auto flex flex-col items-center gap-4 p-4">
+      <div className="mt-auto flex flex-col items-center gap-2 p-4">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-full"
+              onClick={toggleSidebar}
+              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="h-5 w-5" />
+              ) : (
+                <ChevronLeft className="h-5 w-5" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          {isCollapsed && (
+            <TooltipContent side="right">
+              {isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            </TooltipContent>
+          )}
+        </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

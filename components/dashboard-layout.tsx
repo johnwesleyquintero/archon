@@ -35,7 +35,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr]">
-      <AppSidebar isCollapsed={isSidebarCollapsed} />
+      <AppSidebar />
       <div className="flex flex-col">
         <DashboardHeader onToggleSidebar={toggleSidebar} />
         <main
