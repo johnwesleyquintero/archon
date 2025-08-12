@@ -12,9 +12,9 @@ if (!SENTRY_DSN) {
     // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
     tracesSampleRate: 1.0,
     // Define how likely Replay events are sampled.
-    replaysSessionSampleRate: 0.1,
+    replaysSessionSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 0,
     // Define how likely Replay events are sampled when an error occurs.
-    replaysOnErrorSampleRate: 1.0,
+    replaysOnErrorSampleRate: process.env.NODE_ENV === "production" ? 1.0 : 0,
 
     integrations: [
       // Replay integration is only enabled in production
@@ -26,7 +26,14 @@ if (!SENTRY_DSN) {
             }),
           ]
         : []),
-      Sentry.consoleLoggingIntegration({ levels: ["log", "error", "warn"] }),
+      ...(process.env.NODE_ENV === "development"
+        ? []
+        : [
+            Sentry.consoleLoggingIntegration({
+              levels: ["log", "error", "warn"],
+            }),
+            Sentry.browserTracingIntegration(),
+          ]),
     ],
 
     // Enable logs to be sent to Sentry

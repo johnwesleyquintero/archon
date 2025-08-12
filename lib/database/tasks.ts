@@ -134,7 +134,7 @@ export const getTasks = withErrorHandling(
     const { data, error } = await query;
 
     if (error) {
-      console.error("Error fetching tasks:", error);
+      console.error("Supabase error fetching tasks:", error);
       throw new Error(`Failed to fetch tasks: ${error.message}`);
     }
 

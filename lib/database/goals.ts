@@ -6,9 +6,7 @@ import type { Database, Json } from "@/lib/supabase/types";
 import { getAuthenticatedUser } from "@/lib/supabase/auth-utils";
 import { handleServerError, AppError } from "@/lib/error-utils";
 
-type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
-  tags: string[] | null;
-};
+type Goal = Database["public"]["Tables"]["goals"]["Row"];
 type GoalInsert = Database["public"]["Tables"]["goals"]["Insert"];
 type GoalUpdate = Database["public"]["Tables"]["goals"]["Update"];
 
@@ -41,7 +39,6 @@ export async function addGoal(goalData: {
   status?: string | null;
   target_date?: string | null;
   attachments?: Json | null;
-  tags?: string[] | null;
 }): Promise<Goal | null> {
   const supabase = await createServerSupabaseClient();
   const user = await getAuthenticatedUser();
@@ -65,7 +62,6 @@ export async function addGoal(goalData: {
       attachments:
         goalData.attachments === null ? undefined : goalData.attachments,
       user_id: user.id, // Explicitly add user_id
-      tags: goalData.tags === null ? undefined : goalData.tags,
     };
 
     const { data, error } = await supabase

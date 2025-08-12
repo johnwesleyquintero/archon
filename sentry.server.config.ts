@@ -11,5 +11,22 @@ if (!SENTRY_DSN) {
   Sentry.init({
     dsn: SENTRY_DSN,
     tracesSampleRate: 0.1,
+    integrations: [],
+    // Disable automatic instrumentation of fetch and console
+
+    _experiments: {
+      enableWebVitals: false,
+      enablePerformanceMonitoring: false,
+      enableConsole: false,
+      enableFetch: false,
+      enableXHR: false,
+      enableHistory: false,
+      enablePushState: false,
+      enablePopState: false,
+      enableClick: false,
+      enableKeypress: false,
+      enableError: false,
+      enableUnhandledRejection: false,
+    },
   });
 }
