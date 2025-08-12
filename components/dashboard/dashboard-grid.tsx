@@ -5,7 +5,7 @@ import { Responsive, type Layout, WidthProvider } from "react-grid-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { TriangleAlert } from "lucide-react";
 import { DashboardWidget } from "../dashboard-widget";
-import { Widget } from "../customizable-dashboard-layout"; // Import Widget type
+import { AllWidgetConfigs, Widget } from "@/lib/types/widget-types";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -21,9 +21,9 @@ interface DashboardGridProps<P extends Record<string, unknown>> {
   onLayoutChange: (layout: Layout[]) => void;
   widgetComponentsMap: Record<string, ComponentType<P>>;
   availableWidgets: Widget<P>[];
-  widgetConfigs: Record<string, { title: string }>;
+  widgetConfigs: AllWidgetConfigs;
   onToggleWidgetVisibility: (id: string) => void;
-  onSaveWidgetConfig: (widgetId: string, config: { title: string }) => void;
+  onConfigureWidget: (widgetId: string) => void;
 }
 
 export function DashboardGrid<P extends Record<string, unknown>>({
@@ -34,7 +34,7 @@ export function DashboardGrid<P extends Record<string, unknown>>({
   availableWidgets,
   widgetConfigs,
   onToggleWidgetVisibility,
-  onSaveWidgetConfig,
+  onConfigureWidget,
 }: DashboardGridProps<P>) {
   return (
     <ResponsiveGridLayout
@@ -69,16 +69,17 @@ export function DashboardGrid<P extends Record<string, unknown>>({
         }
 
         const WidgetComponent = widgetComponentsMap[widget.componentId];
+        const config = widgetConfigs[widget.id] || { title: widget.title };
 
         return (
           <div key={item.i} className="relative">
             {WidgetComponent && (
               <DashboardWidget
                 key={widget.id}
-                title={widgetConfigs[widget.id]?.title || widget.title}
+                title={config.title}
                 isCustomizing={isCustomizing}
                 onRemove={() => onToggleWidgetVisibility(widget.id)}
-                onSaveConfig={(config) => onSaveWidgetConfig(widget.id, config)}
+                onConfigure={() => onConfigureWidget(widget.id)}
               >
                 <WidgetComponent
                   {...(widget.defaultProps || ({} as P))}

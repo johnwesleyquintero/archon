@@ -3,16 +3,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { getTasks } from "@/lib/database/tasks";
 import { createClient } from "@/lib/supabase/client";
-import type { Database } from "@/lib/supabase/types";
-import type { Task } from "@/lib/types/task";
+import { TodoWidgetConfig } from "@/lib/types/widget-types";
+import { Task } from "@/lib/types/task";
+import { buildTaskHierarchy } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/use-toast";
-import { convertRawTaskToTask, buildTaskHierarchy } from "@/lib/utils"; // Import buildTaskHierarchy
+import { Database } from "@/lib/supabase/types";
 
 // Define the raw task type from the database
 type RawTask = Database["public"]["Tables"]["tasks"]["Row"];
 
-export function useTaskFetching(initialTasks: Task[] = []) {
+export function useTaskFetching(
+  initialTasks: Task[] = [],
+  config?: TodoWidgetConfig,
+) {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [loading, setLoading] = useState(true);
@@ -29,8 +33,15 @@ export function useTaskFetching(initialTasks: Task[] = []) {
     setLoading(true);
     setError(null);
     try {
-      const tasks = await getTasks();
-      const processedTasks = (tasks as any[]).map(convertRawTaskToTask);
+      const tasks: Task[] = await getTasks();
+      let processedTasks = tasks;
+
+      if (config?.filters?.status === "completed") {
+        processedTasks = processedTasks.filter((task) => task.is_completed);
+      } else if (config?.filters?.status === "incomplete") {
+        processedTasks = processedTasks.filter((task) => !task.is_completed);
+      }
+
       const hierarchicalTasks = buildTaskHierarchy(processedTasks); // Build hierarchy
       setTasks(hierarchicalTasks);
     } catch (err) {
@@ -39,7 +50,7 @@ export function useTaskFetching(initialTasks: Task[] = []) {
     } finally {
       setLoading(false);
     }
-  }, [user, toast]);
+  }, [user, toast, config]);
 
   // Setup realtime subscription and initial fetch
   useEffect(() => {

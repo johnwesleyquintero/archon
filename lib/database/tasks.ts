@@ -4,7 +4,6 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/lib/supabase/types";
 import { Task, TaskStatus, TaskPriority } from "@/lib/types/task"; // Import TaskStatus and TaskPriority
-import type { RawTask } from "@/lib/types/task"; // Import RawTask for casting
 
 import { withErrorHandling, convertRawTaskToTask } from "@/lib/utils";
 
@@ -79,10 +78,7 @@ export const getTasks = withErrorHandling(
 
       // Handle status filter
       if (filters.status && filters.status !== "all") {
-        query = query.eq(
-          "status",
-          filters.status as Database["public"]["Enums"]["task_status"],
-        );
+        query = query.eq("status", filters.status);
       } else if (!filters.includeArchived) {
         // Default: If no status filter and not explicitly including archived, exclude archived
         query = query.in("status", ["todo", "in_progress", "done", "canceled"]);
@@ -142,8 +138,8 @@ export const getTasks = withErrorHandling(
       throw new Error(`Failed to fetch tasks: ${error.message}`);
     }
 
-    // Cast data to RawTask[] before mapping to ensure type compatibility
-    const rawTasks = (data as RawTask[]).map(convertRawTaskToTask);
+    // Ensure data is treated as Task[] after mapping
+    const rawTasks: Task[] = data.map(convertRawTaskToTask);
 
     const parentTasks: Task[] = [];
     const subtasksMap: Map<string, Task[]> = new Map();

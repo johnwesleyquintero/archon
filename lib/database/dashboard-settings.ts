@@ -1,8 +1,9 @@
 "use server";
 
+import * as Sentry from "@sentry/nextjs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { Tables, Json } from "@/lib/supabase/types";
-import * as Sentry from "@sentry/nextjs";
+import { AllWidgetConfigs } from "@/lib/types/widget-types";
 
 type DashboardSettingsRow = Tables<"dashboard_settings">;
 
@@ -12,7 +13,7 @@ import { revalidatePath } from "next/cache";
 
 export type DashboardSettings = {
   layout: WidgetLayout[];
-  widget_configs: Record<string, { title: string }>;
+  widget_configs: AllWidgetConfigs;
 };
 
 export async function getDashboardSettings(
@@ -40,13 +41,10 @@ export async function getDashboardSettings(
   try {
     const storedLayout = data.layout as unknown as {
       layout: WidgetLayout[];
-      widget_configs: Record<string, { title: string }>;
+      widget_configs: AllWidgetConfigs;
     };
     const parsedLayout = widgetLayoutsSchema.parse(storedLayout.layout);
-    const parsedWidgetConfigs = (storedLayout.widget_configs || {}) as Record<
-      string,
-      { title: string }
-    >;
+    const parsedWidgetConfigs = storedLayout.widget_configs || {};
 
     Sentry.logger.debug(
       Sentry.logger

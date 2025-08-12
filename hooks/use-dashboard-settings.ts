@@ -11,6 +11,7 @@ import {
 import { mergeLayouts } from "@/lib/dashboard-utils";
 import { DEFAULT_LAYOUT } from "@/lib/layouts";
 import * as Sentry from "@sentry/nextjs";
+import { AllWidgetConfigs } from "@/lib/types/widget-types";
 import { useToast } from "@/components/ui/use-toast";
 
 // Define a type that extends Layout with isVisible
@@ -21,11 +22,11 @@ interface DashboardLayoutItem extends Layout {
 
 interface UseDashboardSettingsResult {
   layout: DashboardLayoutItem[];
-  widgetConfigs: Record<string, any>;
+  widgetConfigs: AllWidgetConfigs;
   isLoading: boolean;
   saveLayout: (
     newLayout: DashboardLayoutItem[],
-    newWidgetConfigs: Record<string, any>,
+    newWidgetConfigs: AllWidgetConfigs,
   ) => Promise<void>;
   handleLayoutChange: (newLayout: Layout[]) => void;
   toggleWidgetVisibility: (id: string, isVisible: boolean) => void;
@@ -34,12 +35,12 @@ interface UseDashboardSettingsResult {
 
 export function useDashboardSettings(
   initialLayout: DashboardLayoutItem[],
-  initialWidgetConfigs: Record<string, any>,
+  initialWidgetConfigs: AllWidgetConfigs,
 ): UseDashboardSettingsResult {
   const { user } = useAuth();
   const [layout, setLayout] = useState<DashboardLayoutItem[]>(initialLayout);
   const [widgetConfigs, setWidgetConfigs] =
-    useState<Record<string, any>>(initialWidgetConfigs);
+    useState<AllWidgetConfigs>(initialWidgetConfigs);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -86,7 +87,7 @@ export function useDashboardSettings(
   const saveLayout = useCallback(
     async (
       newLayout: DashboardLayoutItem[],
-      newWidgetConfigs: Record<string, any>,
+      newWidgetConfigs: AllWidgetConfigs,
     ) => {
       if (!user) {
         console.warn("Cannot save layout: User not authenticated.");

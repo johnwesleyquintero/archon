@@ -2,24 +2,28 @@
 
 "use client";
 
-import { useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TaskInput } from "./task-input";
-import { TaskList } from "./task-list";
+import { TodoWidgetConfig } from "@/lib/types/widget-types";
+import { Task as TaskType } from "@/lib/types/task";
 import { useTasks } from "@/hooks/use-tasks";
 import { useGoals } from "@/hooks/use-goals";
 import { useAuth } from "@/contexts/auth-context";
-import { useState } from "react";
-import { Task as TaskType } from "@/lib/types/task";
+import { useRef, useState } from "react";
 import { TaskFormValues } from "@/lib/validators";
-import { TaskEditModal } from "@/components/task-edit-modal";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TaskList } from "@/components/task-list";
+import { TaskInput } from "@/components/task-input";
+import { TaskEditModal } from "@/components/task-item";
 
 export interface TodoListProps {
   initialTasks?: TaskType[];
+  config?: TodoWidgetConfig;
 }
 
-export function TodoList({ initialTasks }: TodoListProps) {
-  const { tasks, loading, addTask, isMutating } = useTasks(initialTasks);
+export function TodoList({ initialTasks, config }: TodoListProps) {
+  const { tasks, loading, addTask, isMutating } = useTasks(
+    initialTasks,
+    config,
+  );
   const { goals } = useGoals();
   const { user } = useAuth();
   const taskInputRef = useRef<HTMLInputElement>(null);

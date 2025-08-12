@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TipTapEditor } from "./quill-editor";
-import { Task, TaskStatus, TaskPriority } from "@/lib/types/task"; // Changed to regular import
+import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
 import type { Database } from "@/lib/supabase/types";
 import {
   Select,
@@ -88,7 +88,7 @@ export function TaskDetailsModal({
   const [priority, setPriority] = useState<TaskPriority | null>(
     task?.priority || null,
   );
-  const [status, setStatus] = useState<TaskStatus | null>(task?.status || null);
+  const [status, setStatus] = useState<TaskStatus | null>(null);
 
   useEffect(() => {
     if (task) {
@@ -101,7 +101,7 @@ export function TaskDetailsModal({
       setGoalId(task.goal_id || null);
       setParentId(task.parent_id || null);
       setPriority(task.priority || null);
-      setStatus(task.status || null);
+      setStatus(task.status as TaskStatus | null);
     }
   }, [task]);
 
@@ -215,7 +215,7 @@ export function TaskDetailsModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">No Priority</SelectItem>
-                  {Object.values(TaskPriority).map((p) => (
+                  {["low", "medium", "high"].map((p) => (
                     <SelectItem key={p} value={p}>
                       {p.charAt(0).toUpperCase() + p.slice(1)}
                     </SelectItem>
@@ -226,7 +226,7 @@ export function TaskDetailsModal({
             <div>
               <label className="text-sm font-medium">Status</label>
               <Select
-                value={status || TaskStatus.Todo}
+                value={status || undefined}
                 onValueChange={(value) => setStatus(value as TaskStatus)}
               >
                 <SelectTrigger>
@@ -235,7 +235,8 @@ export function TaskDetailsModal({
                 <SelectContent>
                   {Object.values(TaskStatus).map((s) => (
                     <SelectItem key={s} value={s}>
-                      {s.replace(/_/g, " ")}
+                      {s.charAt(0).toUpperCase() +
+                        s.slice(1).replace(/_/g, " ")}
                     </SelectItem>
                   ))}
                 </SelectContent>

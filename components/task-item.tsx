@@ -2,7 +2,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { format, isPast, isToday } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,238 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Task, TaskStatus, TaskPriority } from "@/lib/types/task"; // Changed to regular import
+import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { taskSchema } from "@/lib/validators";
+
+interface TaskEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  task: Task | null;
+  goals: Goal[];
+}
+
+export const TaskEditModal = ({
+  isOpen,
+  onClose,
+  task,
+}: TaskEditModalProps) => {
+  const form = useForm<z.infer<typeof taskSchema>>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: {
+      title: task?.title || "",
+      description: task?.description || "",
+      due_date: task?.due_date || null,
+      category: task?.category || null,
+      tags: task?.tags || [],
+      status: task?.status || "todo",
+      priority: task?.priority || "medium",
+      notes: task?.notes || "",
+      goal_id: task?.goal_id || null,
+    },
+  });
+
+  useEffect(() => {
+    if (task) {
+      form.reset({
+        title: task.title || "",
+        description: task.description || "",
+        due_date: task.due_date || null,
+        category: task.category || null,
+        tags: task.tags || [],
+        status: task.status || "todo",
+        priority: task.priority || "medium",
+        notes: task.notes || "",
+        goal_id: task.goal_id || null,
+      });
+    }
+  }, [task, form]);
+
+  const onSubmit = (values: z.infer<typeof taskSchema>) => {
+    if (!task) return;
+    // Logic to update task
+    console.log("Updating task:", values);
+    onClose();
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Edit Task</DialogTitle>
+          <DialogDescription>
+            Make changes to your task here. Click save when you're done.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form
+            onSubmit={(e) => void form.handleSubmit(onSubmit)(e)}
+            className="grid gap-4 py-4"
+          >
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      value={field.value ?? ""}
+                      className="min-h-[100px]"
+                      placeholder="Add notes..."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {/* Due Date */}
+            <FormField
+              control={form.control}
+              name="due_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Due Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-[240px] pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground",
+                          )}
+                        >
+                          {field.value ? (
+                            format(new Date(field.value), "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={
+                          field.value ? new Date(field.value) : undefined
+                        }
+                        onSelect={(date) =>
+                          field.onChange(date ? date.toISOString() : null)
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {/* Status */}
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(TaskStatus).map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status.charAt(0).toUpperCase() +
+                            status.slice(1).replace(/_/g, " ")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {/* Priority */}
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Priority</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a priority" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(TaskPriority).map((priority) => (
+                        <SelectItem key={priority} value={priority}>
+                          {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {/* Notes */}
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} value={field.value ?? ""} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit">Save changes</Button>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+};
 import type { Database } from "@/lib/supabase/types";
 
 import type { Goal } from "@/lib/types/goal";
@@ -132,17 +363,13 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const statusColors: Record<TaskStatus, string> = {
-    [TaskStatus.Todo]:
-      "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
-    [TaskStatus.InProgress]:
+  const statusColors: Record<string, string> = {
+    todo: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
+    in_progress:
       "bg-purple-100 text-purple-800 dark:bg-purple-700 dark:text-purple-200",
-    [TaskStatus.Done]:
-      "bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-200",
-    [TaskStatus.Canceled]:
-      "bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-200",
-    [TaskStatus.Archived]:
-      "bg-blue-100 text-blue-800 dark:bg-blue-700 dark:text-blue-200", // Added archived status color
+    done: "bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-200",
+    canceled: "bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-200",
+    archived: "bg-blue-100 text-blue-800 dark:bg-blue-700 dark:text-blue-200", // Added archived status color
   };
 
   const priorityColors: Record<TaskPriority, string> = {
@@ -211,7 +438,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
             "flex-1 text-sm cursor-pointer",
             is_completed && "text-slate-400 line-through dark:text-slate-600",
           )}
-          onClick={() => onOpenModal(props)}
+          onClick={() => onOpenModal(props as Task)}
         >
           {title}
         </label>
@@ -298,7 +525,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
           </PopoverTrigger>
           <PopoverContent className="w-[160px] p-0" align="start">
             <Select
-              value={status || TaskStatus.Todo}
+              value={status ?? undefined}
               onValueChange={(newStatusValue) => {
                 void onUpdate(id, {
                   status: newStatusValue as TaskStatus,
@@ -313,7 +540,8 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
                   .filter((s) => s !== TaskStatus.Archived) // Filter out archived status
                   .map((s) => (
                     <SelectItem key={s} value={s}>
-                      {s.replace(/_/g, " ")}
+                      {s.charAt(0).toUpperCase() +
+                        s.slice(1).replace(/_/g, " ")}
                     </SelectItem>
                   ))}
               </SelectContent>
@@ -325,7 +553,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => onEdit(props)}
+          onClick={() => onEdit(props as Task)}
           aria-label="Edit task"
         >
           <Edit className="h-4 w-4" />
@@ -379,7 +607,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
               <Button
                 variant="ghost"
                 className="justify-start text-sm"
-                onClick={() => onEdit(props)}
+                onClick={() => onEdit(props as Task)}
               >
                 <Edit className="mr-2 h-4 w-4" /> Edit
               </Button>
@@ -387,7 +615,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
                 <Button
                   variant="ghost"
                   className="justify-start text-sm"
-                  onClick={() => onOpenModal(props)}
+                  onClick={() => onOpenModal(props as Task)}
                 >
                   <Target className="mr-2 h-4 w-4" /> View Goal
                 </Button>
@@ -550,6 +778,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
               <li key={subtask.id}>
                 <TaskItem
                   {...subtask}
+                  status={subtask.status as TaskStatus}
                   onToggle={onToggle}
                   onArchive={onArchive} // Pass onArchive to subtasks
                   onDeletePermanently={onDeletePermanently} // Pass onDeletePermanently to subtasks

@@ -13,7 +13,20 @@ import { StatsGrid } from "./stats-grid";
 import { AdvancedStatsGrid } from "./advanced-stats-grid";
 import { PlaceholderInfographics } from "./placeholder-infographics";
 import { DashboardCustomizationControls } from "./dashboard/controls/dashboard-customization-controls";
+import {
+  AllWidgetConfigs,
+  WidgetConfig,
+  Widget,
+  TodoWidgetConfig,
+} from "@/lib/types/widget-types";
 import { DashboardGrid } from "./dashboard/dashboard-grid";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { WidgetConfigForm } from "./widget-config-form";
 
 // Define a type that extends Layout with isVisible
 export type DashboardLayoutItem = Layout & {
@@ -21,26 +34,10 @@ export type DashboardLayoutItem = Layout & {
   title: string;
 };
 
-// Widget type definitions
-export interface Widget<
-  P extends Record<string, unknown> = Record<string, unknown>,
-> {
-  id: string;
-  type: string;
-  title: string;
-  description: string;
-  componentId: string;
-  defaultProps?: P;
-  minW?: number;
-  minH?: number;
-  maxW?: number;
-  maxH?: number;
-}
-
 interface CustomizableDashboardLayoutProps<P extends Record<string, unknown>> {
   widgets: Widget<P>[];
   initialLayout?: DashboardLayoutItem[];
-  initialWidgetConfigs?: Record<string, { title: string }>;
+  initialWidgetConfigs?: AllWidgetConfigs;
   className?: string;
   userName?: string;
 }
@@ -54,7 +51,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
 }: CustomizableDashboardLayoutProps<P>) {
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [widgetConfigs, setWidgetConfigs] =
-    useState<Record<string, { title: string }>>(initialWidgetConfigs);
+    useState<AllWidgetConfigs>(initialWidgetConfigs);
 
   const {
     layout: currentLayout,
@@ -103,16 +100,39 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
     [currentLayout, toggleWidgetVisibility],
   );
 
+  const [configuringWidgetId, setConfiguringWidgetId] = useState<string | null>(
+    null,
+  );
+
   const handleSaveWidgetConfig = useCallback(
-    (widgetId: string, config: { title: string }) => {
+    (widgetId: string, config: WidgetConfig) => {
       setWidgetConfigs((prevConfigs) => ({
         ...prevConfigs,
         [widgetId]: { ...prevConfigs[widgetId], ...config },
       }));
+      setConfiguringWidgetId(null); // Close dialog after saving
     },
     [],
   );
 
+  const handleOpenConfig = useCallback((widgetId: string) => {
+    setConfiguringWidgetId(widgetId);
+  }, []);
+
+  const handleCloseConfig = useCallback(() => {
+    setConfiguringWidgetId(null);
+  }, []);
+
+  const currentConfiguringWidget = useMemo(() => {
+    if (!configuringWidgetId) return null;
+    const widget = widgets.find((w) => w.id === configuringWidgetId);
+    if (!widget) return null;
+    return {
+      id: widget.id,
+      title: widget.title,
+      config: widgetConfigs[configuringWidgetId] || widget.defaultProps || {},
+    };
+  }, [configuringWidgetId, widgets, widgetConfigs]);
   const visibleWidgets = useMemo(() => {
     return currentLayout.filter((item) => item.isVisible || isCustomizing);
   }, [currentLayout, isCustomizing]);
@@ -120,7 +140,12 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
   const widgetComponentsMap: Record<string, ComponentType<P>> = useMemo(() => {
     return {
       "welcome-widget": WelcomeWidget,
-      "todo-list": TodoList,
+      "todo-list": (props) => (
+        <TodoList
+          {...props}
+          config={widgetConfigs["todo-list"] as TodoWidgetConfig}
+        />
+      ),
       "goal-tracker": GoalTracker,
       "goals-display": GoalsDisplay,
       "journal-list": JournalList,
@@ -128,7 +153,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
       "advanced-stats-grid": AdvancedStatsGrid,
       "placeholder-infographics": PlaceholderInfographics,
     } as Record<string, ComponentType<P>>;
-  }, []);
+  }, [widgetConfigs]);
 
   const availableWidgets = useMemo(() => {
     return widgets.map((w) => ({
@@ -169,7 +194,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
           setWidgetConfigs((prevConfigs) => ({
             ...prevConfigs,
             [widgetId]: {
-              ...widgetToAdd.defaultProps,
+              ...(widgetToAdd.defaultProps as unknown as WidgetConfig),
               title: widgetToAdd.title,
             },
           }));
@@ -207,8 +232,27 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
         availableWidgets={availableWidgets}
         widgetConfigs={widgetConfigs}
         onToggleWidgetVisibility={handleToggleWidgetVisibility}
-        onSaveWidgetConfig={handleSaveWidgetConfig}
+        onConfigureWidget={handleOpenConfig}
       />
+
+      {configuringWidgetId && currentConfiguringWidget && (
+        <Dialog open={!!configuringWidgetId} onOpenChange={handleCloseConfig}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>
+                Configure {currentConfiguringWidget.title}
+              </DialogTitle>
+            </DialogHeader>
+            <WidgetConfigForm
+              config={currentConfiguringWidget.config}
+              onSave={(newConfig) =>
+                handleSaveWidgetConfig(configuringWidgetId, newConfig)
+              }
+              onCancel={handleCloseConfig}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

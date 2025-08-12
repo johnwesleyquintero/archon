@@ -6,11 +6,8 @@ import {
   Kanban,
   LucideIcon,
 } from "lucide-react";
-import { JournalListProps } from "@/components/journal-list";
-import { PlaceholderInfographicsProps } from "@/components/placeholder-infographics";
 import type { Database } from "@/lib/supabase/types";
-import { GoalTrackerProps } from "@/components/goal-tracker";
-import { GoalsDisplayProps } from "@/components/goals-display";
+import { Widget } from "@/lib/types/widget-types";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
   tags: string[] | null;
@@ -33,7 +30,7 @@ export const NAV_ITEMS: NavItem[] = [
 export const SIGN_OUT_LABEL = "Sign Out";
 export const SIGNING_OUT_LABEL = "Signing out...";
 
-export const getAvailableWidgets = (initialGoals: Goal[]) => [
+export const getAvailableWidgets = (initialGoals: Goal[]): Widget[] => [
   {
     id: "stats-overview",
     type: "stats",
@@ -62,7 +59,7 @@ export const getAvailableWidgets = (initialGoals: Goal[]) => [
     componentId: "goal-tracker",
     minW: 4,
     minH: 4,
-    defaultProps: { initialGoals } as GoalTrackerProps,
+    defaultProps: { initialGoals },
   },
   {
     id: "goals-display",
@@ -72,7 +69,7 @@ export const getAvailableWidgets = (initialGoals: Goal[]) => [
     componentId: "goals-display",
     minW: 6,
     minH: 4,
-    defaultProps: { initialGoals } as GoalsDisplayProps,
+    defaultProps: { initialGoals },
   },
   {
     id: "recent-journal",
@@ -82,7 +79,7 @@ export const getAvailableWidgets = (initialGoals: Goal[]) => [
     componentId: "journal-list",
     minW: 4,
     minH: 4,
-    defaultProps: { limit: 3 } as JournalListProps,
+    defaultProps: { limit: 3 },
   },
   {
     id: "advanced-stats",
@@ -107,7 +104,7 @@ export const getAvailableWidgets = (initialGoals: Goal[]) => [
       title: "Productivity Insights",
       description:
         "Charts and graphs detailing your productivity trends will be available here soon.",
-    } as PlaceholderInfographicsProps,
+    },
   },
   {
     id: "welcome-message",
