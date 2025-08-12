@@ -17,6 +17,11 @@ export type TodoWidgetConfig = WidgetConfig & {
   };
 };
 
+export type WeatherWidgetConfig = WidgetConfig & {
+  location?: string;
+  temperatureUnit?: "C" | "F";
+};
+
 export type Widget<P = Record<string, unknown>> = {
   id: string;
   type: string;

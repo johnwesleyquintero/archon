@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useGoals } from "@/hooks/use-goals";
 import { CreateGoalModal } from "@/components/create-goal-modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,55 +13,47 @@ import { EmptyState } from "@/components/empty-state";
 import type { Database } from "@/lib/supabase/types";
 import { goalSchema } from "@/lib/validators";
 import { z } from "zod";
-import { ChartContainer, ChartPrimitive } from "@/components/ui/chart"; // Import ChartContainer and ChartPrimitive
+import { ChartContainer, ChartPrimitive } from "@/components/ui/chart";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
   tags: string[] | null;
 };
 type GoalFormValues = z.infer<typeof goalSchema>;
 
-export interface GoalTrackerProps extends Record<string, unknown> {
-  initialGoals?: Goal[]; // Make initialGoals optional
-}
-
 const statusConfig = {
   pending: {
     color: "bg-gray-100 text-gray-800 border-gray-200",
     icon: "⚪ Not Started",
-    chartColor: "#A0AEC0", // Gray for pending
+    chartColor: "#A0AEC0",
   },
   in_progress: {
     color: "bg-green-100 text-green-800 border-green-200",
     icon: "🟢 On Track",
-    chartColor: "#48BB78", // Green for in progress
+    chartColor: "#48BB78",
   },
   completed: {
     color: "bg-blue-100 text-blue-800 border-blue-200",
     icon: "✅ Completed",
-    chartColor: "#4299E1", // Blue for completed
+    chartColor: "#4299E1",
   },
 };
 
-export function GoalTracker({ initialGoals }: GoalTrackerProps) {
-  const [goals] = useState<Goal[]>(initialGoals || []); // Default to empty array if not provided
-  const [isLoading, setIsLoading] = useState(false);
+export function GoalManager() {
+  const { goals, isLoading, error, isMutating, addGoal, updateGoal } =
+    useGoals();
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-
-  // The fetchGoals function is now only for refreshing data after an action.
-  const fetchGoals = () => {
-    setIsLoading(true);
-    try {
-      // This would ideally be a server action or API call to get fresh data
-      // For now, we'll just simulate a refresh.
-      // In a real app, you'd call getGoals() here.
-    } catch (err) {
-      console.error("Error refreshing goals:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("created_at");
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const handleEditGoal = (goal: Goal) => {
     setSelectedGoal(goal);
@@ -72,20 +65,50 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
     setModalOpen(true);
   };
 
-  const handleSaveGoal = async (
-    _goalData: GoalFormValues,
-    _goalId?: string,
-  ) => {
-    setIsSaving(true);
-    // Here you would call your API to save or update the goal
-
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-    setIsSaving(false);
+  const handleSaveGoal = async (goalData: GoalFormValues, goalId?: string) => {
+    if (goalId) {
+      await updateGoal(goalId, goalData);
+    } else {
+      await addGoal(goalData);
+    }
     setModalOpen(false);
-    void fetchGoals(); // Refresh goals list
   };
 
-  if (isLoading) {
+  const filteredAndSortedGoals = useMemo(() => {
+    const filtered = goals.filter((goal) => {
+      const matchesStatus =
+        statusFilter === "all" || goal.status === statusFilter;
+      const matchesSearch =
+        goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (goal.description &&
+          goal.description.toLowerCase().includes(searchTerm.toLowerCase()));
+      return matchesStatus && matchesSearch;
+    });
+
+    filtered.sort((a, b) => {
+      if (sortBy === "created_at") {
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      }
+      if (sortBy === "target_date") {
+        if (!a.target_date && !b.target_date) return 0;
+        if (!a.target_date) return 1;
+        if (!b.target_date) return -1;
+        return (
+          new Date(a.target_date).getTime() - new Date(b.target_date).getTime()
+        );
+      }
+      if (sortBy === "title") {
+        return a.title.localeCompare(b.title);
+      }
+      return 0;
+    });
+
+    return filtered;
+  }, [goals, statusFilter, sortBy, searchTerm]);
+
+  if (isLoading && !isMutating) {
     return (
       <Card className="w-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -104,10 +127,18 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
     );
   }
 
-  const totalGoals = goals.length;
-  const completedGoals = goals.filter((g) => g.status === "completed").length;
-  const onTrackGoals = goals.filter((g) => g.status === "in_progress").length;
-  const notStartedGoals = goals.filter((g) => g.status === "pending").length;
+  if (error) return <div>Failed to load goals. Error: {error.message}</div>;
+
+  const totalGoals = filteredAndSortedGoals.length;
+  const completedGoals = filteredAndSortedGoals.filter(
+    (g) => g.status === "completed",
+  ).length;
+  const onTrackGoals = filteredAndSortedGoals.filter(
+    (g) => g.status === "in_progress",
+  ).length;
+  const notStartedGoals = filteredAndSortedGoals.filter(
+    (g) => g.status === "pending",
+  ).length;
 
   const chartData = [
     {
@@ -125,7 +156,7 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
       value: notStartedGoals,
       color: statusConfig.pending.chartColor,
     },
-  ].filter((data) => data.value > 0); // Only show segments with values greater than 0
+  ].filter((data) => data.value > 0);
 
   const chartConfig = {
     completed: {
@@ -148,7 +179,7 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
         isOpen={isModalOpen}
         onClose={() => setModalOpen(false)}
         onSaveOrUpdate={handleSaveGoal}
-        isSaving={isSaving}
+        isSaving={isMutating}
         initialData={selectedGoal}
       />
       <Card className="w-full">
@@ -167,7 +198,37 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          {goals.length > 0 && (
+          <div className="flex space-x-4 mb-4">
+            <Input
+              placeholder="Search goals..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Sort By" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="created_at">Newest First</SelectItem>
+                <SelectItem value="target_date">Target Date</SelectItem>
+                <SelectItem value="title">Title (A-Z)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {filteredAndSortedGoals.length > 0 && (
             <ChartContainer config={chartConfig} className="h-48 w-full">
               <ChartPrimitive.PieChart>
                 <ChartPrimitive.Pie
@@ -196,8 +257,8 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
             </ChartContainer>
           )}
 
-          {goals.length > 0 ? (
-            goals.map((goal) => (
+          {filteredAndSortedGoals.length > 0 ? (
+            filteredAndSortedGoals.map((goal) => (
               <Card
                 key={goal.id}
                 className="border border-slate-200 hover:border-slate-300 transition-colors"
@@ -205,7 +266,6 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-3">
-                      {/* Goal Title and Status */}
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="font-medium text-slate-900 text-sm leading-tight">
                           {goal.title}
@@ -227,7 +287,6 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
                         </Badge>
                       </div>
 
-                      {/* Target Date */}
                       {goal.target_date && (
                         <div className="flex items-center gap-1 text-xs text-slate-600">
                           <Calendar className="h-3 w-3" />
@@ -235,7 +294,6 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
                         </div>
                       )}
 
-                      {/* Description */}
                       {goal.description && (
                         <p className="text-xs text-slate-500 leading-relaxed">
                           {goal.description}
@@ -243,7 +301,6 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
                       )}
                     </div>
 
-                    {/* Action Buttons */}
                     <div className="flex flex-col gap-2">
                       <Button
                         variant="ghost"
@@ -260,14 +317,17 @@ export function GoalTracker({ initialGoals }: GoalTrackerProps) {
             ))
           ) : (
             <EmptyState
-              title="No goals set yet"
-              description="Create your first strategic goal to get started."
-              actionLabel="Add New Goal"
-              onAction={handleAddGoal}
+              title="No goals found"
+              description="No goals match your current filters. Try adjusting your search or filter settings."
+              actionLabel="Clear Filters"
+              onAction={() => {
+                setSearchTerm("");
+                setStatusFilter("all");
+                setSortBy("created_at");
+              }}
             />
           )}
 
-          {/* Summary Stats */}
           {goals.length > 0 && (
             <div className="pt-4 border-t border-slate-100">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">

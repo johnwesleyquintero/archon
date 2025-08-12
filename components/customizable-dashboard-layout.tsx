@@ -6,8 +6,7 @@ import { Layout } from "react-grid-layout";
 import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
 import { WelcomeWidget } from "./dashboard/welcome-widget";
 import { TodoList } from "./todo-list";
-import { GoalTracker } from "./goal-tracker";
-import { GoalsDisplay } from "./goals-display";
+import { GoalManager } from "./goal-manager";
 import { JournalList } from "./journal-list";
 import { StatsGrid } from "./stats-grid";
 import { AdvancedStatsGrid } from "./advanced-stats-grid";
@@ -27,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { WidgetConfigForm } from "./widget-config-form";
+import { WeatherWidget } from "./weather-widget";
 
 // Define a type that extends Layout with isVisible
 export type DashboardLayoutItem = Layout & {
@@ -146,28 +146,43 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
           config={widgetConfigs["todo-list"] as TodoWidgetConfig}
         />
       ),
-      "goal-tracker": GoalTracker,
-      "goals-display": GoalsDisplay,
+      "goal-manager": GoalManager,
       "journal-list": JournalList,
       "stats-grid": StatsGrid,
       "advanced-stats-grid": AdvancedStatsGrid,
       "placeholder-infographics": PlaceholderInfographics,
+      "weather-widget": WeatherWidget,
     } as Record<string, ComponentType<P>>;
   }, [widgetConfigs]);
 
   const availableWidgets = useMemo(() => {
-    return widgets.map((w) => ({
-      id: w.id,
-      type: w.type,
-      title: w.title,
-      description: w.description,
-      componentId: w.componentId,
-      defaultProps: w.defaultProps,
-      minW: w.minW,
-      minH: w.minH,
-      maxW: w.maxW,
-      maxH: w.maxH,
-    }));
+    return [
+      ...widgets.map((w) => ({
+        id: w.id,
+        type: w.type,
+        title: w.title,
+        description: w.description,
+        componentId: w.componentId,
+        defaultProps: w.defaultProps,
+        minW: w.minW,
+        minH: w.minH,
+        maxW: w.maxW,
+        maxH: w.maxH,
+      })),
+      {
+        id: "weather-widget",
+        type: "weather",
+        title: "Weather",
+        description: "Displays current weather conditions.",
+        componentId: "weather-widget",
+        minW: 2,
+        minH: 2,
+        defaultProps: {
+          location: "London",
+          temperatureUnit: "C",
+        } as unknown as P,
+      },
+    ];
   }, [widgets]);
 
   const handleAddWidget = useCallback(
