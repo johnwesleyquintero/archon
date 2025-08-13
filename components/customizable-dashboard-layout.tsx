@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { WidgetConfigForm } from "./widget-config-form";
 import { WeatherWidget } from "./weather-widget";
+import { DailyFocusWidget } from "./dashboard/daily-focus-widget";
 
 // Define a type that extends Layout with isVisible
 export type DashboardLayoutItem = Layout & {
@@ -152,6 +153,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
       "advanced-stats-grid": AdvancedStatsGrid,
       "placeholder-infographics": PlaceholderInfographics,
       "weather-widget": WeatherWidget,
+      "daily-focus-widget": DailyFocusWidget,
     } as Record<string, ComponentType<P>>;
   }, [widgetConfigs]);
 
@@ -182,12 +184,22 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
           temperatureUnit: "C",
         } as unknown as P,
       },
+      {
+        id: "daily-focus-widget",
+        type: "daily-focus",
+        title: "Daily Focus",
+        description: "Focus on tasks for your highest priority goal.",
+        componentId: "daily-focus-widget",
+        minW: 4,
+        minH: 2,
+        defaultProps: {} as unknown as P,
+      },
     ];
   }, [widgets]);
 
   const handleAddWidget = useCallback(
     (widgetId: string) => {
-      const widgetToAdd = widgets.find((w) => w.id === widgetId);
+      const widgetToAdd = availableWidgets.find((w) => w.id === widgetId);
       if (widgetToAdd) {
         const isAlreadyAdded = currentLayout.some(
           (item) => item.i === widgetId,
@@ -223,7 +235,12 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
         }
       }
     },
-    [currentLayout, widgets, handleLayoutChange, toggleWidgetVisibility],
+    [
+      currentLayout,
+      availableWidgets,
+      handleLayoutChange,
+      toggleWidgetVisibility,
+    ],
   );
 
   return (

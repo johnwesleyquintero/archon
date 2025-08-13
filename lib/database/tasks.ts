@@ -46,6 +46,7 @@ export interface TaskFilterOptions {
   tags?: string[];
   search?: string; // For full-text search
   includeArchived?: boolean; // To show archived tasks
+  goal_id?: string;
 }
 
 export interface TaskSortOptions {
@@ -72,6 +73,9 @@ export const getTasks = withErrorHandling(
 
     // Apply filters
     if (filters) {
+      if (filters.goal_id) {
+        query = query.eq("goal_id", filters.goal_id);
+      }
       if (filters.isCompleted !== undefined) {
         query = query.eq("is_completed", filters.isCompleted);
       }

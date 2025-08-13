@@ -11,10 +11,12 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Save, Paperclip, ImageIcon, X } from "lucide-react";
+import { Save, Paperclip, ImageIcon, X, BrainCircuit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FileUpload } from "@/components/file-upload";
 import { uploadFile } from "@/lib/blob";
+import { analyzeJournalEntry } from "@/app/journal/actions";
+import { Modal } from "@/components/ui/modal";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { journalEntrySchema } from "@/lib/validators";
@@ -70,6 +72,31 @@ export function JournalEditorWithAttachments({
 }: JournalEditorProps) {
   const editorRef = useRef<TipTapEditorRef>(null);
   const [showAttachmentUpload, setShowAttachmentUpload] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+  const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
+
+  const handleAnalyze = async () => {
+    if (!entry?.content) return;
+
+    setIsAnalyzing(true);
+    setAnalysisResult(null);
+    try {
+      const result = await analyzeJournalEntry(entry.content);
+      if (result && typeof result === "object" && "error" in result) {
+        console.error("Analysis failed:", result.error);
+        // Optionally, show a toast notification to the user
+      } else {
+        setAnalysisResult(result);
+        setIsAnalysisModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Failed to analyze entry:", error);
+      // You might want to show a toast notification here
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const debouncedOnUpdateEntryContent = useDebounce(
     useCallback(
@@ -312,6 +339,21 @@ export function JournalEditorWithAttachments({
                 <Save className="h-4 w-4 mr-1" />
                 {hasUnsavedChanges ? "Save" : "Saved"}
               </Button>
+              <Button
+                onClick={() => {
+                  void handleAnalyze();
+                }}
+                size="sm"
+                variant="outline"
+                disabled={isAnalyzing || isMutating || !entry?.content}
+              >
+                {isAnalyzing ? (
+                  <Spinner size="sm" className="mr-1" />
+                ) : (
+                  <BrainCircuit className="h-4 w-4 mr-1" />
+                )}
+                Analyze
+              </Button>
             </div>
           </div>
 
@@ -528,6 +570,18 @@ export function JournalEditorWithAttachments({
           </div>
         </div>
       </div>
+      <Modal
+        isOpen={isAnalysisModalOpen}
+        onClose={() => setIsAnalysisModalOpen(false)}
+        title="Journal Entry Analysis"
+      >
+        {isAnalyzing && <Spinner />}
+        {analysisResult && (
+          <div className="prose prose-sm dark:prose-invert max-w-none">
+            <p>{analysisResult}</p>
+          </div>
+        )}
+      </Modal>
     </Form>
   );
 }

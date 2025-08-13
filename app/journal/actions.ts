@@ -41,3 +41,46 @@ export const deleteJournalEntry = withErrorHandling(async (id: string) => {
   revalidatePath("/journal");
   return { success: true }; // Return success indicator
 });
+
+interface GroqResponse {
+  choices: {
+    message: {
+      content: string;
+    };
+  }[];
+}
+
+export const analyzeJournalEntry = withErrorHandling(
+  async (content: string): Promise<string | null> => {
+    // In a real application, you would get the API URL from environment variables
+    const response = await fetch("http://localhost:3000/api/groq-chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a helpful assistant. Analyze the following journal entry for key themes, overall sentiment, and potential action items. Provide a concise summary.",
+          },
+          {
+            role: "user",
+            content: content,
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to analyze journal entry: ${response.statusText} - ${errorText}`,
+      );
+    }
+
+    const result = (await response.json()) as GroqResponse;
+    return result.choices[0]?.message?.content ?? null;
+  },
+);
