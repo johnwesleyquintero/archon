@@ -10,19 +10,24 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useCommandMenuContext } from "@/contexts/command-menu-context";
-import { useQuickAddTask } from "@/lib/state/use-quick-add-task";
-import { useQuickAddGoal } from "@/lib/state/use-quick-add-goal";
-import { useQuickAddJournal } from "@/lib/state/use-quick-add-journal";
+import { useGlobalQuickAdd } from "@/lib/state/use-global-quick-add";
 import { useTasks } from "@/hooks/use-tasks";
 import { useRouter } from "next/navigation";
-import { CirclePlus, Goal, Book, CheckCircle } from "lucide-react"; // Import icons
+import {
+  CirclePlus,
+  Goal,
+  Book,
+  CheckCircle,
+  LayoutDashboard,
+  ListTodo,
+  KanbanSquare,
+  Settings,
+} from "lucide-react"; // Import icons
 
 export function CommandMenu() {
   const router = useRouter();
   const { isOpen, close, toggle } = useCommandMenuContext();
-  const { open: openQuickAddTask } = useQuickAddTask();
-  const { open: openQuickAddGoal } = useQuickAddGoal();
-  const { open: openQuickAddJournal } = useQuickAddJournal();
+  const { open: openGlobalQuickAdd } = useGlobalQuickAdd();
   const { tasks, toggleTask } = useTasks(); // Assuming useTasks fetches all tasks
 
   useEffect(() => {
@@ -51,37 +56,71 @@ export function CommandMenu() {
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Actions">
           <CommandItem
-            onSelect={() => {
-              void runCommand(openQuickAddTask);
-            }}
+            onSelect={() => void runCommand(() => openGlobalQuickAdd("task"))}
           >
             <CirclePlus className="mr-2 h-4 w-4" />
             <span>New Task</span>
           </CommandItem>
           <CommandItem
-            onSelect={() => {
-              void runCommand(openQuickAddGoal);
-            }}
+            onSelect={() => void runCommand(() => openGlobalQuickAdd("goal"))}
           >
             <Goal className="mr-2 h-4 w-4" />
             <span>New Goal</span>
           </CommandItem>
           <CommandItem
-            onSelect={() => {
-              void runCommand(openQuickAddJournal);
-            }}
+            onSelect={() =>
+              void runCommand(() => openGlobalQuickAdd("journal"))
+            }
           >
             <Book className="mr-2 h-4 w-4" />
             <span>New Journal Entry</span>
+          </CommandItem>
+        </CommandGroup>
+        <CommandGroup heading="Navigate">
+          <CommandItem
+            onSelect={() => void runCommand(() => router.push("/dashboard"))}
+          >
+            <LayoutDashboard className="mr-2 h-4 w-4" />
+            <span>Dashboard</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => void runCommand(() => router.push("/goals"))}
+          >
+            <Goal className="mr-2 h-4 w-4" />
+            <span>Goals</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => void runCommand(() => router.push("/tasks"))}
+          >
+            <ListTodo className="mr-2 h-4 w-4" />
+            <span>Tasks</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => void runCommand(() => router.push("/kanban"))}
+          >
+            <KanbanSquare className="mr-2 h-4 w-4" />
+            <span>Kanban</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => void runCommand(() => router.push("/journal"))}
+          >
+            <Book className="mr-2 h-4 w-4" />
+            <span>Journal</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => void runCommand(() => router.push("/settings"))}
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Settings</span>
           </CommandItem>
         </CommandGroup>
         <CommandGroup heading="Tasks">
           {tasks.map((task) => (
             <CommandItem
               key={task.id}
-              onSelect={() => {
-                void runCommand(() => router.push(`/tasks#${task.id}`));
-              }}
+              onSelect={() =>
+                void runCommand(() => router.push(`/tasks#${task.id}`))
+              }
             >
               {task.title}
             </CommandItem>
@@ -92,9 +131,9 @@ export function CommandMenu() {
             {incompleteTasks.map((task) => (
               <CommandItem
                 key={task.id}
-                onSelect={() => {
-                  void runCommand(() => toggleTask(task.id, true));
-                }}
+                onSelect={() =>
+                  void runCommand(() => toggleTask(task.id, true))
+                }
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
                 <span>{task.title}</span>

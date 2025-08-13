@@ -9,7 +9,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
@@ -36,6 +35,7 @@ interface GoalFormProps {
     tags?: string[] | null;
   }) => void;
   initialGoal?: Goal | null;
+  isDialog?: boolean; // <-- Add isDialog prop
 }
 
 export const GoalForm: React.FC<GoalFormProps> = ({
@@ -43,6 +43,7 @@ export const GoalForm: React.FC<GoalFormProps> = ({
   onClose,
   onSave,
   initialGoal,
+  isDialog = true, // <-- Default to true
 }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -101,6 +102,102 @@ export const GoalForm: React.FC<GoalFormProps> = ({
     onClose();
   };
 
+  const FormContent = (
+    <>
+      <div className="grid gap-4 py-4">
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="title" className="text-right">
+            Title
+          </Label>
+          <Input
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="col-span-3"
+            aria-invalid={titleError ? "true" : "false"}
+          />
+          {titleError && (
+            <p className="col-span-4 text-right text-sm text-red-500">
+              {titleError}
+            </p>
+          )}
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="description" className="text-right">
+            Description
+          </Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="col-span-3"
+          />
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="targetDate" className="text-right">
+            Target Date
+          </Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !targetDate && "text-muted-foreground",
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {targetDate ? (
+                  format(targetDate, "PPP")
+                ) : (
+                  <span>Pick a date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={targetDate}
+                onSelect={setTargetDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="progress" className="text-right">
+            Progress (%)
+          </Label>
+          <Input
+            id="progress"
+            type="number"
+            value={progress ?? ""}
+            onChange={(e) => setProgress(Number(e.target.value))}
+            className="col-span-3"
+            min="0"
+            max="100"
+            aria-invalid={progressError ? "true" : "false"}
+          />
+          {progressError && (
+            <p className="col-span-4 text-right text-sm text-red-500">
+              {progressError}
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="flex justify-end gap-2 pt-4">
+        <Button variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button onClick={handleSubmit}>Save Goal</Button>
+      </div>
+    </>
+  );
+
+  if (!isDialog) {
+    return FormContent;
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -109,93 +206,7 @@ export const GoalForm: React.FC<GoalFormProps> = ({
             {initialGoal ? "Edit Goal" : "Add New Goal"}
           </DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right">
-              Title
-            </Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="col-span-3"
-              aria-invalid={titleError ? "true" : "false"}
-            />
-            {titleError && (
-              <p className="col-span-4 text-right text-sm text-red-500">
-                {titleError}
-              </p>
-            )}
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right">
-              Description
-            </Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="targetDate" className="text-right">
-              Target Date
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-[240px] justify-start text-left font-normal",
-                    !targetDate && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {targetDate ? (
-                    format(targetDate, "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={targetDate}
-                  onSelect={setTargetDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="progress" className="text-right">
-              Progress (%)
-            </Label>
-            <Input
-              id="progress"
-              type="number"
-              value={progress ?? ""}
-              onChange={(e) => setProgress(Number(e.target.value))}
-              className="col-span-3"
-              min="0"
-              max="100"
-              aria-invalid={progressError ? "true" : "false"}
-            />
-            {progressError && (
-              <p className="col-span-4 text-right text-sm text-red-500">
-                {progressError}
-              </p>
-            )}
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit}>Save Goal</Button>
-        </DialogFooter>
+        {FormContent}
       </DialogContent>
     </Dialog>
   );

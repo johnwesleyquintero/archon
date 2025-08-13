@@ -6,32 +6,13 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { cn } from "@/lib/utils";
-import { QuickAddTaskModal } from "./custom/quick-add-task-modal";
-import { QuickAddGoalModal } from "./custom/quick-add-goal-modal";
-import { QuickAddJournalModal } from "./custom/quick-add-journal-modal";
-import { CommandMenu } from "./custom/command-menu";
-import { useCommandMenu } from "@/lib/state/use-command-menu";
-import { useEffect } from "react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { isCollapsed: isSidebarCollapsed, toggleSidebar } = useSidebar(); // Use the hook
-  const { open } = useCommandMenu();
-
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        open();
-      }
-    };
-
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, [open]);
+  const { isCollapsed: isSidebarCollapsed, toggleSidebar } = useSidebar();
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr]">
@@ -47,10 +28,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </main>
       </div>
-      <QuickAddTaskModal />
-      <QuickAddGoalModal />
-      <QuickAddJournalModal />
-      <CommandMenu />
     </div>
   );
 }

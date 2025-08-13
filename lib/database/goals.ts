@@ -10,16 +10,46 @@ type Goal = Database["public"]["Tables"]["goals"]["Row"];
 type GoalInsert = Database["public"]["Tables"]["goals"]["Insert"];
 type GoalUpdate = Database["public"]["Tables"]["goals"]["Update"];
 
-export async function getGoals(userId: string): Promise<Goal[]> {
+export interface GoalFilterOptions {
+  is_completed?: boolean;
+  limit?: number;
+  sortBy?: "created_at" | "updated_at" | "title";
+  ascending?: boolean;
+}
+
+export async function getGoals(
+  userId: string,
+  options: GoalFilterOptions = {},
+): Promise<Goal[]> {
   const supabase = await createServerSupabaseClient();
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from("goals")
       .select(
         "id, created_at, title, description, progress, status, target_date, attachments, user_id, updated_at, tags",
       ) // Explicitly select columns
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
+      .eq("user_id", userId);
+
+    if (options.is_completed !== undefined) {
+      query = query.eq(
+        "status",
+        options.is_completed ? "achieved" : "in_progress",
+      );
+    }
+
+    if (options.sortBy) {
+      query = query.order(options.sortBy, {
+        ascending: options.ascending ?? false,
+      });
+    } else {
+      query = query.order("created_at", { ascending: false });
+    }
+
+    if (options.limit) {
+      query = query.limit(options.limit);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       throw error;
