@@ -1,83 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { DashboardWidget } from "@/components/dashboard/dashboard-widget";
 import { Task } from "@/lib/types/task";
 import { Goal } from "@/lib/types/goal";
-import { getGoals } from "@/lib/database/goals";
-import { getTasks } from "@/lib/database/tasks";
-import { useAuth } from "@/contexts/auth-context";
 import { useGlobalQuickAdd } from "@/lib/state/use-global-quick-add";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { TaskItem } from "@/components/task-item";
 import { Target, BookPlus } from "lucide-react";
 
-export function DailyFocusWidget() {
-  const { user } = useAuth();
+interface DailyFocusWidgetProps {
+  goal: Goal | null;
+  tasks: Task[];
+  prompt: string | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export function DailyFocusWidget({
+  goal,
+  tasks,
+  prompt,
+  loading,
+  error,
+}: DailyFocusWidgetProps) {
   const { open: openGlobalQuickAdd } = useGlobalQuickAdd();
-  const [goal, setGoal] = useState<Goal | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchDailyFocusData() {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        // Fetch recent goal and priority tasks in parallel
-        const [goalResult, tasksResult] = await Promise.allSettled([
-          getGoals(user.id, {
-            is_completed: false,
-            sortBy: "updated_at",
-            ascending: false,
-            limit: 1,
-          }),
-          getTasks(
-            {
-              isCompleted: false,
-            },
-            { sortBy: "priority", sortOrder: "desc" },
-          ),
-        ]);
-
-        if (goalResult.status === "fulfilled" && goalResult.value.length > 0) {
-          setGoal(goalResult.value[0]);
-        }
-
-        if (tasksResult.status === "fulfilled") {
-          setTasks(tasksResult.value);
-        }
-
-        if (
-          goalResult.status === "rejected" ||
-          tasksResult.status === "rejected"
-        ) {
-          console.error("Error fetching daily focus data:", {
-            goalResult,
-            tasksResult,
-          });
-          throw new Error("Partial or complete data fetch failed.");
-        }
-      } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : String(e);
-        console.error("Failed to fetch daily focus data:", errorMessage);
-        setError("Could not load daily focus data.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void fetchDailyFocusData();
-  }, [user]);
 
   const renderContent = () => {
     if (loading) {
@@ -92,7 +40,7 @@ export function DailyFocusWidget() {
       return <p className="text-red-500 text-sm text-center">{error}</p>;
     }
 
-    if (!goal && tasks.length === 0) {
+    if (!goal && tasks.length === 0 && !prompt) {
       return (
         <div className="text-center text-slate-500">
           <p>Your focus for today is clear!</p>
@@ -105,6 +53,15 @@ export function DailyFocusWidget() {
 
     return (
       <div className="space-y-4">
+        {prompt && (
+          <div>
+            <h3 className="font-semibold text-base mb-2 flex items-center text-slate-700">
+              <BookPlus className="h-5 w-5 mr-2" />
+              Journal Prompt
+            </h3>
+            <p className="text-sm text-slate-600 italic">"{prompt}"</p>
+          </div>
+        )}
         {goal && (
           <div>
             <h3 className="font-semibold text-base mb-2 flex items-center text-slate-700">
@@ -127,7 +84,7 @@ export function DailyFocusWidget() {
           <div>
             <h3 className="font-semibold text-base mb-2 flex items-center text-slate-700">
               <Target className="h-5 w-5 mr-2" />
-              Top Tasks
+              Tasks Due Today
             </h3>
             <ul className="space-y-1">
               {tasks.map((task) => (

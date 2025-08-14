@@ -1,8 +1,16 @@
 "use client";
 
-import { useCallback, useMemo, useState, ComponentType } from "react";
+import {
+  useCallback,
+  useMemo,
+  useState,
+  ComponentType,
+  useEffect,
+} from "react";
 import { Layout } from "react-grid-layout";
-
+import { getGoals } from "@/lib/database/goals";
+import { getTasks } from "@/lib/database/tasks";
+import { useAuth } from "@/contexts/auth-context";
 import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
 import { WelcomeWidget } from "./dashboard/welcome-widget";
 import { TodoList } from "./todo-list";
@@ -18,6 +26,8 @@ import {
   Widget,
   TodoWidgetConfig,
 } from "@/lib/types/widget-types";
+import { Goal } from "@/lib/types/goal";
+import { Task } from "@/lib/types/task";
 import { DashboardGrid } from "./dashboard/dashboard-grid";
 import {
   Dialog,
@@ -25,7 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { WidgetConfigForm } from "./widget-config-form";
+import { AdvancedWidgetConfigForm } from "./advanced-widget-config-form";
 import { WeatherWidget } from "./weather-widget";
 import { DailyFocusWidget } from "./dashboard/daily-focus-widget";
 
@@ -53,6 +63,89 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [widgetConfigs, setWidgetConfigs] =
     useState<AllWidgetConfigs>(initialWidgetConfigs);
+  const { user } = useAuth();
+  const [dailyFocusData, setDailyFocusData] = useState<{
+    goal: Goal | null;
+    tasks: Task[];
+    prompt: string | null;
+    loading: boolean;
+    error: string | null;
+  }>({
+    goal: null,
+    tasks: [],
+    prompt: null,
+    loading: true,
+    error: null,
+  });
+
+  useEffect(() => {
+    async function fetchDailyFocusData() {
+      if (!user) {
+        setDailyFocusData((prev) => ({ ...prev, loading: false }));
+        return;
+      }
+
+      setDailyFocusData((prev) => ({ ...prev, loading: true, error: null }));
+
+      try {
+        const [goalResult, tasksResult, promptResult] =
+          await Promise.allSettled([
+            getGoals(user.id, {
+              is_completed: false,
+              sortBy: "updated_at",
+              ascending: false,
+              limit: 1,
+            }),
+            getTasks(
+              {
+                isCompleted: false,
+                dueDate: "today",
+              },
+              { sortBy: "priority", sortOrder: "desc" },
+            ),
+            fetch("/api/groq-chat/prompt").then(
+              (res) => res.json() as Promise<{ prompt: string }>,
+            ),
+          ]);
+
+        const goal =
+          goalResult.status === "fulfilled" && goalResult.value.length > 0
+            ? goalResult.value[0]
+            : null;
+        const tasks =
+          tasksResult.status === "fulfilled" ? tasksResult.value : [];
+        const prompt =
+          promptResult.status === "fulfilled" && promptResult.value.prompt
+            ? promptResult.value.prompt
+            : null;
+
+        setDailyFocusData({ goal, tasks, prompt, loading: false, error: null });
+
+        if (
+          goalResult.status === "rejected" ||
+          tasksResult.status === "rejected" ||
+          promptResult.status === "rejected"
+        ) {
+          console.error("Error fetching daily focus data:", {
+            goalResult,
+            tasksResult,
+            promptResult,
+          });
+          throw new Error("Partial or complete data fetch failed.");
+        }
+      } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        console.error("Failed to fetch daily focus data:", errorMessage);
+        setDailyFocusData((prev) => ({
+          ...prev,
+          loading: false,
+          error: "Could not load daily focus data.",
+        }));
+      }
+    }
+
+    void fetchDailyFocusData();
+  }, [user]);
 
   const {
     layout: currentLayout,
@@ -153,9 +246,47 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
       "advanced-stats-grid": AdvancedStatsGrid,
       "placeholder-infographics": PlaceholderInfographics,
       "weather-widget": WeatherWidget,
-      "daily-focus-widget": DailyFocusWidget,
+      "daily-focus-widget": (props) => (
+        <DailyFocusWidget {...props} {...dailyFocusData} />
+      ),
     } as Record<string, ComponentType<P>>;
-  }, [widgetConfigs]);
+  }, [widgetConfigs, dailyFocusData]);
+
+  const widgetFormFields: Record<
+    string,
+    {
+      key: string;
+      label: string;
+      type: "switch" | "select" | "text";
+      options?: { value: string; label: string }[];
+    }[]
+  > = {
+    "todo-list": [
+      { key: "showCompleted", label: "Show Completed Tasks", type: "switch" },
+      {
+        key: "sortBy",
+        label: "Sort By",
+        type: "select",
+        options: [
+          { value: "createdAt", label: "Date Created" },
+          { value: "dueDate", label: "Due Date" },
+          { value: "priority", label: "Priority" },
+        ],
+      },
+    ],
+    "weather-widget": [
+      { key: "location", label: "Location", type: "text" },
+      {
+        key: "temperatureUnit",
+        label: "Unit",
+        type: "select",
+        options: [
+          { value: "C", label: "Celsius" },
+          { value: "F", label: "Fahrenheit" },
+        ],
+      },
+    ],
+  };
 
   const availableWidgets = useMemo(() => {
     return [
@@ -182,7 +313,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
         defaultProps: {
           location: "London",
           temperatureUnit: "C",
-        } as unknown as P,
+        },
       },
       {
         id: "daily-focus-widget",
@@ -192,9 +323,9 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
         componentId: "daily-focus-widget",
         minW: 4,
         minH: 2,
-        defaultProps: {} as unknown as P,
+        defaultProps: {},
       },
-    ];
+    ] as Widget<P>[];
   }, [widgets]);
 
   const handleAddWidget = useCallback(
@@ -221,7 +352,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
           setWidgetConfigs((prevConfigs) => ({
             ...prevConfigs,
             [widgetId]: {
-              ...(widgetToAdd.defaultProps as unknown as WidgetConfig),
+              ...widgetToAdd.defaultProps,
               title: widgetToAdd.title,
             },
           }));
@@ -256,7 +387,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
         onAddWidget={handleAddWidget}
       />
 
-      <DashboardGrid
+      <DashboardGrid<P>
         visibleWidgets={visibleWidgets}
         isCustomizing={isCustomizing}
         onLayoutChange={handleLayoutChange}
@@ -275,12 +406,13 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
                 Configure {currentConfiguringWidget.title}
               </DialogTitle>
             </DialogHeader>
-            <WidgetConfigForm
+            <AdvancedWidgetConfigForm
               config={currentConfiguringWidget.config}
               onSave={(newConfig) =>
                 handleSaveWidgetConfig(configuringWidgetId, newConfig)
               }
               onCancel={handleCloseConfig}
+              formFields={widgetFormFields[configuringWidgetId] || []}
             />
           </DialogContent>
         </Dialog>

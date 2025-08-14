@@ -70,6 +70,8 @@ export function CreateTaskModal({
       parent_id: null,
       goal_id: null,
       tags: [],
+      recurrence_pattern: "none",
+      recurrence_end_date: undefined,
     },
     mode: "onBlur", // Enable real-time validation on blur
   });
@@ -88,9 +90,24 @@ export function CreateTaskModal({
           parent_id: initialData.parent_id || null,
           goal_id: initialData.goal_id || null,
           tags: initialData.tags || [],
+          recurrence_pattern: initialData.recurrence_pattern || "none",
+          recurrence_end_date: initialData.recurrence_end_date
+            ? new Date(initialData.recurrence_end_date).toISOString()
+            : undefined,
         });
       } else {
-        form.reset(); // Reset form for new task
+        form.reset({
+          title: "",
+          description: "",
+          due_date: undefined,
+          status: TaskStatus.Todo,
+          priority: TaskPriority.Medium,
+          parent_id: null,
+          goal_id: null,
+          tags: [],
+          recurrence_pattern: "none",
+          recurrence_end_date: undefined,
+        });
       }
     }
   }, [isOpen, form, initialData]);
@@ -279,35 +296,6 @@ export function CreateTaskModal({
 
           <FormField
             control={form.control}
-            name="priority"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Priority</FormLabel>
-                <FormControl>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={isSaving}
-                  >
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(TaskPriority).map((priority) => (
-                        <SelectItem key={priority} value={priority}>
-                          {priority.charAt(0).toUpperCase() + priority.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="parent_id"
             render={({ field }) => (
               <FormItem>
@@ -363,6 +351,75 @@ export function CreateTaskModal({
                     </SelectContent>
                   </Select>
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="recurrence_pattern"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Recurrence</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value || "none"}
+                  disabled={isSaving}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a recurrence pattern" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="yearly">Yearly</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="recurrence_end_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Recurrence End Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !field.value && "text-muted-foreground",
+                        )}
+                        disabled={isSaving}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {field.value
+                          ? format(new Date(field.value), "PPP")
+                          : "Pick a date"}
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(date) => {
+                        field.onChange(date?.toISOString());
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}

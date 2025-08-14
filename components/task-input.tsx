@@ -17,7 +17,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Plus, Loader2, Tag, Repeat, Target } from "lucide-react";
+import {
+  CalendarIcon,
+  Plus,
+  Loader2,
+  Tag,
+  Repeat,
+  Target,
+  Sparkles,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { taskSchema } from "@/lib/validators";
 import { useForm } from "react-hook-form";
@@ -164,6 +172,43 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                 </FormItem>
               )}
             />
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9"
+              onClick={() => {
+                void (async () => {
+                  const title = form.getValues("title");
+                  if (!title) return;
+
+                  setIsSubmitting(true);
+                  try {
+                    const response = await fetch("/api/groq-chat", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ userInput: title }),
+                    });
+
+                    if (!response.ok) {
+                      throw new Error("Failed to parse task.");
+                    }
+
+                    const data =
+                      (await response.json()) as Partial<TaskFormValues>;
+                    form.reset({ ...form.getValues(), ...data });
+                  } catch (error) {
+                    console.error(error);
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                })();
+              }}
+              disabled={isSubmitting}
+            >
+              <Sparkles className="h-4 w-4" />
+              <span className="sr-only">Parse with AI</span>
+            </Button>
             {!isSubtaskInput && ( // Conditionally render these fields for main task input
               <>
                 <FormField

@@ -76,6 +76,7 @@
     "embla-carousel-react": "8.6.0",
     "framer-motion": "^12.23.12",
     "geist": "1.4.2",
+    "groq-sdk": "^0.30.0",
     "input-otp": "1.4.2",
     "lucide-react": "^0.536.0",
     "nanoid": "5.1.5",

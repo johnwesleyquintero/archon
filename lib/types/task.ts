@@ -6,7 +6,13 @@ type BaseTask = Database["public"]["Tables"]["tasks"]["Row"];
 // Define RawTask type to align with database and include all possible statuses
 export type RawTask = BaseTask & {
   notes?: string | null;
-  recurrence_pattern?: string | null;
+  recurrence_pattern?:
+    | "none"
+    | "daily"
+    | "weekly"
+    | "monthly"
+    | "yearly"
+    | null;
   recurrence_end_date?: string | null;
   original_task_id?: string | null;
   shared_with_user_ids?: string[] | null;

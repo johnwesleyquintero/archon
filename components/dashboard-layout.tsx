@@ -12,13 +12,13 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { isCollapsed: isSidebarCollapsed, toggleSidebar } = useSidebar();
+  const { isCollapsed: isSidebarCollapsed } = useSidebar();
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr]">
       <AppSidebar />
       <div className="flex flex-col">
-        <DashboardHeader onToggleSidebar={toggleSidebar} />
+        <DashboardHeader />
         <main
           className={cn(
             "flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6",

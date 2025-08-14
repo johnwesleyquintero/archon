@@ -246,7 +246,7 @@ export function TaskDetailsModal({
               <label className="text-sm font-medium">Recurrence</label>
               <Select
                 value={recurrencePattern || "none"}
-                onValueChange={setRecurrencePattern}
+                onValueChange={setRecurrencePattern as (value: string) => void}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select recurrence" />

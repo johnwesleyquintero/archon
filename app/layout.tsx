@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/auth-context";
 import { CommandMenuProvider } from "@/contexts/command-menu-context";
-import DynamicCommandMenu from "@/components/custom/dynamic-command-menu";
+import { DynamicCommandMenu } from "@/components/custom/dynamic-command-menu";
 
 import "./globals.css";
 
