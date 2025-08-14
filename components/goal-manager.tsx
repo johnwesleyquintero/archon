@@ -22,9 +22,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
   tags: string[] | null;
+  current_progress?: number | null;
+  target_progress?: number | null;
 };
 type GoalFormValues = z.infer<typeof goalSchema>;
 
@@ -299,6 +302,24 @@ export function GoalManager() {
                           {goal.description}
                         </p>
                       )}
+
+                      {goal.current_progress !== null &&
+                        goal.current_progress !== undefined &&
+                        goal.target_progress !== null &&
+                        goal.target_progress !== undefined &&
+                        goal.target_progress > 0 && (
+                          <div className="space-y-1">
+                            <Progress
+                              value={
+                                (goal.current_progress / goal.target_progress) *
+                                100
+                              }
+                            />
+                            <p className="text-xs text-slate-500 leading-relaxed text-right">
+                              {goal.current_progress} / {goal.target_progress}
+                            </p>
+                          </div>
+                        )}
                     </div>
 
                     <div className="flex flex-col gap-2">

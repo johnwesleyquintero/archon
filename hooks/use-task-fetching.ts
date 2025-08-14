@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getTasks } from "@/lib/database/tasks";
+import {
+  getTasks,
+  TaskFilterOptions,
+  TaskSortOptions,
+} from "@/lib/database/tasks";
 import { createClient } from "@/lib/supabase/client";
 import { TodoWidgetConfig } from "@/lib/types/widget-types";
 import { Task } from "@/lib/types/task";
@@ -33,16 +37,22 @@ export function useTaskFetching(
     setLoading(true);
     setError(null);
     try {
-      const tasks: Task[] = await getTasks();
-      let processedTasks = tasks;
-
+      const filterOptions: TaskFilterOptions = {};
       if (config?.filters?.status === "completed") {
-        processedTasks = processedTasks.filter((task) => task.is_completed);
+        filterOptions.isCompleted = true;
       } else if (config?.filters?.status === "incomplete") {
-        processedTasks = processedTasks.filter((task) => !task.is_completed);
+        filterOptions.isCompleted = false;
       }
 
-      const hierarchicalTasks = buildTaskHierarchy(processedTasks); // Build hierarchy
+      const sortOptions: TaskSortOptions = {};
+      if (config?.sort?.by) {
+        sortOptions.sortBy =
+          config.sort.by === "dueDate" ? "due_date" : config.sort.by;
+        sortOptions.sortOrder = config.sort.order;
+      }
+
+      const tasks: Task[] = await getTasks(filterOptions, sortOptions);
+      const hierarchicalTasks = buildTaskHierarchy(tasks); // Build hierarchy
       setTasks(hierarchicalTasks);
     } catch (err) {
       console.error("Failed to fetch tasks:", err);

@@ -86,7 +86,12 @@ export function useGoals(initialGoals: Goal[] = []) {
   }, [fetchGoals, initialGoals, user?.id]);
 
   const addGoalMutation = useCallback(
-    async (newGoalData: Omit<GoalInsert, "user_id" | "id">) => {
+    async (
+      newGoalData: Omit<GoalInsert, "user_id" | "id"> & {
+        current_progress?: number | null;
+        target_progress?: number | null;
+      },
+    ) => {
       startTransition(async () => {
         setError(null);
         try {
@@ -102,8 +107,10 @@ export function useGoals(initialGoals: Goal[] = []) {
             target_date: newGoalData.target_date || null,
             status: newGoalData.status || "todo", // Default to "todo"
             attachments: (newGoalData.attachments || null) as Json,
-            progress: newGoalData.progress ?? 0,
+            current_progress: newGoalData.current_progress ?? 0,
+            target_progress: newGoalData.target_progress ?? 100,
             tags: newGoalData.tags || null,
+            progress: 0,
           };
           setGoals((prev) => [optimisticGoal, ...prev]);
 

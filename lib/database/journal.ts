@@ -8,13 +8,28 @@ type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];
 /* ─────────────────────────
    CRUD – Journal entries
    ───────────────────────── */
-export async function getJournalEntries(userId: string) {
+export async function getJournalEntries(
+  userId: string,
+  filters: { search?: string; tags?: string[] } = {},
+) {
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("journal_entries")
     .select("*")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
+
+  if (filters.search) {
+    query = query.or(
+      `title.ilike.%${filters.search}%,content.ilike.%${filters.search}%`,
+    );
+  }
+
+  if (filters.tags && filters.tags.length > 0) {
+    query = query.contains("tags", filters.tags);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
   return data as JournalRow[];

@@ -65,7 +65,6 @@ export async function getGoals(
 export async function addGoal(goalData: {
   title: string;
   description?: string | null;
-  progress?: number | null;
   status?: string | null;
   target_date?: string | null;
   attachments?: Json | null;
@@ -78,25 +77,21 @@ export async function addGoal(goalData: {
   }
 
   try {
-    // Explicitly construct the object to insert, ensuring it matches GoalInsert.
-    // Explicitly construct the object to insert, ensuring it matches GoalInsert.
-    // This addresses potential TS2769 errors related to missing properties or incorrect structure.
     const newGoal: GoalInsert = {
-      title: goalData.title, // Assuming title is a required field in goalData
+      title: goalData.title,
       description:
         goalData.description === null ? undefined : goalData.description,
-      progress: goalData.progress === null ? undefined : goalData.progress,
       status: goalData.status === null ? undefined : goalData.status,
       target_date:
         goalData.target_date === null ? undefined : goalData.target_date,
       attachments:
         goalData.attachments === null ? undefined : goalData.attachments,
-      user_id: user.id, // Explicitly add user_id
+      user_id: user.id,
     };
 
     const { data, error } = await supabase
       .from("goals")
-      .insert(newGoal) // Use the explicitly typed object
+      .insert(newGoal)
       .select()
       .single();
 
@@ -105,7 +100,7 @@ export async function addGoal(goalData: {
     }
 
     revalidatePath("/dashboard");
-    revalidatePath("/goals"); // Add revalidation for the specific goals page
+    revalidatePath("/goals");
     return data;
   } catch (error) {
     throw handleServerError(error, "addGoal");
@@ -124,14 +119,11 @@ export async function updateGoal(
   }
 
   try {
-    // Ensure goalData conforms to GoalUpdate.
-    // The TS2345 error on goalData suggests a mismatch.
-    // Explicitly casting to GoalUpdate might help if the input `goalData` is not strictly typed.
     const { data, error } = await supabase
       .from("goals")
       .update(goalData)
       .eq("id", id)
-      .eq("user_id", user.id) // Ensure user owns the goal
+      .eq("user_id", user.id)
       .select()
       .single();
 
@@ -140,7 +132,7 @@ export async function updateGoal(
     }
 
     revalidatePath("/dashboard");
-    revalidatePath("/goals"); // Add revalidation for the specific goals page
+    revalidatePath("/goals");
     return data;
   } catch (error) {
     throw handleServerError(error, "updateGoal");
@@ -160,14 +152,14 @@ export async function deleteGoal(id: string): Promise<void> {
       .from("goals")
       .delete()
       .eq("id", id)
-      .eq("user_id", user.id); // Ensure user owns the goal
+      .eq("user_id", user.id);
 
     if (error) {
       throw new AppError(`Failed to delete goal: ${error.message}`, 500);
     }
 
     revalidatePath("/dashboard");
-    revalidatePath("/goals"); // Add revalidation for the specific goals page
+    revalidatePath("/goals");
   } catch (error) {
     throw handleServerError(error, "deleteGoal");
   }

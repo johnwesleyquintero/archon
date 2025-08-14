@@ -5,4 +5,6 @@ export type Goal = Omit<
   "milestones"
 > & {
   tags: string[] | null;
+  current_progress?: number | null;
+  target_progress?: number | null;
 };

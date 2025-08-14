@@ -2,9 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input"; // Import Input for search
-import { Badge } from "@/components/ui/badge"; // Import Badge for displaying tags
-import { Plus, Trash2, Search } from "lucide-react"; // Import Search icon
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Trash2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/lib/supabase/types";
 import { Spinner } from "@/components/ui/spinner";
@@ -20,7 +20,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useState, useMemo } from "react"; // Import useState and useMemo
+import { useState, useMemo, useEffect } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"] & {
   tags: string[] | null;
@@ -33,7 +35,6 @@ export interface JournalListProps extends Record<string, unknown> {
   onCreateEntry?: () => void;
   onDeleteEntry?: (id: string) => void;
   isMutating?: boolean;
-  limit?: number;
 }
 
 export function JournalList({
@@ -43,28 +44,43 @@ export function JournalList({
   onCreateEntry = () => {},
   onDeleteEntry = () => {},
   isMutating = false,
-  limit,
 }: JournalListProps) {
-  const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(
+    searchParams.get("search") || "",
+  );
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    searchParams.getAll("tags"),
+  );
 
-  const filteredEntries = useMemo(() => {
-    let filtered = limit ? entries.slice(0, limit) : entries;
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 500);
 
-    if (searchTerm) {
-      const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (entry) =>
-          entry.title.toLowerCase().includes(lowerCaseSearchTerm) ||
-          (entry.content &&
-            entry.content.toLowerCase().includes(lowerCaseSearchTerm)) ||
-          (entry.tags &&
-            entry.tags.some((tag) =>
-              tag.toLowerCase().includes(lowerCaseSearchTerm),
-            )),
-      );
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (debouncedSearchTerm) {
+      params.set("search", debouncedSearchTerm);
     }
-    return filtered;
-  }, [entries, limit, searchTerm]);
+    selectedTags.forEach((tag) => params.append("tags", tag));
+
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [debouncedSearchTerm, selectedTags, pathname, router]);
+
+  const allTags = useMemo(() => {
+    const tags = new Set<string>();
+    entries.forEach((entry) => {
+      entry.tags?.forEach((tag) => tags.add(tag));
+    });
+    return Array.from(tags);
+  }, [entries]);
+
+  const handleTagClick = (tag: string) => {
+    const newSelectedTags = selectedTags.includes(tag)
+      ? selectedTags.filter((t) => t !== tag)
+      : [...selectedTags, tag];
+    setSelectedTags(newSelectedTags);
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -103,11 +119,23 @@ export function JournalList({
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {allTags.map((tag) => (
+              <Badge
+                key={tag}
+                variant={selectedTags.includes(tag) ? "default" : "secondary"}
+                onClick={() => handleTagClick(tag)}
+                className="cursor-pointer"
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
         </div>
       </div>
 
       <ScrollArea className="flex-1 py-2">
-        {filteredEntries.length === 0 ? (
+        {entries.length === 0 ? (
           <EmptyState
             title="No Journal Entries Yet"
             description="Click 'New Entry' to record your thoughts."
@@ -116,7 +144,7 @@ export function JournalList({
           />
         ) : (
           <nav className="grid gap-1 p-2">
-            {filteredEntries.map((entry) => (
+            {entries.map((entry) => (
               <div
                 key={entry.id}
                 className={cn(

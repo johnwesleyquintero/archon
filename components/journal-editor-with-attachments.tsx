@@ -11,7 +11,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Save, Paperclip, ImageIcon, X, BrainCircuit } from "lucide-react";
+import { Save, Paperclip, ImageIcon, X, BrainCircuit, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FileUpload } from "@/components/file-upload";
 import { uploadFile } from "@/lib/blob";
@@ -24,8 +24,8 @@ import type { z } from "zod";
 import type { Database } from "@/lib/supabase/types";
 import Image from "next/image";
 import { Spinner } from "@/components/ui/spinner";
-import { useDebounce } from "@/hooks/use-debounce";
 import dynamic from "next/dynamic";
+import { Badge } from "@/components/ui/badge";
 
 const TipTapEditor = dynamic(
   () => import("./quill-editor").then((mod) => mod.TipTapEditor),
@@ -75,6 +75,7 @@ export function JournalEditorWithAttachments({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
+  const [tagInput, setTagInput] = useState("");
 
   const handleAnalyze = async () => {
     if (!entry?.content) return;
@@ -98,32 +99,13 @@ export function JournalEditorWithAttachments({
     }
   };
 
-  const debouncedOnUpdateEntryContent = useDebounce(
-    useCallback(
-      (entryId: string, content: string) => {
-        void updateEntry(entryId, { content: content });
-      },
-      [updateEntry],
-    ),
-    500,
-  );
-
-  const debouncedOnUpdateEntryTitle = useDebounce(
-    useCallback(
-      (entryId: string, title: string) => {
-        void updateEntry(entryId, { title });
-      },
-      [updateEntry],
-    ),
-    500,
-  );
-
   const form = useForm<JournalFormValues>({
     resolver: zodResolver(journalEntrySchema),
     defaultValues: {
       title: "",
       content: "",
       attachments: [],
+      tags: [],
     },
     mode: "onBlur",
   });
@@ -213,12 +195,14 @@ export function JournalEditorWithAttachments({
               .filter((att): att is string => typeof att === "string")
               .map(createAttachmentFromUrl)
           : [],
+        tags: entry.tags || [],
       });
     } else {
       form.reset({
         title: "",
         content: "",
         attachments: [],
+        tags: [],
       });
     }
   }, [entry, form]);
@@ -228,9 +212,6 @@ export function JournalEditorWithAttachments({
       shouldDirty: true,
       shouldValidate: true,
     });
-    if (entry) {
-      void debouncedOnUpdateEntryContent(entry.id, newContent);
-    }
   };
 
   const removeAttachment = (url: string) => {
@@ -262,6 +243,30 @@ export function JournalEditorWithAttachments({
       month: "long",
       day: "numeric",
     });
+  };
+
+  const handleAddTag = () => {
+    if (tagInput.trim() !== "") {
+      const newTags = [...(form.getValues("tags") || []), tagInput.trim()];
+      form.setValue("tags", newTags, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      if (entry) {
+        void updateEntry(entry.id, { tags: newTags });
+      }
+      setTagInput("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    const newTags = (form.getValues("tags") || []).filter(
+      (tag) => tag !== tagToRemove,
+    );
+    form.setValue("tags", newTags, { shouldDirty: true, shouldValidate: true });
+    if (entry) {
+      void updateEntry(entry.id, { tags: newTags });
+    }
   };
 
   if (!entry) {
@@ -300,15 +305,6 @@ export function JournalEditorWithAttachments({
                         className="text-lg font-semibold border-0 px-0 shadow-none focus-visible:ring-0 placeholder:text-slate-400"
                         disabled={isMutating}
                         {...field}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          if (entry) {
-                            void debouncedOnUpdateEntryTitle(
-                              entry.id,
-                              e.target.value,
-                            );
-                          }
-                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -355,6 +351,40 @@ export function JournalEditorWithAttachments({
                 Analyze
               </Button>
             </div>
+          </div>
+
+          {/* Tags */}
+          <div className="flex items-center gap-2">
+            <Tag className="h-4 w-4 text-slate-500" />
+            <div className="flex flex-wrap gap-1">
+              {(form.watch("tags") || []).map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
+                  {tag}
+                  <button
+                    onClick={() => handleRemoveTag(tag)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+            <Input
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddTag();
+                }
+              }}
+              placeholder="Add a tag..."
+              className="h-8 w-40"
+            />
           </div>
 
           {/* Toolbar for TipTap */}

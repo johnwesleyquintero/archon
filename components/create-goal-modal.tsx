@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from "./ui/select";
 
-import type { Database } from "@/lib/supabase/types";
+import { Goal } from "@/lib/types/goal";
 
 interface CreateGoalModalProps {
   isOpen: boolean;
@@ -43,11 +43,7 @@ interface CreateGoalModalProps {
     goalId?: string,
   ) => Promise<void>;
   isSaving: boolean;
-  initialData?:
-    | (Database["public"]["Tables"]["goals"]["Row"] & {
-        tags: string[] | null;
-      })
-    | null;
+  initialData?: Goal | null;
 }
 
 type GoalFormValues = z.infer<typeof goalSchema>;
@@ -67,6 +63,8 @@ export function CreateGoalModal({
       target_date: undefined,
       status: "pending",
       attachments: [],
+      current_progress: 0,
+      target_progress: 100,
     },
     mode: "onBlur", // Enable real-time validation on blur
   });
@@ -89,9 +87,19 @@ export function CreateGoalModal({
                 (att): att is string => typeof att === "string",
               )
             : [],
+          current_progress: initialData.current_progress || 0,
+          target_progress: initialData.target_progress || 100,
         });
       } else {
-        form.reset(); // Reset form for new goal
+        form.reset({
+          title: "",
+          description: "",
+          target_date: undefined,
+          status: "pending",
+          attachments: [],
+          current_progress: 0,
+          target_progress: 100,
+        });
       }
     }
   }, [isOpen, form, initialData]);
@@ -241,6 +249,58 @@ export function CreateGoalModal({
                       <SelectItem value="completed">Completed</SelectItem>
                     </SelectContent>
                   </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="current_progress"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Current Progress</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter current progress"
+                    className="h-10"
+                    disabled={isSaving}
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(event) =>
+                      field.onChange(
+                        event.target.value === "" ? null : +event.target.value,
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="target_progress"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Target Progress</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter target progress"
+                    className="h-10"
+                    disabled={isSaving}
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(event) =>
+                      field.onChange(
+                        event.target.value === "" ? null : +event.target.value,
+                      )
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

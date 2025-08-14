@@ -19,7 +19,11 @@ import {
 import { getJournalEntries } from "@/lib/database/journal";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-export default async function JournalPage() {
+export default async function JournalPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
@@ -29,7 +33,15 @@ export default async function JournalPage() {
     redirect("/auth/signin");
   }
 
-  const journalEntries = await getJournalEntries(user.id);
+  const search =
+    typeof searchParams.search === "string" ? searchParams.search : undefined;
+  const tags = Array.isArray(searchParams.tags)
+    ? searchParams.tags
+    : typeof searchParams.tags === "string"
+      ? [searchParams.tags]
+      : undefined;
+
+  const journalEntries = await getJournalEntries(user.id, { search, tags });
 
   return (
     <SidebarProvider>

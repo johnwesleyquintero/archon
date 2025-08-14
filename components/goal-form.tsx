@@ -31,7 +31,8 @@ interface GoalFormProps {
     title: string;
     description: string;
     target_date?: string;
-    progress?: number;
+    current_progress?: number | null;
+    target_progress?: number | null;
     tags?: string[] | null;
   }) => void;
   initialGoal?: Goal | null;
@@ -48,7 +49,12 @@ export const GoalForm: React.FC<GoalFormProps> = ({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
-  const [progress, setProgress] = useState<number | undefined>(undefined);
+  const [currentProgress, setCurrentProgress] = useState<number | undefined>(
+    undefined,
+  );
+  const [targetProgress, setTargetProgress] = useState<number | undefined>(
+    undefined,
+  );
   const [titleError, setTitleError] = useState<string | null>(null);
   const [progressError, setProgressError] = useState<string | null>(null);
 
@@ -59,12 +65,14 @@ export const GoalForm: React.FC<GoalFormProps> = ({
       setTargetDate(
         initialGoal.target_date ? new Date(initialGoal.target_date) : undefined,
       );
-      setProgress(initialGoal.progress || 0);
+      setCurrentProgress(initialGoal.current_progress || 0);
+      setTargetProgress(initialGoal.target_progress || 100);
     } else {
       setTitle("");
       setDescription("");
       setTargetDate(undefined);
-      setProgress(0);
+      setCurrentProgress(0);
+      setTargetProgress(100);
       setTitleError(null);
       setProgressError(null);
     }
@@ -80,8 +88,14 @@ export const GoalForm: React.FC<GoalFormProps> = ({
       setTitleError(null);
     }
 
-    if (progress !== undefined && (progress < 0 || progress > 100)) {
-      setProgressError("Progress must be between 0 and 100.");
+    if (
+      currentProgress !== undefined &&
+      targetProgress !== undefined &&
+      currentProgress > targetProgress
+    ) {
+      setProgressError(
+        "Current progress cannot be greater than target progress.",
+      );
       isValid = false;
     } else {
       setProgressError(null);
@@ -96,7 +110,8 @@ export const GoalForm: React.FC<GoalFormProps> = ({
       title,
       description,
       ...(targetDate && { target_date: format(targetDate, "yyyy-MM-dd") }),
-      progress,
+      current_progress: currentProgress,
+      target_progress: targetProgress,
       tags: initialGoal?.tags || [],
     });
     onClose();
@@ -165,17 +180,28 @@ export const GoalForm: React.FC<GoalFormProps> = ({
           </Popover>
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="progress" className="text-right">
-            Progress (%)
+          <Label htmlFor="current_progress" className="text-right">
+            Current Progress
           </Label>
           <Input
-            id="progress"
+            id="current_progress"
             type="number"
-            value={progress ?? ""}
-            onChange={(e) => setProgress(Number(e.target.value))}
+            value={currentProgress ?? ""}
+            onChange={(e) => setCurrentProgress(Number(e.target.value))}
             className="col-span-3"
-            min="0"
-            max="100"
+            aria-invalid={progressError ? "true" : "false"}
+          />
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="target_progress" className="text-right">
+            Target Progress
+          </Label>
+          <Input
+            id="target_progress"
+            type="number"
+            value={targetProgress ?? ""}
+            onChange={(e) => setTargetProgress(Number(e.target.value))}
+            className="col-span-3"
             aria-invalid={progressError ? "true" : "false"}
           />
           {progressError && (

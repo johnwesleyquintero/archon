@@ -6,6 +6,7 @@ type BaseTask = Database["public"]["Tables"]["tasks"]["Row"];
 // Define RawTask type to align with database and include all possible statuses
 export type RawTask = BaseTask & {
   notes?: string | null;
+  due_date?: string | null;
   recurrence_pattern?:
     | "none"
     | "daily"
