@@ -19,11 +19,12 @@ import {
 import { getJournalEntries } from "@/lib/database/journal";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-export default async function JournalPage({
-  searchParams,
-}: {
+interface JournalPageProps {
+  params: Record<string, string | string[] | undefined>;
   searchParams: { [key: string]: string | string[] | undefined };
-}) {
+}
+
+export default async function JournalPage({ searchParams }: JournalPageProps) {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
