@@ -15,6 +15,8 @@ import {
   Plus,
   Target,
   Archive,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react"; // Import Archive icon
 import { Calendar } from "@/components/ui/calendar";
 import { TaskInput } from "./task-input";
@@ -346,6 +348,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
   } = props;
   const [showSubtaskInput, setShowSubtaskInput] = useState(false);
   const [showFullNotes, setShowFullNotes] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const {
     attributes,
@@ -391,6 +394,23 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
       )}
     >
       <div className="flex items-center gap-2">
+        {subtasks && subtasks.length > 0 ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 p-0"
+            onClick={() => setIsExpanded(!isExpanded)}
+            aria-label={isExpanded ? "Collapse subtasks" : "Expand subtasks"}
+          >
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </Button>
+        ) : (
+          <div className="h-8 w-8" />
+        )}
         <Button
           variant="ghost"
           size="icon"
@@ -771,8 +791,8 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
       )}
 
       {/* Subtasks Section */}
-      {subtasks && subtasks.length > 0 && (
-        <div className="ml-6 mt-2 border-l pl-4 border-slate-200 dark:border-slate-700">
+      {isExpanded && subtasks && subtasks.length > 0 && (
+        <div className="ml-12 mt-2 border-l pl-4 border-slate-200 dark:border-slate-700">
           <ul className="space-y-1">
             {subtasks.map((subtask: Task) => (
               <li key={subtask.id}>

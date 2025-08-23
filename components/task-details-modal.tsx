@@ -26,7 +26,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Target, Archive, Trash2 } from "lucide-react"; // Import Archive and Trash2 icons
+import {
+  CalendarIcon,
+  Target,
+  Archive,
+  Trash2,
+  Link,
+  Unlink,
+  Plus,
+} from "lucide-react"; // Import Archive and Trash2 icons
+import { TaskDependency } from "@/lib/types/task-dependency";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,6 +56,12 @@ const recurrencePatterns = [
   { value: "yearly", label: "Yearly" },
 ];
 
+import {
+  addTaskDependency,
+  removeTaskDependency,
+} from "@/app/tasks/dependencies/actions";
+import { toast } from "sonner";
+
 interface TaskDetailsModalProps {
   task: Task | null;
   isOpen: boolean;
@@ -55,10 +70,12 @@ interface TaskDetailsModalProps {
     id: string,
     updatedTask: Partial<Database["public"]["Tables"]["tasks"]["Update"]>,
   ) => Promise<void>;
-  onArchive: (id: string) => void | Promise<void>; // New prop for archiving
-  onDeletePermanently: (id: string) => void | Promise<void>; // New prop for permanent delete
+  onArchive: (id: string) => void | Promise<void>;
+  onDeletePermanently: (id: string) => void | Promise<void>;
   goals?: { id: string; title: string }[];
-  allTasks?: Task[]; // New prop for all tasks to select parent
+  allTasks?: Task[];
+  taskDependencies?: TaskDependency[];
+  onRefreshDependencies: () => void;
 }
 
 export function TaskDetailsModal({
@@ -66,10 +83,12 @@ export function TaskDetailsModal({
   isOpen,
   onClose,
   onUpdate,
-  onArchive, // Destructure new props
-  onDeletePermanently, // Destructure new props
+  onArchive,
+  onDeletePermanently,
   goals = [],
   allTasks = [],
+  taskDependencies = [],
+  onRefreshDependencies,
 }: TaskDetailsModalProps) {
   const [title, setTitle] = useState(task?.title || "");
   const [description, setDescription] = useState<string | null>(
@@ -88,7 +107,9 @@ export function TaskDetailsModal({
   const [priority, setPriority] = useState<TaskPriority | null>(
     task?.priority || null,
   );
-  const [status, setStatus] = useState<TaskStatus | null>(null);
+  const [status, setStatus] = useState<TaskStatus | null>(
+    task?.status as TaskStatus | null,
+  );
 
   useEffect(() => {
     if (task) {
@@ -113,7 +134,29 @@ export function TaskDetailsModal({
     (t) => t.id !== task.id && t.parent_id !== task.id,
   );
 
+  const handleAddDependency = async (dependsOnTaskId: string) => {
+    if (!task) return;
+    const result = await addTaskDependency(task.id, dependsOnTaskId);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success("Task dependency added.");
+      onRefreshDependencies();
+    }
+  };
+
+  const handleRemoveDependency = async (dependencyId: string) => {
+    const result = await removeTaskDependency(dependencyId);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success("Task dependency removed.");
+      onRefreshDependencies();
+    }
+  };
+
   const handleSave = () => {
+    if (!task) return;
     void onUpdate(task.id, {
       title,
       description,
@@ -121,8 +164,8 @@ export function TaskDetailsModal({
       recurrence_end_date: recurrenceEndDate?.toISOString() || null,
       goal_id: goalId,
       parent_id: parentId,
-      priority, // Include priority
-      status, // Include status
+      priority,
+      status,
     } as Partial<Database["public"]["Tables"]["tasks"]["Update"]>);
     onClose();
   };
@@ -290,6 +333,64 @@ export function TaskDetailsModal({
                 </Popover>
               </div>
             )}
+          </div>
+
+          {/* Task Dependencies Section */}
+          <div className="col-span-2">
+            <label className="text-sm font-medium">Dependencies</label>
+            <div className="space-y-2">
+              {taskDependencies
+                .filter((dep) => dep.task_id === task.id)
+                .map((dep) => {
+                  const dependentTask = allTasks.find(
+                    (t) => t.id === dep.depends_on_task_id,
+                  );
+                  return (
+                    <div
+                      key={dep.id}
+                      className="flex items-center justify-between rounded-md border p-2"
+                    >
+                      <span>
+                        <Link className="h-4 w-4 mr-2 inline-block" />
+                        {dependentTask?.title || "Unknown Task"}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => void handleRemoveDependency(dep.id)}
+                      >
+                        <Unlink className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  );
+                })}
+              <Select
+                onValueChange={(value) => void handleAddDependency(value)}
+                value=""
+              >
+                <SelectTrigger>
+                  <Plus className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Add a dependency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allTasks
+                    .filter(
+                      (t) =>
+                        t.id !== task.id &&
+                        !taskDependencies.some(
+                          (dep) =>
+                            dep.task_id === task.id &&
+                            dep.depends_on_task_id === t.id,
+                        ),
+                    )
+                    .map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.title}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
         <DialogFooter className="flex justify-between items-center">

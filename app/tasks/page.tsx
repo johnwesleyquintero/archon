@@ -21,9 +21,11 @@ import {
   useTaskFiltersAndSort,
   TaskFilters,
 } from "@/hooks/use-task-filters-and-sort";
-import { useEffect, useState, useCallback, Suspense } from "react"; // Import useCallback
-import { useAuth } from "@/contexts/auth-context"; // Import useAuth
+import { useEffect, useState, useCallback, Suspense } from "react";
+import { useAuth } from "@/contexts/auth-context";
 import { useSearchParams } from "next/navigation";
+import { getTaskDependencies } from "../../lib/database/task-dependencies"; // Import getTaskDependencies
+import { TaskDependency } from "@/lib/types/task-dependency"; // Import TaskDependency type
 
 // Helper function to parse search params into filter and sort options
 const parseSearchParams = (searchParams: {
@@ -158,6 +160,9 @@ function TaskControls({
   const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [isSavingTask, setIsSavingTask] = useState(false);
+  const [taskDependencies, setTaskDependencies] = useState<TaskDependency[]>(
+    [],
+  ); // New state for task dependencies
 
   const fetchAllData = useCallback(async () => {
     if (!user) {
@@ -165,6 +170,7 @@ function TaskControls({
       setAllTasks([]);
       setGoals([]);
       setAllAvailableTags([]);
+      setTaskDependencies([]); // Reset dependencies
       setLoading(false);
       return;
     }
@@ -172,22 +178,25 @@ function TaskControls({
     setLoading(true);
     setError(null);
     try {
-      const [fetchedTasks, fetchedTags, fetchedGoals] = await Promise.all([
-        getTasks(filters, sort),
-        getUniqueTags(),
-        getGoals(user.id), // Pass user.id to getGoals
-      ]);
+      const [fetchedTasks, fetchedTags, fetchedGoals, fetchedDependencies] =
+        await Promise.all([
+          getTasks(filters, sort),
+          getUniqueTags(),
+          getGoals(user.id),
+          getTaskDependencies(user.id), // Fetch task dependencies
+        ]);
       setTasks(fetchedTasks);
-      setAllTasks(fetchedTasks); // All tasks for parent selection
+      setAllTasks(fetchedTasks);
       setAllAvailableTags(fetchedTags);
       setGoals(fetchedGoals);
+      setTaskDependencies(fetchedDependencies); // Set task dependencies
     } catch (e) {
       console.error("Error fetching data in TaskControls:", e);
       setError(String(e));
     } finally {
       setLoading(false);
     }
-  }, [filters, sort, user]); // fetchAllData dependencies
+  }, [filters, sort, user]);
 
   useEffect(() => {
     void fetchAllData();
@@ -306,6 +315,8 @@ function TaskControls({
           allTasks={allTasks}
           goals={goals}
           onEditTask={handleEditTask}
+          taskDependencies={taskDependencies} // Pass task dependencies
+          onRefreshDependencies={() => void fetchAllData()} // Pass fetchAllData to refresh dependencies
         />
       )}
     </>

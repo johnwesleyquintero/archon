@@ -257,6 +257,45 @@ export type Database = {
         };
         Relationships: [];
       };
+      task_dependencies: {
+        Row: {
+          id: string;
+          task_id: string;
+          depends_on_task_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          task_id: string;
+          depends_on_task_id: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          task_id?: string;
+          depends_on_task_id?: string;
+          user_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "task_dependencies_task_id_fkey";
+            columns: ["task_id"];
+            isOneToOne: false;
+            referencedRelation: "tasks";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "task_dependencies_depends_on_task_id_fkey";
+            columns: ["depends_on_task_id"];
+            isOneToOne: false;
+            referencedRelation: "tasks";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents

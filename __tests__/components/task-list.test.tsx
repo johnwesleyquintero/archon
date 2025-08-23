@@ -45,7 +45,8 @@ describe("TaskList", () => {
         loading={true}
         onAddTaskClick={mockOnAddTaskClick}
         onAddTask={jest.fn()}
-        onEditTask={jest.fn()} // Added missing prop
+        onEditTask={jest.fn()}
+        onRefreshDependencies={jest.fn()}
       />,
     );
 
@@ -60,7 +61,8 @@ describe("TaskList", () => {
         loading={false}
         onAddTaskClick={mockOnAddTaskClick}
         onAddTask={jest.fn()}
-        onEditTask={jest.fn()} // Added missing prop
+        onEditTask={jest.fn()}
+        onRefreshDependencies={jest.fn()}
       />,
     );
 

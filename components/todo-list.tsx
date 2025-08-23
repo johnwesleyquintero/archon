@@ -69,6 +69,8 @@ export function TodoList({ initialTasks, config }: TodoListProps) {
             allTasks={tasks}
             goals={goals}
             onEditTask={handleEditTask}
+            taskDependencies={[]}
+            onRefreshDependencies={() => {}}
           />
         </CardContent>
       </Card>

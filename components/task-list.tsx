@@ -8,6 +8,7 @@ import { useState, useCallback } from "react";
 import { TaskDetailsModal } from "./task-details-modal";
 import { Task } from "@/lib/types/task";
 import { Goal } from "@/lib/types/goal"; // Import Goal type
+import { TaskDependency } from "@/lib/types/task-dependency"; // Import TaskDependency type
 import { Button } from "@/components/ui/button";
 import {
   deleteMultipleTasks,
@@ -47,6 +48,8 @@ interface TaskListProps {
   allTasks?: Task[]; // New prop for all tasks to select parent
   goals?: Goal[] | null; // New prop for goals, using the Goal type
   onEditTask: (task: Task) => void; // New prop for editing tasks
+  taskDependencies?: TaskDependency[]; // New prop for task dependencies
+  onRefreshDependencies: () => void;
 }
 
 export function TaskList({
@@ -57,6 +60,8 @@ export function TaskList({
   allTasks = [], // Default to empty array
   goals = [], // Default to empty array
   onEditTask,
+  taskDependencies = [], // Default to empty array
+  onRefreshDependencies,
 }: TaskListProps) {
   const { toggleTask, updateTask, isMutating, setTasks } = useTasks(tasks); // Removed deleteTask from here, will use specific archive/delete
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -184,6 +189,8 @@ export function TaskList({
         onDeletePermanently={handleDeletePermanently}
         goals={goals?.map((goal) => ({ id: goal.id, title: goal.title }))}
         allTasks={allTasks}
+        taskDependencies={taskDependencies}
+        onRefreshDependencies={onRefreshDependencies}
       />
       <div className="flex flex-col h-full">
         <div className="flex flex-col gap-2 p-2 border-b border-slate-100 dark:border-slate-800">
