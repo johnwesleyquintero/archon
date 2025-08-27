@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useGoals } from "@/hooks/use-goals";
+import { useTasks } from "@/hooks/use-tasks"; // Import useTasks hook
 import { CreateGoalModal } from "@/components/create-goal-modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +15,15 @@ import type { Database } from "@/lib/supabase/types";
 import { goalSchema } from "@/lib/validators";
 import { z } from "zod";
 import { ChartContainer, ChartPrimitive } from "@/components/ui/chart";
+
+type GoalInsert = Omit<
+  Database["public"]["Tables"]["goals"]["Insert"],
+  "user_id" | "id" | "created_at" | "updated_at"
+>;
+type GoalUpdate = Omit<
+  Database["public"]["Tables"]["goals"]["Update"],
+  "user_id" | "id" | "created_at" | "updated_at"
+>;
 import {
   Select,
   SelectContent,
@@ -52,6 +62,7 @@ const statusConfig = {
 export function GoalManager() {
   const { goals, isLoading, error, isMutating, addGoal, updateGoal } =
     useGoals();
+  const { tasks: allTasks /*, isLoading: isLoadingTasks */ } = useTasks(); // Fetch all tasks
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -69,10 +80,16 @@ export function GoalManager() {
   };
 
   const handleSaveGoal = async (goalData: GoalFormValues, goalId?: string) => {
+    const { associated_tasks, ...rest } = goalData;
+    const cleanedGoalData = {
+      ...rest,
+      associated_tasks:
+        associated_tasks === null ? undefined : associated_tasks,
+    };
     if (goalId) {
-      await updateGoal(goalId, goalData);
+      await updateGoal(goalId, cleanedGoalData as GoalUpdate);
     } else {
-      await addGoal(goalData);
+      await addGoal(cleanedGoalData as GoalInsert);
     }
     setModalOpen(false);
   };
@@ -184,6 +201,7 @@ export function GoalManager() {
         onSaveOrUpdate={handleSaveGoal}
         isSaving={isMutating}
         initialData={selectedGoal}
+        allTasks={allTasks} // Pass all tasks to the modal
       />
       <Card className="w-full">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">

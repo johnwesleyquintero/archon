@@ -17,7 +17,7 @@ import { FileUpload } from "@/components/file-upload";
 import { uploadFile } from "@/lib/blob";
 import { analyzeJournalEntry } from "@/app/journal/actions";
 import { Modal } from "@/components/ui/modal";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { journalEntrySchema } from "@/lib/validators";
 import type { z } from "zod";
@@ -26,6 +26,9 @@ import Image from "next/image";
 import { Spinner } from "@/components/ui/spinner";
 import dynamic from "next/dynamic";
 import { Badge } from "@/components/ui/badge";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { useTasks } from "@/hooks/use-tasks";
+import { useGoals } from "@/hooks/use-goals";
 
 const TipTapEditor = dynamic(
   () => import("./quill-editor").then((mod) => mod.TipTapEditor),
@@ -106,6 +109,8 @@ export function JournalEditorWithAttachments({
       content: "",
       attachments: [],
       tags: [],
+      associated_tasks: [],
+      associated_goals: [],
     },
     mode: "onBlur",
   });
@@ -196,6 +201,8 @@ export function JournalEditorWithAttachments({
               .map(createAttachmentFromUrl)
           : [],
         tags: entry.tags || [],
+        associated_tasks: entry.associated_tasks || [],
+        associated_goals: entry.associated_goals || [],
       });
     } else {
       form.reset({
@@ -386,6 +393,9 @@ export function JournalEditorWithAttachments({
               className="h-8 w-40"
             />
           </div>
+
+          <AssociatedTasksField form={form} />
+          <AssociatedGoalsField form={form} />
 
           {/* Toolbar for TipTap */}
           <div className="flex items-center gap-1">
@@ -613,5 +623,75 @@ export function JournalEditorWithAttachments({
         )}
       </Modal>
     </Form>
+  );
+}
+
+interface AssociatedTasksFieldProps {
+  form: UseFormReturn<JournalFormValues>;
+}
+
+function AssociatedTasksField({ form }: AssociatedTasksFieldProps) {
+  const { tasks } = useTasks();
+
+  const taskOptions = (tasks || []).map(
+    (task: { id: string; title: string }) => ({
+      label: task.title,
+      value: task.id,
+    }),
+  );
+
+  return (
+    <FormField
+      control={form.control}
+      name="associated_tasks"
+      render={({ field }) => (
+        <FormItem>
+          <MultiSelect
+            options={taskOptions}
+            selected={field.value || []}
+            onChange={field.onChange}
+            placeholder="Select associated tasks..."
+            emptyIndicator="No tasks found."
+            disabled={form.formState.isSubmitting}
+          />
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+interface AssociatedGoalsFieldProps {
+  form: UseFormReturn<JournalFormValues>;
+}
+
+function AssociatedGoalsField({ form }: AssociatedGoalsFieldProps) {
+  const { goals } = useGoals();
+
+  const goalOptions = (goals || []).map(
+    (goal: { id: string; title: string }) => ({
+      label: goal.title,
+      value: goal.id,
+    }),
+  );
+
+  return (
+    <FormField
+      control={form.control}
+      name="associated_goals"
+      render={({ field }) => (
+        <FormItem>
+          <MultiSelect
+            options={goalOptions}
+            selected={field.value || []}
+            onChange={field.onChange}
+            placeholder="Select associated goals..."
+            emptyIndicator="No goals found."
+            disabled={form.formState.isSubmitting}
+          />
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 }

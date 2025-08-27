@@ -90,6 +90,8 @@ export type Database = {
           title: string;
           updated_at: string;
           user_id: string;
+          associated_tasks: string[] | null;
+          associated_goals: string[] | null;
         };
         Insert: {
           attachments?: Json | null;
@@ -100,6 +102,8 @@ export type Database = {
           title: string;
           updated_at?: string;
           user_id: string;
+          associated_tasks?: string[] | null;
+          associated_goals?: string[] | null;
         };
         Update: {
           attachments?: Json | null;
@@ -110,6 +114,8 @@ export type Database = {
           title?: string;
           updated_at?: string;
           user_id?: string;
+          associated_tasks?: string[] | null;
+          associated_goals?: string[] | null;
         };
         Relationships: [];
       };

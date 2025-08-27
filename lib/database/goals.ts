@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { Database, Json } from "@/lib/supabase/types";
+import type { Database } from "@/lib/supabase/types";
 import { getAuthenticatedUser } from "@/lib/supabase/auth-utils";
 import { handleServerError, AppError } from "@/lib/error-utils";
 
@@ -62,13 +62,9 @@ export async function getGoals(
   }
 }
 
-export async function addGoal(goalData: {
-  title: string;
-  description?: string | null;
-  status?: string | null;
-  target_date?: string | null;
-  attachments?: Json | null;
-}): Promise<Goal | null> {
+export async function addGoal(
+  goalData: Omit<GoalInsert, "user_id" | "id" | "created_at" | "updated_at">,
+): Promise<Goal | null> {
   const supabase = await createServerSupabaseClient();
   const user = await getAuthenticatedUser();
 
@@ -78,15 +74,10 @@ export async function addGoal(goalData: {
 
   try {
     const newGoal: GoalInsert = {
-      title: goalData.title,
-      description:
-        goalData.description === null ? undefined : goalData.description,
-      status: goalData.status === null ? undefined : goalData.status,
-      target_date:
-        goalData.target_date === null ? undefined : goalData.target_date,
+      user_id: user.id,
+      ...goalData,
       attachments:
         goalData.attachments === null ? undefined : goalData.attachments,
-      user_id: user.id,
     };
 
     const { data, error } = await supabase

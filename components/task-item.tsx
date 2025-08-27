@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import React, { useEffect } from "react";
 import { format, isPast, isToday } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -47,6 +45,7 @@ import {
 } from "@/components/ui/select";
 
 import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
+import { TaskDependency } from "@/lib/types/task-dependency";
 import {
   Dialog,
   DialogContent,
@@ -279,13 +278,13 @@ export const TaskEditModal = ({
   );
 };
 import type { Database } from "@/lib/supabase/types";
-
 import type { Goal } from "@/lib/types/goal";
 import type { TaskFormValues } from "@/lib/validators";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-interface TaskItemProps extends Task {
+interface TaskItemProps {
+  task: Task;
   onToggle: (id: string, is_completed: boolean) => void | Promise<void>;
   onArchive: (id: string) => void | Promise<void>; // New prop for archiving
   onDeletePermanently: (id: string) => void | Promise<void>; // New prop for permanent delete
@@ -302,6 +301,8 @@ interface TaskItemProps extends Task {
   isSelected: boolean;
   onSelect: (id: string) => void;
   goal?: Goal | null;
+  taskDependencies: TaskDependency[];
+  allTasks: Task[];
 }
 
 /**
@@ -323,6 +324,7 @@ interface TaskItemProps extends Task {
  * ```
  */
 export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
+  const { task, taskDependencies, allTasks } = props;
   const {
     id,
     title,
@@ -334,6 +336,8 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
     notes,
     subtasks,
     priority, // Destructure priority
+  } = task;
+  const {
     onToggle,
     onArchive, // Use new archive prop
     onDeletePermanently, // Use new permanent delete prop
@@ -349,6 +353,13 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
   const [showSubtaskInput, setShowSubtaskInput] = useState(false);
   const [showFullNotes, setShowFullNotes] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [showDependencies, setShowDependencies] = useState(false);
+
+  const dependentTasks = taskDependencies.filter(
+    (dep) => dep.depends_on_task_id === task.id,
+  );
+
+  const parentTasks = taskDependencies.filter((dep) => dep.task_id === task.id);
 
   const {
     attributes,
@@ -458,7 +469,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
             "flex-1 text-sm cursor-pointer",
             is_completed && "text-slate-400 line-through dark:text-slate-600",
           )}
-          onClick={() => onOpenModal(props as Task)}
+          onClick={() => onOpenModal(task)}
         >
           {title}
         </label>
@@ -569,11 +580,26 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
           </PopoverContent>
         </Popover>
 
+        {(dependentTasks.length > 0 || parentTasks.length > 0) && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowDependencies(!showDependencies)}
+            className="h-8 w-8"
+            title="Toggle Dependencies"
+          >
+            {showDependencies ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => onEdit(props as Task)}
+          onClick={() => onEdit(task)}
           aria-label="Edit task"
         >
           <Edit className="h-4 w-4" />
@@ -627,7 +653,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
               <Button
                 variant="ghost"
                 className="justify-start text-sm"
-                onClick={() => onEdit(props as Task)}
+                onClick={() => onEdit(task)}
               >
                 <Edit className="mr-2 h-4 w-4" /> Edit
               </Button>
@@ -635,7 +661,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
                 <Button
                   variant="ghost"
                   className="justify-start text-sm"
-                  onClick={() => onOpenModal(props as Task)}
+                  onClick={() => onOpenModal(task)}
                 >
                   <Target className="mr-2 h-4 w-4" /> View Goal
                 </Button>
@@ -797,8 +823,7 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
             {subtasks.map((subtask: Task) => (
               <li key={subtask.id}>
                 <TaskItem
-                  {...subtask}
-                  status={subtask.status as TaskStatus}
+                  task={subtask}
                   onToggle={onToggle}
                   onArchive={onArchive} // Pass onArchive to subtasks
                   onDeletePermanently={onDeletePermanently} // Pass onDeletePermanently to subtasks
@@ -809,6 +834,9 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
                   isSelected={isSelected}
                   onSelect={onSelect}
                   onEdit={onEdit} // Pass onEdit to subtasks
+                  goal={null} // Subtasks don't have their own goal prop, they inherit from parent or are standalone
+                  taskDependencies={taskDependencies} // Pass dependencies down
+                  allTasks={allTasks} // Pass all tasks down
                 />
               </li>
             ))}
@@ -838,6 +866,38 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
           </Button>
         )}
       </div>
+
+      {showDependencies &&
+        (dependentTasks.length > 0 || parentTasks.length > 0) && (
+          <div className="ml-8 mt-2 border-l-2 border-gray-200 pl-4">
+            {parentTasks.length > 0 && (
+              <div className="mb-2">
+                <h4 className="text-sm font-semibold">Depends On:</h4>
+                <ul className="list-disc pl-5 text-sm">
+                  {parentTasks.map((dep: TaskDependency) => (
+                    <li key={dep.depends_on_task_id}>
+                      {allTasks.find((t) => t.id === dep.depends_on_task_id)
+                        ?.title || `Task ID: ${dep.depends_on_task_id}`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {dependentTasks.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold">Blocks:</h4>
+                <ul className="list-disc pl-5 text-sm">
+                  {dependentTasks.map((dep: TaskDependency) => (
+                    <li key={dep.task_id}>
+                      {allTasks.find((t) => t.id === dep.task_id)?.title ||
+                        `Task ID: ${dep.task_id}`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
     </div>
   );
 });

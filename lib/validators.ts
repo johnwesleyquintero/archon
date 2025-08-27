@@ -133,6 +133,7 @@ export const goalSchema = Zod.object({
   attachments: Zod.array(Zod.string().url()).optional(), // Array of URLs for attachments
   current_progress: Zod.number().optional().nullable(),
   target_progress: Zod.number().optional().nullable(),
+  associated_tasks: Zod.array(Zod.string()).optional().nullable(),
 });
 
 export type GoalFormValues = Zod.infer<typeof goalSchema>;
@@ -160,4 +161,6 @@ export const journalEntrySchema = Zod.object({
   tags: Zod.array(
     Zod.string().max(50, { message: "Tag is too long." }),
   ).optional(),
+  associated_tasks: Zod.array(Zod.string()).optional().nullable(),
+  associated_goals: Zod.array(Zod.string()).optional().nullable(),
 });

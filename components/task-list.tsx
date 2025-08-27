@@ -252,28 +252,24 @@ export function TaskList({
                 items={tasks.map((task) => task.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <ul className="space-y-1">
-                  {tasks.map((task) => (
-                    <li key={task.id}>
-                      <TaskItem
-                        {...task}
-                        goal={goals?.find((g) => g.id === task.goal_id)}
-                        onToggle={(id, is_completed) => {
-                          void handleToggle(id, is_completed);
-                        }}
-                        onArchive={handleArchive} // New prop for archiving
-                        onDeletePermanently={handleDeletePermanently} // New prop for permanent delete
-                        onUpdate={handleUpdate}
-                        onAddTask={onAddTask}
-                        onOpenModal={handleOpenModal}
-                        disabled={isMutating}
-                        isSelected={selectedTasks.includes(task.id)}
-                        onSelect={handleSelectTask}
-                        onEdit={onEditTask}
-                      />
-                    </li>
-                  ))}
-                </ul>
+                {tasks.map((task) => (
+                  <TaskItem
+                    key={task.id}
+                    task={task}
+                    onToggle={handleToggle}
+                    onArchive={handleArchive}
+                    onDeletePermanently={handleDeletePermanently}
+                    onUpdate={handleUpdate}
+                    onEdit={onEditTask}
+                    goal={goals?.[0] || null}
+                    taskDependencies={taskDependencies || []}
+                    allTasks={allTasks || []}
+                    onOpenModal={handleOpenModal}
+                    isSelected={selectedTasks.includes(task.id)}
+                    onAddTask={onAddTask}
+                    onSelect={handleSelectTask}
+                  />
+                ))}
               </SortableContext>
             </DndContext>
           )}

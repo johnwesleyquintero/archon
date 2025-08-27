@@ -90,7 +90,7 @@ export function DailyFocusWidget({
               {tasks.map((task) => (
                 <li key={task.id}>
                   <TaskItem
-                    {...task}
+                    task={task}
                     onToggle={() => {}}
                     onArchive={() => {}}
                     onDeletePermanently={() => {}}
@@ -101,6 +101,8 @@ export function DailyFocusWidget({
                     isSelected={false}
                     onSelect={() => {}}
                     goal={null}
+                    taskDependencies={[]}
+                    allTasks={[]}
                   />
                 </li>
               ))}

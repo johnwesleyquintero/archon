@@ -5,6 +5,7 @@ type BaseTask = Database["public"]["Tables"]["tasks"]["Row"];
 
 // Define RawTask type to align with database and include all possible statuses
 export type RawTask = BaseTask & {
+  user_id: string;
   parent_id?: string | null;
   notes?: string | null;
   due_date?: string | null;

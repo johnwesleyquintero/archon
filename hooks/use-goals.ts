@@ -12,8 +12,12 @@ import type { Database, Json } from "@/lib/supabase/types";
 import { useAuth } from "@/contexts/auth-context";
 import { Goal } from "@/lib/types/goal";
 
-type GoalInsert = Database["public"]["Tables"]["goals"]["Insert"];
-type GoalUpdate = Database["public"]["Tables"]["goals"]["Update"];
+type GoalInsert = Database["public"]["Tables"]["goals"]["Insert"] & {
+  associated_tasks?: string[];
+};
+type GoalUpdate = Database["public"]["Tables"]["goals"]["Update"] & {
+  associated_tasks?: string[];
+};
 
 export function useGoals(initialGoals: Goal[] = []) {
   const { user } = useAuth();
@@ -114,7 +118,9 @@ export function useGoals(initialGoals: Goal[] = []) {
           };
           setGoals((prev) => [optimisticGoal, ...prev]);
 
-          const data = await addGoal(newGoalData);
+          const data = await addGoal({
+            ...newGoalData,
+          });
 
           setGoals((prev) =>
             prev.map((goal) => (goal.id === tempId ? data! : goal)),

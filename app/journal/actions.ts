@@ -51,36 +51,53 @@ interface GroqResponse {
 }
 
 export const analyzeJournalEntry = withErrorHandling(
-  async (content: string): Promise<string | null> => {
-    // In a real application, you would get the API URL from environment variables
-    const response = await fetch("http://localhost:3000/api/groq-chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+  async (content: string): Promise<string | { error: string }> => {
+    const response = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "llama3-8b-8192",
+          messages: [
+            {
+              role: "system",
+              content:
+                "Analyze the following journal entry and provide a concise summary, key themes, and any actionable insights. Focus on productivity, personal growth, and emotional well-being.",
+            },
+            {
+              role: "user",
+              content: content,
+            },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a helpful assistant. Analyze the following journal entry for key themes, overall sentiment, and potential action items. Provide a concise summary.",
-          },
-          {
-            role: "user",
-            content: content,
-          },
-        ],
-      }),
-    });
+    );
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `Failed to analyze journal entry: ${response.statusText} - ${errorText}`,
-      );
+      const errorData: unknown = await response.json();
+      let errorMessage = `Groq API error: ${response.status} ${response.statusText}`;
+      if (
+        typeof errorData === "object" &&
+        errorData !== null &&
+        "message" in errorData &&
+        typeof errorData.message === "string"
+      ) {
+        errorMessage += ` - ${errorData.message}`;
+      } else {
+        errorMessage += ` - ${JSON.stringify(errorData)}`;
+      }
+      throw new Error(errorMessage);
     }
 
-    const result = (await response.json()) as GroqResponse;
-    return result.choices[0]?.message?.content ?? null;
+    const data = (await response.json()) as GroqResponse;
+    if (!data.choices || data.choices.length === 0) {
+      throw new Error("No analysis result from Groq API.");
+    }
+
+    return data.choices[0].message.content;
   },
 );

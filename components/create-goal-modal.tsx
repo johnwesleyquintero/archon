@@ -34,6 +34,8 @@ import {
 } from "./ui/select";
 
 import { Goal } from "@/lib/types/goal";
+import { Task } from "@/lib/types/task"; // Import Task type
+import { MultiSelect } from "./ui/multi-select"; // Import MultiSelect component
 
 interface CreateGoalModalProps {
   isOpen: boolean;
@@ -44,9 +46,12 @@ interface CreateGoalModalProps {
   ) => Promise<void>;
   isSaving: boolean;
   initialData?: Goal | null;
+  allTasks?: Task[]; // New prop for all tasks
 }
 
-type GoalFormValues = z.infer<typeof goalSchema>;
+type GoalFormValues = z.infer<typeof goalSchema> & {
+  associated_tasks?: string[] | null; // Allow null as per schema
+};
 
 export function CreateGoalModal({
   isOpen,
@@ -54,6 +59,7 @@ export function CreateGoalModal({
   onSaveOrUpdate,
   isSaving,
   initialData,
+  allTasks, // Add allTasks here
 }: CreateGoalModalProps) {
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalSchema),
@@ -65,6 +71,7 @@ export function CreateGoalModal({
       attachments: [],
       current_progress: 0,
       target_progress: 100,
+      associated_tasks: [], // Ensure this is always an array
     },
     mode: "onBlur", // Enable real-time validation on blur
   });
@@ -89,6 +96,7 @@ export function CreateGoalModal({
             : [],
           current_progress: initialData.current_progress || 0,
           target_progress: initialData.target_progress || 100,
+          associated_tasks: initialData.associated_tasks || [], // Ensure this is always an array
         });
       } else {
         form.reset({
@@ -99,6 +107,7 @@ export function CreateGoalModal({
           attachments: [],
           current_progress: 0,
           target_progress: 100,
+          associated_tasks: [], // Ensure this is always an array
         });
       }
     }
@@ -183,6 +192,35 @@ export function CreateGoalModal({
                 <p className="text-xs text-slate-500">
                   Optional: Add more details about your goal and how you plan to
                   achieve it.
+                </p>
+              </FormItem>
+            )}
+          />
+
+          {/* New Field for Task Association */}
+          <FormField
+            control={form.control}
+            name="associated_tasks"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Associated Tasks</FormLabel>
+                <FormControl>
+                  <MultiSelect
+                    options={
+                      (allTasks as Task[])?.map((task) => ({
+                        label: task.title,
+                        value: task.id,
+                      })) || []
+                    }
+                    selected={field.value || []}
+                    onChange={field.onChange}
+                    placeholder="Select tasks to associate with this goal"
+                    disabled={isSaving}
+                  />
+                </FormControl>
+                <FormMessage />
+                <p className="text-xs text-slate-500">
+                  Optional: Link tasks that contribute to this goal.
                 </p>
               </FormItem>
             )}

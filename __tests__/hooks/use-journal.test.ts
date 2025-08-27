@@ -41,6 +41,8 @@ describe("useJournal", () => {
       updated_at: "2024-01-01T00:00:00Z",
       user_id: "user-123",
       tags: null,
+      associated_tasks: null,
+      associated_goals: null,
     },
   ];
 
@@ -59,6 +61,8 @@ describe("useJournal", () => {
       user_id: "user-123",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      associated_tasks: null,
+      associated_goals: null,
     };
     (addJournalEntry as jest.Mock).mockResolvedValue(newEntry);
 

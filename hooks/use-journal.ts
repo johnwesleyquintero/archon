@@ -9,8 +9,13 @@ import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/components/ui/use-toast";
 import type { JournalEntry } from "@/lib/types/journal";
 
-type JournalInsert = Omit<JournalEntry, "id" | "created_at" | "updated_at">;
-type JournalUpdate = Partial<JournalInsert>;
+type JournalInsert = Omit<
+  JournalEntry,
+  "id" | "created_at" | "updated_at" | "associated_tasks" | "associated_goals"
+> & { user_id: string };
+type JournalUpdate = Partial<
+  Omit<JournalInsert, "associated_tasks" | "associated_goals">
+> & { user_id?: string };
 
 export function useJournal(
   initialEntries: JournalEntry[] = [],
@@ -107,12 +112,14 @@ export function useJournal(
   const handleSaveEntry = useCallback(() => {
     if (selectedEntry && hasUnsavedChanges) {
       startTransition(async () => {
-        const { id, title, content, attachments, tags } = selectedEntry;
+        const { id, title, content, attachments, tags, user_id } =
+          selectedEntry;
         const result = await updateJournalEntry(id, {
           title,
           content,
           attachments,
           tags,
+          user_id,
         } as JournalUpdate);
         if (result && "error" in result) {
           toast({

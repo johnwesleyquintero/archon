@@ -20,7 +20,6 @@ import { getJournalEntries } from "@/lib/database/journal";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 interface JournalPageProps {
-  params: Record<string, string | string[] | undefined>;
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
