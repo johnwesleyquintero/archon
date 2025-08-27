@@ -1,8 +1,8 @@
-// @ts-nocheck
 import "@testing-library/jest-dom"; // For extended Jest matchers
 import * as React from "react";
 import { TextEncoder, TextDecoder } from "util"; // Node.js 'util' module for polyfill
 import ResizeObserverPolyfill from "resize-observer-polyfill";
+
 // Mock node-fetch and form-data to avoid ES module issues in Jest
 jest.mock("node-fetch", () => ({
   __esModule: true,
@@ -28,23 +28,26 @@ global.ResizeObserver = ResizeObserverPolyfill;
 
 // Polyfill TextEncoder and TextDecoder for Jest JSDOM environment
 // These are global APIs expected in browser/Node.js environments but missing in JSDOM by default.
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
+// Polyfill TextEncoder and TextDecoder for Jest JSDOM environment
+// These are global APIs expected in browser/Node.js environments but missing in JSDOM by default.
+global.TextEncoder = global.TextEncoder || TextEncoder;
+global.TextDecoder = global.TextDecoder || TextDecoder;
 
 // Polyfill Web APIs for Jest JSDOM environment
 // These are global APIs expected in browser environments but missing in JSDOM by default.
 // They are often used by Next.js and other libraries.
+// Ensure we are using the mocked classes directly.
 if (typeof globalThis.Request === "undefined") {
-  globalThis.Request = nodeFetch.Request;
+  globalThis.Request = (nodeFetch as any).Request;
 }
 if (typeof globalThis.Response === "undefined") {
-  globalThis.Response = nodeFetch.Response;
+  globalThis.Response = (nodeFetch as any).Response;
 }
 if (typeof globalThis.Headers === "undefined") {
-  globalThis.Headers = nodeFetch.Headers;
+  globalThis.Headers = (nodeFetch as any).Headers;
 }
 if (typeof globalThis.FormData === "undefined") {
-  globalThis.FormData = FormData;
+  globalThis.FormData = FormData as any;
 }
 
 // Mock environment variables for testing
@@ -71,14 +74,6 @@ jest.mock("@/contexts/auth-context", () => ({
 }));
 
 // Mock toast hooks
-jest.mock("@/components/ui/use-toast", () => ({
-  useToast: jest.fn(() => ({
-    toast: jest.fn(),
-    dismiss: jest.fn(),
-    toasts: [],
-  })),
-}));
-
 jest.mock("@/components/ui/use-toast", () => ({
   useToast: jest.fn(() => ({
     toast: jest.fn(),
@@ -266,5 +261,5 @@ jest.mock("@/hooks/use-task-item", () => ({
 // This ensures that act from React is used, addressing the deprecation warning.
 // This might not be strictly necessary after removing @testing-library/react-hooks,
 // but it's good practice to ensure act is correctly handled globally.
-global.IS_REACT_ACT_ENVIRONMENT = true;
-global.act = React.act;
+(global as any).IS_REACT_ACT_ENVIRONMENT = true;
+(global as any).act = React.act;

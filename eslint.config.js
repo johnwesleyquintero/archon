@@ -49,7 +49,12 @@ export default tseslint.config(
       "react/react-in-jsx-scope": "off", // Not needed with Next.js/React 17+
       "no-unused-vars": [
         "warn",
-        { args: "all", argsIgnorePattern: "^_", varsIgnorePattern: "^_", ignoreRestSiblings: true },
+        {
+          args: "all",
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
       ],
       "import/order": [
         "warn",

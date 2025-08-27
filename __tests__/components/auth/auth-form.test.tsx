@@ -56,9 +56,9 @@ jest.mock("@/components/auth/forgot-password-form", () => ({
         <label htmlFor="email">Email</label>
         <input id="email" type="email" />
         <button
-          onClick={async () => {
-            const mockAuth = useAuth();
-            await mockAuth.sendPasswordResetEmail("test@example.com");
+          onClick={() => {
+            const mockAuth = useAuth() as any; // Cast to any to avoid unsafe call
+            void mockAuth.sendPasswordResetEmail("test@example.com"); // Use void to ignore promise
           }}
         >
           Send Reset Link
@@ -113,8 +113,8 @@ describe("AuthForm", () => {
       user: null,
       isLoading: false,
     });
-    (toast.success as jest.Mock<typeof toast.success>).mockClear();
-    (toast.error as jest.Mock<typeof toast.error>).mockClear();
+    (toast.success as jest.Mock).mockClear();
+    (toast.error as jest.Mock).mockClear();
     mockSignIn.mockClear();
     mockSignUp.mockClear();
     mockResetPassword.mockClear();
