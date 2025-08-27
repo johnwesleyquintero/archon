@@ -2,7 +2,7 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { useGoals } from "@/hooks/use-goals";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth as _useAuth } from "@/contexts/auth-context";
 
 // Mock Supabase client
 jest.mock("@/lib/supabase/client", () => ({

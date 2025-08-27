@@ -1,10 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+
+import { AppError, handleServerError } from "@/lib/error-utils";
+import { getAuthenticatedUser } from "@/lib/supabase/auth-utils";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
-import { getAuthenticatedUser } from "@/lib/supabase/auth-utils";
-import { handleServerError, AppError } from "@/lib/error-utils";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 type GoalInsert = Database["public"]["Tables"]["goals"]["Insert"];

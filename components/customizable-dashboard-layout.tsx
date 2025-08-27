@@ -7,7 +7,7 @@ import {
   ComponentType,
   useEffect,
 } from "react";
-import { Layout } from "react-grid-layout";
+import { Layout } from "react-grid-layout"; // Remove Responsive and WidthProvider
 import { getGoals } from "@/lib/database/goals";
 import { getTasks } from "@/lib/database/tasks";
 import { useAuth } from "@/contexts/auth-context";

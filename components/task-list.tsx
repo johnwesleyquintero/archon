@@ -30,6 +30,9 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragOverlay,
+  DragStartEvent, // Import DragStartEvent
+  UniqueIdentifier, // Import UniqueIdentifier
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -37,6 +40,7 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
+import { createPortal } from "react-dom"; // Import createPortal for DragOverlay
 
 interface TaskListProps {
   tasks: Task[];
@@ -129,6 +133,12 @@ export function TaskList({
     await updateTask(id, updatedTask);
   };
 
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null); // Change type to UniqueIdentifier | null
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id);
+  }, []);
+
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       const { active, over } = event;
@@ -137,7 +147,10 @@ export function TaskList({
         const oldIndex = tasks.findIndex((task) => task.id === active.id);
         const newIndex = tasks.findIndex((task) => task.id === over?.id);
 
-        if (oldIndex === -1 || newIndex === -1) return;
+        if (oldIndex === -1 || newIndex === -1) {
+          setActiveId(null);
+          return;
+        }
 
         const newOrder = arrayMove(tasks, oldIndex, newIndex);
 
@@ -154,12 +167,17 @@ export function TaskList({
         } catch (error) {
           console.error("Failed to update task order:", error);
           toast.error("Failed to update task order.");
-          setTasks(tasks);
+          setTasks(tasks); // Revert to original order on error
         }
       }
+      setActiveId(null);
     },
     [tasks, setTasks],
   );
+
+  const activeTask = activeId
+    ? tasks.find((task) => task.id === activeId)
+    : null;
 
   if (loading) {
     return (
@@ -246,6 +264,7 @@ export function TaskList({
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             >
               <SortableContext
@@ -268,9 +287,33 @@ export function TaskList({
                     isSelected={selectedTasks.includes(task.id)}
                     onAddTask={onAddTask}
                     onSelect={handleSelectTask}
+                    isDragging={activeId === task.id} // Pass isDragging prop
                   />
                 ))}
               </SortableContext>
+              {createPortal(
+                <DragOverlay>
+                  {activeTask ? (
+                    <TaskItem
+                      task={activeTask}
+                      onToggle={handleToggle}
+                      onArchive={handleArchive}
+                      onDeletePermanently={handleDeletePermanently}
+                      onUpdate={handleUpdate}
+                      onEdit={onEditTask}
+                      goal={goals?.[0] || null}
+                      taskDependencies={taskDependencies || []}
+                      allTasks={allTasks || []}
+                      onOpenModal={handleOpenModal}
+                      isSelected={selectedTasks.includes(activeTask.id)}
+                      onAddTask={onAddTask}
+                      onSelect={handleSelectTask}
+                      isOverlay // Indicate this is an overlay item
+                    />
+                  ) : null}
+                </DragOverlay>,
+                document.body,
+              )}
             </DndContext>
           )}
         </div>

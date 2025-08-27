@@ -303,6 +303,8 @@ interface TaskItemProps {
   goal?: Goal | null;
   taskDependencies: TaskDependency[];
   allTasks: Task[];
+  isDragging?: boolean; // New prop for drag state
+  isOverlay?: boolean; // New prop to indicate if it's a drag overlay
 }
 
 /**
@@ -373,8 +375,15 @@ export const TaskItem = React.memo(function TaskItem(props: TaskItemProps) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 10 : 0,
-    opacity: isDragging ? 0.5 : 1,
+    zIndex: props.isDragging ? 10 : 0, // Use props.isDragging
+    opacity: props.isDragging ? 0.5 : 1, // Use props.isDragging
+    // Add specific styling for overlay if needed
+    ...(props.isOverlay && {
+      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+      borderRadius: "0.375rem",
+      backgroundColor: "white", // Or your theme's background color
+      padding: "0.5rem",
+    }),
   };
 
   const statusColors: Record<string, string> = {

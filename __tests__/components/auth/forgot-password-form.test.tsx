@@ -1,7 +1,7 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { forgotPassword } from "@/app/auth/actions";
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 import { useToast } from "@/components/ui/use-toast";
-import { forgotPassword } from "@/app/auth/actions";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 // Mock the server action and other hooks
 jest.mock("@/app/auth/actions");

@@ -1,10 +1,11 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import * as EmailSignInFormModule from "@/components/auth/email-sign-in-form";
-import { useAuth } from "@/contexts/auth-context";
-import { useToast } from "@/components/ui/use-toast";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import React from "react";
+
+import * as EmailSignInFormModule from "@/components/auth/email-sign-in-form";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/auth-context";
+import { createClient } from "@/lib/supabase/client";
 
 // Mock all dependencies first
 jest.mock("next/navigation");
@@ -48,6 +49,7 @@ jest.mock("@/components/auth/email-sign-in-form", () => ({
         onClick={() => {
           // Mock the call to handleAuthAction
           if (mode === "signIn") {
+            // No-op for now, as actual submission is handled by the parent AuthForm
           }
         }}
       >
@@ -115,7 +117,6 @@ describe("EmailSignInForm", () => {
   });
 
   it("renders sign-up form correctly", () => {
-    const mockHandleAuthAction = jest.fn();
     render(
       <EmailSignInFormModule.EmailSignInForm
         mode="signUp"
@@ -133,7 +134,6 @@ describe("EmailSignInForm", () => {
   });
 
   it("calls onForgotPasswordClick when 'Forgot your password?' is clicked", () => {
-    const mockHandleAuthAction = jest.fn();
     render(
       <EmailSignInFormModule.EmailSignInForm
         mode="signIn"
@@ -149,7 +149,6 @@ describe("EmailSignInForm", () => {
   });
 
   it("handles sign-in submission", () => {
-    const mockHandleAuthAction = jest.fn();
     render(
       <EmailSignInFormModule.EmailSignInForm
         mode="signIn"
@@ -174,7 +173,6 @@ describe("EmailSignInForm", () => {
   });
 
   it("handles sign-up submission", () => {
-    const mockHandleAuthAction = jest.fn();
     render(
       <EmailSignInFormModule.EmailSignInForm
         mode="signUp"

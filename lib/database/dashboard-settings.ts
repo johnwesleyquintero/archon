@@ -1,15 +1,15 @@
 "use server";
 
 import * as Sentry from "@sentry/nextjs";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { Tables, Json } from "@/lib/supabase/types";
-import { AllWidgetConfigs } from "@/lib/types/widget-types";
-
-type DashboardSettingsRow = Tables<"dashboard_settings">;
+import { revalidatePath } from "next/cache";
 
 import { WidgetLayout } from "@/app/types";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { Json, Tables } from "@/lib/supabase/types";
+import { AllWidgetConfigs } from "@/lib/types/widget-types";
 import { widgetLayoutsSchema } from "@/lib/zod-schemas";
-import { revalidatePath } from "next/cache";
+
+type DashboardSettingsRow = Tables<"dashboard_settings">;
 
 export type DashboardSettings = {
   layout: WidgetLayout[];

@@ -22,13 +22,11 @@ describe("createGoal", () => {
   };
 
   let mockInsert: jest.Mock;
-  let mockSelect: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     const fromResult = mockSupabase.from();
-    mockInsert = fromResult.insert as jest.Mock;
-    mockSelect = fromResult.select as jest.Mock;
+    mockInsert = fromResult.insert;
     (createServerSupabaseClient as jest.Mock).mockResolvedValue(mockSupabase);
   });
 

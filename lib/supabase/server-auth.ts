@@ -1,6 +1,7 @@
 import { createServerClient as _createServerClient } from "@supabase/ssr";
 import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import { type NextResponse } from "next/server";
+
 import type { Database } from "@/lib/supabase/types";
 
 export function createServerClient(

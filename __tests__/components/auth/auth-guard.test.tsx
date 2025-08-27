@@ -1,5 +1,6 @@
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { useRouter } from "next/navigation";
+
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { useAuth } from "@/contexts/auth-context";
 
@@ -58,7 +59,7 @@ describe("AuthGuard", () => {
   it("does not redirect immediately when authentication status is loading", async () => {
     (useAuth as jest.Mock).mockReturnValue({ user: null, loading: true });
 
-    await act(async () => {
+    act(() => {
       render(
         <AuthGuard>
           <div>Protected Content</div>
@@ -93,7 +94,7 @@ describe("AuthGuard", () => {
     // Simulate authentication status changing after loading
     userState = { id: "123" };
     loadingState = false;
-    await act(async () => {
+    act(() => {
       rerender(
         <AuthGuard>
           <div>Protected Content</div>
@@ -129,7 +130,7 @@ describe("AuthGuard", () => {
     // Simulate authentication status changing after loading
     userState = null;
     loadingState = false;
-    await act(async () => {
+    act(() => {
       rerender(
         <AuthGuard>
           <div>Protected Content</div>

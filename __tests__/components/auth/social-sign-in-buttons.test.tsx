@@ -1,13 +1,15 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { SocialSignInButtons } from "@/components/auth/social-sign-in-buttons";
-import { createClient } from "@/lib/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "@supabase/supabase-js";
+
+import { SocialSignInButtons } from "@/components/auth/social-sign-in-buttons";
+import { useToast } from "@/components/ui/use-toast";
+import { createClient } from "@/lib/supabase/client";
 
 // Mock the entire component's implementation to avoid window.location issues
 jest.mock("@/components/auth/social-sign-in-buttons", () => ({
   SocialSignInButtons: jest.fn(({ isLoading, setIsLoading }) => {
+    const { toast } = useToast(); // Move useToast outside handleSocialSignIn
+
     const handleSocialSignIn = async (provider: Provider) => {
       setIsLoading(true);
       try {
@@ -19,8 +21,7 @@ jest.mock("@/components/auth/social-sign-in-buttons", () => ({
           },
         });
         if (error) {
-          const mockToast = useToast();
-          mockToast.toast({
+          toast({
             variant: "destructive",
             title: "Sign In Error",
             description: error.message,
@@ -28,8 +29,7 @@ jest.mock("@/components/auth/social-sign-in-buttons", () => ({
         }
       } catch (err) {
         console.error("Social sign in error:", err);
-        const mockToast = useToast();
-        mockToast.toast({
+        toast({
           variant: "destructive",
           title: "Sign In Error",
           description: "An unexpected error occurred. Please try again.",

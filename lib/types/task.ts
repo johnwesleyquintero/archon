@@ -24,18 +24,18 @@ export type RawTask = BaseTask & {
 
 // Define TaskPriority enum for client-side use
 export enum TaskPriority {
-  Low = "low",
-  Medium = "medium",
-  High = "high",
+  Low = "low", // eslint-disable-line @typescript-eslint/no-unused-vars
+  Medium = "medium", // eslint-disable-line @typescript-eslint/no-unused-vars
+  High = "high", // eslint-disable-line @typescript-eslint/no-unused-vars
 }
 
 // Define TaskStatus enum for client-side use, aligning with database enum
 export enum TaskStatus {
-  Todo = "todo",
-  InProgress = "in_progress",
-  Done = "done",
-  Canceled = "canceled",
-  Archived = "archived",
+  Todo = "todo", // eslint-disable-line @typescript-eslint/no-unused-vars
+  InProgress = "in_progress", // eslint-disable-line @typescript-eslint/no-unused-vars
+  Done = "done", // eslint-disable-line @typescript-eslint/no-unused-vars
+  Canceled = "canceled", // eslint-disable-line @typescript-eslint/no-unused-vars
+  Archived = "archived", // eslint-disable-line @typescript-eslint/no-unused-vars
 }
 
 // Create a modified Task type with id as string and tags as string[] | null

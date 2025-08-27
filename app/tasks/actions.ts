@@ -58,6 +58,24 @@ export const addTask = withErrorHandling(
       user_id: user.id,
     });
 
+    // Get the maximum existing position for the user's tasks
+    const { data: maxPositionData, error: maxPositionError } = await supabase
+      .from("tasks")
+      .select("position")
+      .eq("user_id", user.id)
+      .order("position", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (maxPositionError && maxPositionError.code !== "PGRST116") {
+      // PGRST116 means no rows found
+      throw new Error(
+        `Failed to get max position: ${maxPositionError.message}`,
+      );
+    }
+
+    const newPosition = (maxPositionData?.position ?? -1) + 1;
+
     const { data, error } = await supabase
       .from("tasks")
       .insert({
@@ -74,6 +92,7 @@ export const addTask = withErrorHandling(
         shared_with_user_ids: validatedTaskData.shared_with_user_ids || [],
         goal_id: validatedTaskData.goal_id,
         status: validatedTaskData.status || TaskStatus.Todo, // Use provided status or default to 'todo'
+        position: newPosition, // Set the new position
       })
       .select()
       .single();

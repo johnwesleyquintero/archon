@@ -1,6 +1,4 @@
 import { type Layout } from "react-grid-layout";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { DEFAULT_LAYOUT } from "@/lib/layouts";
 
 // This should match the DashboardLayoutItem in customizable-dashboard-layout.tsx
 export interface CustomLayout extends Layout {

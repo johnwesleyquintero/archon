@@ -9,6 +9,7 @@ import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link"; // Common extension for rich text
 import Placeholder from "@tiptap/extension-placeholder"; // For placeholder text
+import Image from "@tiptap/extension-image"; // Import Image extension
 import { cn } from "@/lib/utils"; // Assuming this utility for tailwind-merge
 
 // Define a ref interface for the TipTap editor, exposing common methods
@@ -42,6 +43,10 @@ const TipTapEditorBase: ForwardRefRenderFunction<
       }),
       Placeholder.configure({
         placeholder: props.placeholder || "Write something...",
+      }),
+      Image.configure({
+        inline: true, // Allow images to be inline
+        allowBase64: true, // Allow base64 encoded images (useful for pasting)
       }),
     ],
     content: props.value,

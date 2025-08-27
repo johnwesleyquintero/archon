@@ -18,6 +18,9 @@ import {
 } from "@/components/ui/sidebar";
 import { getJournalEntries } from "@/lib/database/journal";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { Input } from "@/components/ui/input"; // Import Input component
+import { SearchIcon } from "lucide-react"; // Import SearchIcon
+import { JournalTagFilter } from "@/components/journal-tag-filter"; // Will create this component
 
 interface JournalPageProps {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -68,6 +71,29 @@ export default async function JournalPage({ searchParams }: JournalPageProps) {
           <div className="space-y-4">
             <div className="flex flex-col gap-6">
               <h1 className="text-2xl font-bold text-slate-900">Journal</h1>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="relative flex-1">
+                  <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search journal entries..."
+                    className="pl-9 pr-3 py-2 rounded-md border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    defaultValue={search}
+                    onChange={(e) => {
+                      const newSearchParams = new URLSearchParams(
+                        window.location.search,
+                      );
+                      if (e.target.value) {
+                        newSearchParams.set("search", e.target.value);
+                      } else {
+                        newSearchParams.delete("search");
+                      }
+                      redirect(`/journal?${newSearchParams.toString()}`);
+                    }}
+                  />
+                </div>
+                <JournalTagFilter currentTags={tags} />
+              </div>
               <JournalInterface
                 initialJournalEntries={journalEntries}
                 userId={user.id}

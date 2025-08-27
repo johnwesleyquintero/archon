@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+
 import { createClient } from "./client.js";
 
 export function createSupabaseClient() {

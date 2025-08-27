@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from "../supabase/server.js";
+
 import type { Database } from "../supabase/types.js";
 
 export type ProfilesRow = Database["public"]["Tables"]["profiles"]["Row"];

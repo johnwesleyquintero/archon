@@ -1,15 +1,17 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
 import { AuthForm } from "@/components/auth/auth-form";
 import { useAuth } from "@/contexts/auth-context";
-import { toast } from "sonner";
 
 // Mock the components used by AuthForm
 jest.mock("@/components/auth/email-sign-in-form", () => ({
   EmailSignInForm: jest.fn(
     ({
       mode,
-      isLoading,
-      setIsLoading,
+      isLoading: _isLoading,
+      setIsLoading: _setIsLoading,
       onForgotPasswordClick,
       onSignUpSuccess,
     }) => (
@@ -47,31 +49,35 @@ jest.mock("@/components/auth/email-sign-in-form", () => ({
 }));
 
 jest.mock("@/components/auth/forgot-password-form", () => ({
-  ForgotPasswordForm: jest.fn(({ isLoading, setIsLoading, onCancel }) => (
-    <div data-testid="forgot-password-form">
-      <h2>Reset Password</h2>
-      <label htmlFor="email">Email</label>
-      <input id="email" type="email" />
-      <button
-        onClick={() => {
-          const mockAuth = useAuth();
-          mockAuth.sendPasswordResetEmail("test@example.com");
-        }}
-      >
-        Send Reset Link
-      </button>
-      <button onClick={onCancel}>Cancel</button>
-    </div>
-  )),
+  ForgotPasswordForm: jest.fn(
+    ({ isLoading: _isLoading, setIsLoading: _setIsLoading, onCancel }) => (
+      <div data-testid="forgot-password-form">
+        <h2>Reset Password</h2>
+        <label htmlFor="email">Email</label>
+        <input id="email" type="email" />
+        <button
+          onClick={async () => {
+            const mockAuth = useAuth();
+            await mockAuth.sendPasswordResetEmail("test@example.com");
+          }}
+        >
+          Send Reset Link
+        </button>
+        <button onClick={onCancel}>Cancel</button>
+      </div>
+    ),
+  ),
 }));
 
 jest.mock("@/components/auth/social-sign-in-buttons", () => ({
-  SocialSignInButtons: jest.fn(({ isLoading, setIsLoading }) => (
-    <div data-testid="social-sign-in-buttons">
-      <button>Continue with GitHub</button>
-      <button>Continue with Google</button>
-    </div>
-  )),
+  SocialSignInButtons: jest.fn(
+    ({ isLoading: _isLoading, setIsLoading: _setIsLoading }) => (
+      <div data-testid="social-sign-in-buttons">
+        <button>Continue with GitHub</button>
+        <button>Continue with Google</button>
+      </div>
+    ),
+  ),
 }));
 
 // Mock the useAuth hook
@@ -82,16 +88,16 @@ jest.mock("@/contexts/auth-context", () => ({
 // Mock the sonner toast function
 jest.mock("sonner", () => ({
   toast: {
-    success: jest.fn(),
-    error: jest.fn(),
+    success: jest.fn() as jest.Mock,
+    error: jest.fn() as jest.Mock,
   },
 }));
 
 // Mock next/navigation
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({
+  useRouter: jest.fn(() => ({
     push: jest.fn(),
-  }),
+  })),
 }));
 
 describe("AuthForm", () => {
@@ -107,8 +113,8 @@ describe("AuthForm", () => {
       user: null,
       isLoading: false,
     });
-    (toast.success as jest.Mock).mockClear();
-    (toast.error as jest.Mock).mockClear();
+    (toast.success as jest.Mock<typeof toast.success>).mockClear();
+    (toast.error as jest.Mock<typeof toast.error>).mockClear();
     mockSignIn.mockClear();
     mockSignUp.mockClear();
     mockResetPassword.mockClear();
@@ -167,6 +173,13 @@ describe("AuthForm", () => {
 
   it("calls signIn with correct credentials on sign-in form submission", async () => {
     render(<AuthForm />);
+    // Simulate form submission with dummy values for email and password
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/Password/i), {
+      target: { value: "password123" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /Sign In/i }));
     await waitFor(() => {
       expect(mockSignIn).toHaveBeenCalledWith(
@@ -178,6 +191,16 @@ describe("AuthForm", () => {
 
   it("calls signUp with correct credentials on sign-up form submission", async () => {
     render(<AuthForm mode="signUp" />);
+    // Simulate form submission with dummy values for email and password
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/Password/i), {
+      target: { value: "password123" },
+    });
+    fireEvent.change(screen.getByLabelText(/Confirm Password/i), {
+      target: { value: "password123" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /Sign Up/i }));
     await waitFor(() => {
       expect(mockSignUp).toHaveBeenCalledWith(
@@ -191,6 +214,9 @@ describe("AuthForm", () => {
     mockResetPassword.mockResolvedValueOnce({ error: null });
     render(<AuthForm />);
     fireEvent.click(screen.getByText(/Forgot your password?/i));
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: "test@example.com" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /Send Reset Link/i }));
     await waitFor(() => {
       expect(mockResetPassword).toHaveBeenCalledWith("test@example.com");
@@ -200,6 +226,12 @@ describe("AuthForm", () => {
   it("shows success toast when sign-in is successful", async () => {
     mockSignIn.mockResolvedValueOnce({ error: null });
     render(<AuthForm />);
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/Password/i), {
+      target: { value: "password123" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /Sign In/i }));
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith("Signed in successfully!");
@@ -211,6 +243,12 @@ describe("AuthForm", () => {
       error: { message: "Invalid credentials" },
     });
     render(<AuthForm />);
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/Password/i), {
+      target: { value: "password123" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /Sign In/i }));
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith("Invalid credentials");
@@ -220,10 +258,19 @@ describe("AuthForm", () => {
   it("redirects to verify-email page on successful sign-up", async () => {
     mockSignUp.mockResolvedValueOnce({ error: null });
     const mockRouterPush = jest.fn();
-    require("next/navigation").useRouter.mockReturnValue({
+    (useRouter as jest.Mock).mockReturnValue({
       push: mockRouterPush,
     });
     render(<AuthForm mode="signUp" />);
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: "test@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/Password/i), {
+      target: { value: "password123" },
+    });
+    fireEvent.change(screen.getByLabelText(/Confirm Password/i), {
+      target: { value: "password123" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /Sign Up/i }));
     await waitFor(() => {
       expect(mockRouterPush).toHaveBeenCalledWith("/auth/verify-email");
