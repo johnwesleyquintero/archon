@@ -1,22 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { LogOut } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // Removed usePathname
-
-import { LogOut } from "lucide-react";
+import { useState } from "react";
 
 import { useAuth } from "@/contexts/auth-context";
+import { useSidebar } from "@/hooks/use-sidebar";
 import { SIGN_OUT_LABEL, SIGNING_OUT_LABEL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 import Logo from "./logo";
+import { SidebarNav } from "./sidebar-nav"; // Import the new component
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { SidebarNav } from "./sidebar-nav"; // Import the new component
-
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useSidebar } from "@/hooks/use-sidebar";
 
 export function AppSidebar() {
   // const pathname = usePathname(); // Removed unused pathname

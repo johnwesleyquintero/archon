@@ -1,13 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Search } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { Database } from "@/lib/supabase/types";
-import { Spinner } from "@/components/ui/spinner";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useState, useMemo, useEffect } from "react";
+
 import { EmptyState } from "@/components/empty-state";
 import {
   AlertDialog,
@@ -20,9 +16,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useState, useMemo, useEffect } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Spinner } from "@/components/ui/spinner";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import type { Database } from "@/lib/supabase/types";
+import { cn } from "@/lib/utils";
 
 type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"] & {
   tags: string[] | null;

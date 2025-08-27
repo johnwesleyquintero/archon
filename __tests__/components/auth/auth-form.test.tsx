@@ -6,9 +6,19 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { useAuth } from "@/contexts/auth-context";
 
 // Mock the components used by AuthForm
+interface EmailSignInFormProps {
+  mode: "signIn" | "signUp";
+  onForgotPasswordClick?: () => void;
+  onSignUpSuccess?: () => void;
+}
+
 jest.mock("@/components/auth/email-sign-in-form", () => ({
   EmailSignInForm: jest.fn(
-    ({ mode, onForgotPasswordClick, onSignUpSuccess }) => (
+    ({
+      mode,
+      onForgotPasswordClick,
+      onSignUpSuccess,
+    }: EmailSignInFormProps) => (
       <div data-testid="email-sign-in-form">
         <h2>{mode === "signIn" ? "Sign In" : "Sign Up"}</h2>
         <label htmlFor="email">Email</label>
@@ -42,8 +52,12 @@ jest.mock("@/components/auth/email-sign-in-form", () => ({
   ),
 }));
 
+interface ForgotPasswordFormProps {
+  onCancel: () => void;
+}
+
 jest.mock("@/components/auth/forgot-password-form", () => ({
-  ForgotPasswordForm: jest.fn(({ onCancel }) => (
+  ForgotPasswordForm: jest.fn(({ onCancel }: ForgotPasswordFormProps) => (
     <div data-testid="forgot-password-form">
       <h2>Reset Password</h2>
       <label htmlFor="email">Email</label>
@@ -78,8 +92,8 @@ jest.mock("@/contexts/auth-context", () => ({
 // Mock the sonner toast function
 jest.mock("sonner", () => ({
   toast: {
-    success: jest.fn() as jest.Mock,
-    error: jest.fn() as jest.Mock,
+    success: jest.fn(),
+    error: jest.fn(),
   },
 }));
 

@@ -1,14 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import { DashboardWidget } from "@/components/dashboard/dashboard-widget";
-import { Task } from "@/lib/types/task";
-import { Goal } from "@/lib/types/goal";
-import { useGlobalQuickAdd } from "@/lib/state/use-global-quick-add";
-import { Spinner } from "@/components/ui/spinner";
-import { Button } from "@/components/ui/button";
-import { TaskItem } from "@/components/task-item";
 import { Target, BookPlus } from "lucide-react";
+import Link from "next/link";
+
+import { DashboardWidget } from "@/components/dashboard/dashboard-widget";
+import { TaskItem } from "@/components/task-item";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { useGlobalQuickAdd } from "@/lib/state/use-global-quick-add";
+import { Goal } from "@/lib/types/goal";
+import { Task } from "@/lib/types/task";
 
 interface DailyFocusWidgetProps {
   goal: Goal | null;

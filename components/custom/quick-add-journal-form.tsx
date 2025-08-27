@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
+
+import { addJournalEntry } from "@/app/journal/actions";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { addJournalEntry } from "@/app/journal/actions";
 import { useAuth } from "@/contexts/auth-context";
-import { toast } from "sonner";
 
 interface QuickAddJournalFormProps {
   onSave: () => void;

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useTransition, useCallback } from "react";
+
+import { useAuth } from "@/contexts/auth-context";
 import {
   getGoals,
   addGoal,
@@ -9,7 +11,6 @@ import {
 } from "@/lib/database/goals";
 import { createClient } from "@/lib/supabase/client";
 import type { Database, Json } from "@/lib/supabase/types";
-import { useAuth } from "@/contexts/auth-context";
 import { Goal } from "@/lib/types/goal";
 
 type GoalInsert = Database["public"]["Tables"]["goals"]["Insert"] & {

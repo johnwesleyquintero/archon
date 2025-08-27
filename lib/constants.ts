@@ -7,6 +7,7 @@ import {
   Settings,
   LucideIcon,
 } from "lucide-react";
+
 import type { Database } from "@/lib/supabase/types";
 import { Widget } from "@/lib/types/widget-types";
 

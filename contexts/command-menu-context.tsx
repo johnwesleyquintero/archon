@@ -1,5 +1,6 @@
 "use client";
 
+import { LucideIcon } from "lucide-react";
 import React, {
   createContext,
   useContext,
@@ -7,7 +8,6 @@ import React, {
   ReactNode,
   useCallback,
 } from "react";
-import { LucideIcon } from "lucide-react";
 
 // Define the structure for a single command
 export interface Command {

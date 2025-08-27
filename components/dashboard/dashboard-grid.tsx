@@ -1,11 +1,13 @@
 "use client";
 
+import { TriangleAlert } from "lucide-react";
 import React, { ComponentType } from "react";
 import { Responsive, type Layout, WidthProvider } from "react-grid-layout";
+
 import { Card, CardContent } from "@/components/ui/card";
-import { TriangleAlert } from "lucide-react";
-import { DashboardWidget } from "../dashboard-widget";
 import { AllWidgetConfigs, Widget } from "@/lib/types/widget-types";
+
+import { DashboardWidget } from "../dashboard-widget";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 

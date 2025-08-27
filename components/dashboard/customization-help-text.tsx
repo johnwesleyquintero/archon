@@ -1,4 +1,5 @@
 import { GripVertical } from "lucide-react";
+
 import { Card, CardContent } from "@/components/ui/card";
 
 export function CustomizationHelpText() {

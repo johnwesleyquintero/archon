@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/auth-context";
 import {
   getTasks,
   TaskFilterOptions,
   TaskSortOptions,
 } from "@/lib/database/tasks";
 import { createClient } from "@/lib/supabase/client";
-import { TodoWidgetConfig } from "@/lib/types/widget-types";
-import { Task } from "@/lib/types/task";
-import { buildTaskHierarchy } from "@/lib/utils";
-import { useAuth } from "@/contexts/auth-context";
-import { useToast } from "@/components/ui/use-toast";
 import { Database } from "@/lib/supabase/types";
+import { Task } from "@/lib/types/task";
+import { TodoWidgetConfig } from "@/lib/types/widget-types";
+import { buildTaskHierarchy } from "@/lib/utils";
 
 // Define the raw task type from the database
 type RawTask = Database["public"]["Tables"]["tasks"]["Row"];

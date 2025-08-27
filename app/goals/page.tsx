@@ -1,5 +1,5 @@
-import { GoalManager } from "@/components/goal-manager";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { GoalManager } from "@/components/goal-manager";
 
 export default function GoalsPage() {
   return (

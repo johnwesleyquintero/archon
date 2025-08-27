@@ -1,31 +1,34 @@
 "use client";
 
-import { TaskList } from "@/components/task-list";
-import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
-import { DashboardLayout } from "@/components/dashboard-layout";
-import { Goal } from "@/lib/types/goal";
-import { CreateTaskModal } from "@/components/create-task-modal";
-import type { TaskFormValues } from "@/lib/validators";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { toast } from "sonner";
+
 import {
   addTask as addSupabaseTask,
   updateTask as updateSupabaseTask,
 } from "@/app/tasks/actions";
+import { CreateTaskModal } from "@/components/create-task-modal";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import type { TaskFormValues } from "@/lib/validators";
+
 import { getGoals } from "@/lib/database/goals";
 import { getTasks, TaskSortOptions, getUniqueTags } from "@/lib/database/tasks";
 import { ErrorState } from "@/components/error-state";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { TaskFilterBar } from "@/components/task-filter-bar";
+import { TaskList } from "@/components/task-list";
 import { TaskSort } from "@/components/task-sort";
+import { useAuth } from "@/contexts/auth-context";
 import {
   useTaskFiltersAndSort,
   TaskFilters,
 } from "@/hooks/use-task-filters-and-sort";
-import { useEffect, useState, useCallback, Suspense } from "react";
-import { useAuth } from "@/contexts/auth-context";
-import { useSearchParams } from "next/navigation";
-import { getTaskDependencies } from "../../lib/database/task-dependencies"; // Import getTaskDependencies
+import { Goal } from "@/lib/types/goal";
+import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
 import { TaskDependency } from "@/lib/types/task-dependency"; // Import TaskDependency type
+
+import { getTaskDependencies } from "../../lib/database/task-dependencies"; // Import getTaskDependencies
 
 // Helper function to parse search params into filter and sort options
 const parseSearchParams = (searchParams: {

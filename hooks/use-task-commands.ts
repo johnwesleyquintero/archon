@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
 import { useCommandMenuContext } from "@/contexts/command-menu-context";
 import { useTasks } from "@/hooks/use-tasks";
-import { CheckCircle } from "lucide-react";
 
 export function useTaskCommands() {
   const router = useRouter();

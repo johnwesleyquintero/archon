@@ -1,8 +1,9 @@
 "use client";
 
+import { TriangleAlert } from "lucide-react";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { TriangleAlert } from "lucide-react";
 
 interface ErrorStateProps {
   title?: string;

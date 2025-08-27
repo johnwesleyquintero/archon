@@ -1,6 +1,6 @@
-import type React from "react";
-
 import { DashboardLayout } from "@/components/dashboard-layout";
+
+import type React from "react";
 
 export default function KanbanLayout({
   children,

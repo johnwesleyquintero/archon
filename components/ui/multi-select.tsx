@@ -1,17 +1,17 @@
 "use client";
 
-import * as React from "react";
+import { CommandInput } from "cmdk";
 import { X, Check } from "lucide-react";
+import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Command, CommandGroup, CommandItem } from "@/components/ui/command";
-import { CommandInput } from "cmdk";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface MultiSelectProps {

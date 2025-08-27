@@ -17,11 +17,13 @@
  */
 
 import { exec } from "child_process";
-import { promisify } from "util";
-import chalk from "chalk";
-import { CHECKS, LARGE_FILE_CHECK_CONFIG } from "./code-checker.config.mjs";
-import path from "path";
 import fs from "fs/promises";
+import path from "path";
+import { promisify } from "util";
+
+import chalk from "chalk";
+
+import { CHECKS, LARGE_FILE_CHECK_CONFIG } from "./code-checker.config.mjs";
 
 const execPromise = promisify(exec);
 

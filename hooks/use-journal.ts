@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useTransition } from "react";
+
 import {
   addJournalEntry,
   updateJournalEntry,
   deleteJournalEntry,
 } from "@/app/journal/actions";
+import { useToast } from "@/components/ui/use-toast";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
-import { useToast } from "@/components/ui/use-toast";
 import type { JournalEntry } from "@/lib/types/journal";
 
 type JournalInsert = Omit<

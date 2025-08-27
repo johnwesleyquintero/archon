@@ -5,8 +5,9 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import type { z } from "zod";
 
+import { Goal } from "@/lib/types/goal";
+import { Task } from "@/lib/types/task"; // Import Task type
 import { cn } from "@/lib/utils";
 import { goalSchema } from "@/lib/validators";
 
@@ -22,9 +23,8 @@ import {
 } from "./ui/form";
 import { Input } from "./ui/input";
 import { Modal } from "./ui/modal";
+import { MultiSelect } from "./ui/multi-select"; // Import MultiSelect component
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Spinner } from "./ui/spinner";
-import { Textarea } from "./ui/textarea";
 import {
   Select,
   SelectContent,
@@ -32,10 +32,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Spinner } from "./ui/spinner";
+import { Textarea } from "./ui/textarea";
 
-import { Goal } from "@/lib/types/goal";
-import { Task } from "@/lib/types/task"; // Import Task type
-import { MultiSelect } from "./ui/multi-select"; // Import MultiSelect component
+import type { z } from "zod";
 
 interface CreateGoalModalProps {
   isOpen: boolean;

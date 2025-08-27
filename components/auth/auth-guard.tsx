@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type React from "react";
 import { useEffect } from "react";
 
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/contexts/auth-context";
+
+import type React from "react";
 interface AuthGuardProps {
   children: React.ReactNode;
 }

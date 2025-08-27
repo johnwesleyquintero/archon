@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 // No longer needed if using client-side toasts
 // import { cookies } from "next/headers";

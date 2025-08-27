@@ -1,11 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format, isPast, isToday } from "date-fns";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Calendar as CalendarIcon,
   Trash2,
@@ -16,15 +12,11 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react"; // Import Archive icon
-import { Calendar } from "@/components/ui/calendar";
-import { TaskInput } from "./task-input";
+import React, { useEffect } from "react";
 import { useState } from "react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,16 +28,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
-import { TaskDependency } from "@/lib/types/task-dependency";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -53,10 +39,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import {
   Form,
   FormControl,
@@ -65,7 +47,26 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+
 import { taskSchema } from "@/lib/validators";
+import { TaskInput } from "./task-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
+import { TaskDependency } from "@/lib/types/task-dependency";
+import { Textarea } from "@/components/ui/textarea";
 
 interface TaskEditModalProps {
   isOpen: boolean;
@@ -280,6 +281,7 @@ export const TaskEditModal = ({
 import type { Database } from "@/lib/supabase/types";
 import type { Goal } from "@/lib/types/goal";
 import type { TaskFormValues } from "@/lib/validators";
+
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 

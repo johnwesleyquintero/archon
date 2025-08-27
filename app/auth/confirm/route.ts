@@ -1,11 +1,11 @@
 // Minor change to trigger Vercel rebuild
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import type { EmailOtpType } from "@supabase/supabase-js";
-
 import { clientEnv } from "@/lib/env";
+
+import type { EmailOtpType } from "@supabase/supabase-js";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

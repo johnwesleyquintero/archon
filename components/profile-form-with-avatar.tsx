@@ -1,11 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { User } from "lucide-react";
 import Image from "next/image";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+
+import { FileUpload } from "@/components/file-upload";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -14,23 +24,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { FileUpload } from "@/components/file-upload";
-import { useAuth } from "@/contexts/auth-context";
-import { uploadFile } from "@/lib/blob";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { profileSchema } from "@/lib/validators";
-import type { z } from "zod";
-import { User } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/auth-context";
+import { uploadFile } from "@/lib/blob";
+import { profileSchema } from "@/lib/validators";
+
+import type { z } from "zod";
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 

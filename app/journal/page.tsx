@@ -1,7 +1,9 @@
+import { SearchIcon } from "lucide-react"; // Import SearchIcon
 import { redirect } from "next/navigation";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { JournalInterface } from "@/components/journal-interface";
+import { JournalTagFilter } from "@/components/journal-tag-filter"; // Will create this component
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,6 +12,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Input } from "@/components/ui/input"; // Import Input component
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
@@ -18,9 +21,6 @@ import {
 } from "@/components/ui/sidebar";
 import { getJournalEntries } from "@/lib/database/journal";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { Input } from "@/components/ui/input"; // Import Input component
-import { SearchIcon } from "lucide-react"; // Import SearchIcon
-import { JournalTagFilter } from "@/components/journal-tag-filter"; // Will create this component
 
 interface JournalPageProps {
   searchParams: { [key: string]: string | string[] | undefined };

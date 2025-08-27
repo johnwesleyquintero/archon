@@ -1,11 +1,11 @@
 // @ts-check
 
 import { FlatCompat } from "@eslint/eslintrc";
-import globals from "globals";
 import pluginJs from "@eslint/js";
-import tseslint from "typescript-eslint";
 import nextPlugin from "@next/eslint-plugin-next";
 import prettierConfig from "eslint-config-prettier";
+import globals from "globals";
+import tseslint from "typescript-eslint";
 
 const compat = new FlatCompat();
 

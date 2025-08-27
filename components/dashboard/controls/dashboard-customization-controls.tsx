@@ -1,10 +1,13 @@
 "use client";
 
 import React from "react";
-import { DashboardControlBar } from "./dashboard-control-bar";
-import { CustomizationHelpText } from "../customization-help-text";
-import { AddWidgetDialog } from "../../add-widget-dialog";
+
 import { Widget } from "@/lib/types/widget-types";
+
+import { AddWidgetDialog } from "../../add-widget-dialog";
+import { CustomizationHelpText } from "../customization-help-text";
+
+import { DashboardControlBar } from "./dashboard-control-bar";
 
 interface DashboardCustomizationControlsProps<
   P extends Record<string, unknown>,

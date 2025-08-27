@@ -1,5 +1,6 @@
-import { KanbanCard } from "./kanban-card";
 import { Column } from "@/lib/types/kanban";
+
+import { KanbanCard } from "./kanban-card";
 
 interface KanbanColumnProps {
   column: Column;

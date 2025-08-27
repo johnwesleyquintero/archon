@@ -1,7 +1,5 @@
 "use client";
 
-import type React from "react";
-import { createContext, useContext, useEffect, useState } from "react";
 import {
   User,
   Session,
@@ -10,8 +8,12 @@ import {
   SignInWithPasswordCredentials,
   SignUpWithPasswordCredentials,
 } from "@supabase/supabase-js";
+import { createContext, useContext, useEffect, useState } from "react";
+
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
+
+import type React from "react";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 

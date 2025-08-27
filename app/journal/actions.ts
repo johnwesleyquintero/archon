@@ -1,19 +1,18 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import {
   addJournalEntry as dbAddJournalEntry,
   updateJournalEntry as dbUpdateJournalEntry,
   deleteJournalEntry as dbDeleteJournalEntry,
 } from "@/lib/database/journal";
-import { revalidatePath } from "next/cache";
+import { withErrorHandling } from "@/lib/error-utils";
 import type { Database } from "@/lib/supabase/types";
-
 import {
   journalEntryInsertSchema,
   journalEntryUpdateSchema,
 } from "@/lib/zod-schemas";
-
-import { withErrorHandling } from "@/lib/error-utils";
 
 type JournalInsert = Database["public"]["Tables"]["journal_entries"]["Insert"];
 type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];

@@ -1,9 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useCommandMenuContext } from "@/contexts/command-menu-context";
-import { useGlobalQuickAdd } from "@/lib/state/use-global-quick-add";
 import {
   CirclePlus,
   Goal,
@@ -13,6 +9,11 @@ import {
   KanbanSquare,
   Settings,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+import { useCommandMenuContext } from "@/contexts/command-menu-context";
+import { useGlobalQuickAdd } from "@/lib/state/use-global-quick-add";
 
 export function useCommandMenuCommands() {
   const router = useRouter();

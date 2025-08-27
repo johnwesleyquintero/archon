@@ -1,8 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import type React from "react";
-
 import {
   Eye,
   EyeOff,
@@ -13,6 +10,7 @@ import {
   Settings,
   Trash2,
 } from "lucide-react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +22,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+import type React from "react";
 
 interface DashboardWidgetProps {
   title: string;

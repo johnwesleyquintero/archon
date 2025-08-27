@@ -1,22 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea"; // Import Textarea
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns"; // Import format
 import {
   CalendarIcon,
   Plus,
@@ -26,13 +11,13 @@ import {
   Target,
   Sparkles,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { taskSchema } from "@/lib/validators";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import * as Zod from "zod";
-import { handleError } from "@/lib/utils";
-import { format } from "date-fns"; // Import format
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -40,6 +25,22 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea"; // Import Textarea
+import { handleError } from "@/lib/utils";
+import { taskSchema } from "@/lib/validators";
 
 type TaskFormValues = Zod.infer<typeof taskSchema>;
 

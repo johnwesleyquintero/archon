@@ -1,7 +1,8 @@
 "use server";
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function addTaskDependency(
   taskId: string,

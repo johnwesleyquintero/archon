@@ -1,18 +1,19 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useState, useEffect, useCallback } from "react";
 import { Layout } from "react-grid-layout";
+
+import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/auth-context";
+import { mergeLayouts } from "@/lib/dashboard-utils";
 import {
   getDashboardSettings,
   updateDashboardSettings,
   DashboardSettings,
 } from "@/lib/database/dashboard-settings";
-import { mergeLayouts } from "@/lib/dashboard-utils";
 import { DEFAULT_LAYOUT } from "@/lib/layouts";
-import * as Sentry from "@sentry/nextjs";
 import { AllWidgetConfigs } from "@/lib/types/widget-types";
-import { useToast } from "@/components/ui/use-toast";
 
 // Define a type that extends Layout with isVisible
 interface DashboardLayoutItem extends Layout {

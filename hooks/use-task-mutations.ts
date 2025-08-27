@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, useCallback, useTransition } from "react";
+
 import {
   addTask as addTaskToDb,
   toggleTask as toggleTaskInDb,
   deletePermanentlyTask as deleteTaskFromDb, // Changed to deletePermanentlyTask
   updateTask as updateTaskInDb,
 } from "@/app/tasks/actions";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/auth-context";
 import type { Database, TablesUpdate } from "@/lib/supabase/types";
 import type { Task } from "@/lib/types/task";
-import { useAuth } from "@/contexts/auth-context";
-import { useToast } from "@/components/ui/use-toast";
 
 type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 type TaskUpdate = TablesUpdate<"tasks">;
@@ -160,7 +161,7 @@ export function useTaskMutations({
           originalTasks = prev;
           return prev.map((task) =>
             task.id === id ? { ...task, ...updatedTask } : task,
-          ) as Task[];
+          );
         });
         startTransition(async () => {
           const result = await updateTaskInDb(id, updatedTask);

@@ -2,17 +2,18 @@
 
 "use client";
 
-import { TodoWidgetConfig } from "@/lib/types/widget-types";
-import { Task as TaskType } from "@/lib/types/task";
-import { useTasks } from "@/hooks/use-tasks";
-import { useGoals } from "@/hooks/use-goals";
-import { useAuth } from "@/contexts/auth-context";
 import { useRef, useState } from "react";
-import { TaskFormValues } from "@/lib/validators";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TaskList } from "@/components/task-list";
+
 import { TaskInput } from "@/components/task-input";
 import { TaskEditModal } from "@/components/task-item";
+import { TaskList } from "@/components/task-list";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/auth-context";
+import { useGoals } from "@/hooks/use-goals";
+import { useTasks } from "@/hooks/use-tasks";
+import { Task as TaskType } from "@/lib/types/task";
+import { TodoWidgetConfig } from "@/lib/types/widget-types";
+import { TaskFormValues } from "@/lib/validators";
 
 export interface TodoListProps {
   initialTasks?: TaskType[];

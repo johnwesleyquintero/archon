@@ -8,36 +8,39 @@ import {
   useEffect,
 } from "react";
 import { Layout } from "react-grid-layout"; // Remove Responsive and WidthProvider
-import { getGoals } from "@/lib/database/goals";
-import { getTasks } from "@/lib/database/tasks";
-import { useAuth } from "@/contexts/auth-context";
-import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
-import { WelcomeWidget } from "./dashboard/welcome-widget";
-import { TodoList } from "./todo-list";
-import { GoalManager } from "./goal-manager";
-import { JournalList } from "./journal-list";
-import { StatsGrid } from "./stats-grid";
-import { AdvancedStatsGrid } from "./advanced-stats-grid";
-import { PlaceholderInfographics } from "./placeholder-infographics";
-import { DashboardCustomizationControls } from "./dashboard/controls/dashboard-customization-controls";
-import {
-  AllWidgetConfigs,
-  WidgetConfig,
-  Widget,
-  TodoWidgetConfig,
-} from "@/lib/types/widget-types";
-import { Goal } from "@/lib/types/goal";
-import { Task } from "@/lib/types/task";
-import { DashboardGrid } from "./dashboard/dashboard-grid";
+
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useAuth } from "@/contexts/auth-context";
+import { useDashboardSettings } from "@/hooks/use-dashboard-settings";
+import { getGoals } from "@/lib/database/goals";
+import { getTasks } from "@/lib/database/tasks";
+import { Goal } from "@/lib/types/goal";
+import { Task } from "@/lib/types/task";
+import {
+  AllWidgetConfigs,
+  WidgetConfig,
+  Widget,
+  TodoWidgetConfig,
+} from "@/lib/types/widget-types";
+
+import { AdvancedStatsGrid } from "./advanced-stats-grid";
 import { AdvancedWidgetConfigForm } from "./advanced-widget-config-form";
-import { WeatherWidget } from "./weather-widget";
+import { DashboardCustomizationControls } from "./dashboard/controls/dashboard-customization-controls";
 import { DailyFocusWidget } from "./dashboard/daily-focus-widget";
+import { DashboardGrid } from "./dashboard/dashboard-grid";
+import { WelcomeWidget } from "./dashboard/welcome-widget";
+import { GoalManager } from "./goal-manager";
+import { JournalList } from "./journal-list";
+import { StatsGrid } from "./stats-grid";
+import { PlaceholderInfographics } from "./placeholder-infographics";
+import { TodoList } from "./todo-list";
+
+import { WeatherWidget } from "./weather-widget";
 
 // Define a type that extends Layout with isVisible
 export type DashboardLayoutItem = Layout & {

@@ -1,9 +1,10 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
+
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/auth-context";
 import { useTasks } from "@/hooks/use-tasks";
 import { getTasks } from "@/lib/database/tasks";
 import { createClient } from "@/lib/supabase/client";
-import { useAuth } from "@/contexts/auth-context";
-import { useToast } from "@/components/ui/use-toast";
 
 // Mock server actions
 jest.mock("@/lib/database/tasks");

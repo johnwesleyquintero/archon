@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import {
   DndContext,
   closestCorners,
@@ -10,6 +9,8 @@ import {
   KeyboardSensor,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import React from "react";
+
 import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { useKanban } from "@/hooks/use-kanban";
 import { Task } from "@/lib/types/task";

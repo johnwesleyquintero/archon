@@ -1,20 +1,21 @@
 "use client";
 
+import { Plus, Edit3, Calendar, Target } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useGoals } from "@/hooks/use-goals";
-import { useTasks } from "@/hooks/use-tasks"; // Import useTasks hook
+import { z } from "zod";
+
 import { CreateGoalModal } from "@/components/create-goal-modal";
+import { EmptyState } from "@/components/empty-state";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Edit3, Calendar, Target } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/empty-state";
-import type { Database } from "@/lib/supabase/types";
-import { goalSchema } from "@/lib/validators";
-import { z } from "zod";
 import { ChartContainer, ChartPrimitive } from "@/components/ui/chart";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useGoals } from "@/hooks/use-goals";
+import { useTasks } from "@/hooks/use-tasks"; // Import useTasks hook
+import type { Database } from "@/lib/supabase/types";
+import { cn } from "@/lib/utils";
+import { goalSchema } from "@/lib/validators";
 
 type GoalInsert = Omit<
   Database["public"]["Tables"]["goals"]["Insert"],

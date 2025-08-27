@@ -5,12 +5,11 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import type { z } from "zod";
 
+import { Goal } from "@/lib/types/goal";
+import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
 import { cn } from "@/lib/utils";
 import { taskSchema } from "@/lib/validators";
-import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
-import { Goal } from "@/lib/types/goal";
 
 import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
@@ -25,8 +24,6 @@ import {
 import { Input } from "./ui/input";
 import { Modal } from "./ui/modal";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { Spinner } from "./ui/spinner";
-import { Textarea } from "./ui/textarea";
 import {
   Select,
   SelectContent,
@@ -34,6 +31,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Spinner } from "./ui/spinner";
+import { Textarea } from "./ui/textarea";
+
+import type { z } from "zod";
 
 interface CreateTaskModalProps {
   isOpen: boolean;

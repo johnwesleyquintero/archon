@@ -1,15 +1,17 @@
+import { AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "@/lib/constants"; // Removed PROFILE_NAV_ITEM
+import { cn } from "@/lib/utils";
+
 import { SubNav } from "./sub-nav";
 
 interface SidebarNavProps {

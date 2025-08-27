@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom"; // For extended Jest matchers
-import * as React from "react";
 import { TextEncoder, TextDecoder } from "util"; // Node.js 'util' module for polyfill
+
+import * as React from "react";
 import ResizeObserverPolyfill from "resize-observer-polyfill";
 
 // Mock node-fetch and form-data to avoid ES module issues in Jest

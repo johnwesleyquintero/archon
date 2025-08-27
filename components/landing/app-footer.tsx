@@ -1,5 +1,6 @@
-import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 import Link from "next/link";
+
+import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 
 export function AppFooter() {
   return (

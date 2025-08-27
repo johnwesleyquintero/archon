@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import React from "react";
 
+import { DynamicCommandMenu } from "@/components/custom/dynamic-command-menu";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/auth-context";
 import { CommandMenuProvider } from "@/contexts/command-menu-context";
-import { DynamicCommandMenu } from "@/components/custom/dynamic-command-menu";
+
+import type { Metadata } from "next";
 
 import "./globals.css";
 

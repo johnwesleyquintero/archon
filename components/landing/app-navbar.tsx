@@ -1,6 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 import Link from "next/link";
+
+import { ArchonLogoSVG } from "@/components/archon-logo-svg";
+import { Button } from "@/components/ui/button";
 
 export function AppNavbar() {
   return (

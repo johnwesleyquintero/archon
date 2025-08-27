@@ -1,15 +1,16 @@
 "use client";
 
+import Image from "@tiptap/extension-image"; // Import Image extension
+import Link from "@tiptap/extension-link"; // Common extension for rich text
+import Placeholder from "@tiptap/extension-placeholder"; // For placeholder text
+import { useEditor, EditorContent, Editor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 import {
   forwardRef,
   useImperativeHandle,
   type ForwardRefRenderFunction,
 } from "react";
-import { useEditor, EditorContent, Editor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link"; // Common extension for rich text
-import Placeholder from "@tiptap/extension-placeholder"; // For placeholder text
-import Image from "@tiptap/extension-image"; // Import Image extension
+
 import { cn } from "@/lib/utils"; // Assuming this utility for tailwind-merge
 
 // Define a ref interface for the TipTap editor, exposing common methods

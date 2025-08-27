@@ -2,12 +2,9 @@
 // Keeping it here for reference if needed, but it's not actively used.
 "use client";
 
-import type React from "react";
-
 import { useState, useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -15,8 +12,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useAuth } from "@/contexts/auth-context";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/auth-context";
+
+import type React from "react";
 
 export function ProfileForm() {
   const { user, profile, updateProfile, loading } = useAuth();

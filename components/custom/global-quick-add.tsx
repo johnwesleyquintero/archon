@@ -1,5 +1,8 @@
 "use client";
 
+import { toast } from "sonner";
+
+import { GoalForm } from "@/components/goal-form";
 import {
   Dialog,
   DialogContent,
@@ -8,17 +11,16 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/auth-context";
+import { useGlobalShortcut } from "@/hooks/use-global-shortcut";
+import { useGoals } from "@/hooks/use-goals";
 import {
   useGlobalQuickAdd,
   QuickAddTab,
 } from "@/lib/state/use-global-quick-add";
-import { useGlobalShortcut } from "@/hooks/use-global-shortcut";
-import { QuickAddTaskForm } from "./quick-add-task-form";
-import { GoalForm } from "@/components/goal-form";
+
 import { QuickAddJournalForm } from "./quick-add-journal-form";
-import { useGoals } from "@/hooks/use-goals";
-import { useAuth } from "@/contexts/auth-context";
-import { toast } from "sonner";
+import { QuickAddTaskForm } from "./quick-add-task-form";
 
 type GoalSaveData = {
   id?: string;

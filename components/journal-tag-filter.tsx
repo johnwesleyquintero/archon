@@ -1,18 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Tag, PlusCircle, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tag, PlusCircle, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 interface JournalTagFilterProps {
   currentTags?: string[];

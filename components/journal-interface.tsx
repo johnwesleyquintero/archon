@@ -1,13 +1,13 @@
 "use client";
 
-import { JournalList } from "@/components/journal-list";
 import { JournalEditorWithAttachments } from "@/components/journal-editor-with-attachments";
+import { JournalList } from "@/components/journal-list";
 import { Skeleton } from "@/components/ui/skeleton";
 type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"] & {
   tags: string[] | null;
 };
-import type { Database } from "@/lib/supabase/types";
 import { useJournal } from "@/hooks/use-journal";
+import type { Database } from "@/lib/supabase/types";
 import { updateJournalEntry } from "@/app/journal/actions";
 
 type JournalUpdate = Database["public"]["Tables"]["journal_entries"]["Update"];

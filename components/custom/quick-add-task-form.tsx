@@ -1,10 +1,11 @@
 "use client";
 
-import { TaskInput } from "@/components/task-input";
-import { useTasks } from "@/hooks/use-tasks";
-import { useAuth } from "@/contexts/auth-context";
-import { TaskFormValues } from "@/lib/validators";
 import { toast } from "sonner";
+
+import { TaskInput } from "@/components/task-input";
+import { useAuth } from "@/contexts/auth-context";
+import { useTasks } from "@/hooks/use-tasks";
+import { TaskFormValues } from "@/lib/validators";
 
 interface QuickAddTaskFormProps {
   onSave: () => void;

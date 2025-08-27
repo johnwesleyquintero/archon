@@ -11,6 +11,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+
 import { GITHUB_ACTIONS_CONFIG } from "./code-checker.config.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

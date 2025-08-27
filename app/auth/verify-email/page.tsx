@@ -1,8 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import { MailCheck } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 export default function VerifyEmailPage() {
   const handleResendEmail = () => {

@@ -2,9 +2,9 @@ import React from "react";
 
 export const dynamic = "force-dynamic";
 
+import { KanbanView } from "@/components/kanban/kanban-view";
 import { getTasks } from "@/lib/database/tasks";
 import { Task } from "@/lib/types/task";
-import { KanbanView } from "@/components/kanban/kanban-view";
 
 export default async function KanbanPage() {
   const initialTasks: Task[] = await getTasks();

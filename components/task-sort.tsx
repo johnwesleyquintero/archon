@@ -1,7 +1,9 @@
 "use client";
 
-import React from "react";
 import { ArrowUpDown } from "lucide-react";
+import React from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -9,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import type { TaskSortOptions } from "@/lib/database/tasks";
 
 interface TaskSortProps {

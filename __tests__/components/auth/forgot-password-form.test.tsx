@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+
 import { forgotPassword } from "@/app/auth/actions";
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 import { useToast } from "@/components/ui/use-toast";

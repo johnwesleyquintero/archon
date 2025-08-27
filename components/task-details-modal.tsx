@@ -1,31 +1,5 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { TipTapEditor } from "./quill-editor";
-import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
-import type { Database } from "@/lib/supabase/types";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import {
   CalendarIcon,
   Target,
@@ -35,7 +9,13 @@ import {
   Unlink,
   Plus,
 } from "lucide-react"; // Import Archive and Trash2 icons
-import { TaskDependency } from "@/lib/types/task-dependency";
+import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
+
+import {
+  addTaskDependency,
+  removeTaskDependency,
+} from "@/app/tasks/dependencies/actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,6 +27,33 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Database } from "@/lib/supabase/types";
+import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
+
+import { TaskDependency } from "@/lib/types/task-dependency";
+import { TipTapEditor } from "./quill-editor";
 
 const recurrencePatterns = [
   { value: "none", label: "None" },
@@ -55,12 +62,6 @@ const recurrencePatterns = [
   { value: "monthly", label: "Monthly" },
   { value: "yearly", label: "Yearly" },
 ];
-
-import {
-  addTaskDependency,
-  removeTaskDependency,
-} from "@/app/tasks/dependencies/actions";
-import { toast } from "sonner";
 
 interface TaskDetailsModalProps {
   task: Task | null;

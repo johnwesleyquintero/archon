@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-
 import {
   BookOpen,
   Home,
@@ -12,6 +9,8 @@ import {
   Settings,
   Target,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 import { Button } from "@/components/ui/button";

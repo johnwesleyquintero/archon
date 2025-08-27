@@ -1,8 +1,9 @@
 "use server";
 
+import { AuthError } from "@supabase/supabase-js";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { AuthError } from "@supabase/supabase-js";
+
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function forgotPassword(formData: FormData) {

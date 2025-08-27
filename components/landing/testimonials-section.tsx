@@ -1,5 +1,6 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
+
+import { Card, CardContent } from "@/components/ui/card";
 
 export function TestimonialsSection() {
   return (

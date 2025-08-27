@@ -12,8 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { loginSchema, signupSchema } from "@/lib/validators";
 import { handleAuthAction } from "@/lib/auth/actions";
+import { loginSchema, signupSchema } from "@/lib/validators";
 
 type FormInputs = z.infer<typeof loginSchema> | z.infer<typeof signupSchema>;
 

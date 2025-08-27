@@ -1,5 +1,7 @@
 "use client";
 import { Filter, Calendar, Tag, ListTodo } from "lucide-react";
+
+import { Button } from "@/components/ui/button"; // Import Button
 import {
   Select,
   SelectContent,
@@ -7,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button"; // Import Button
 import { TaskFilterState } from "@/hooks/use-task-filters-and-sort"; // Import TaskFilterState
 
 interface TaskFilterBarProps {

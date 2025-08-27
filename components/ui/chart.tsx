@@ -2,10 +2,12 @@
 
 "use client";
 
+import dynamic from "next/dynamic";
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
+
 import { cn } from "@/lib/utils";
-import dynamic from "next/dynamic";
+
 import { ChartConfig } from "./chart-style";
 
 const DynamicChartStyle = dynamic(

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { TaskStatus, TaskPriority } from "@/lib/types/task";
+
 import { TaskFilterOptions, TaskSortOptions } from "@/lib/database/tasks";
+import { TaskStatus, TaskPriority } from "@/lib/types/task";
 
 export type TaskSort = TaskSortOptions; // Renamed for import compatibility
 

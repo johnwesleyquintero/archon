@@ -1,11 +1,12 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { useJournal } from "@/hooks/use-journal";
-import { useToast } from "@/components/ui/use-toast";
+
 import {
   addJournalEntry,
   updateJournalEntry,
   deleteJournalEntry,
 } from "@/app/journal/actions";
+import { useToast } from "@/components/ui/use-toast";
+import { useJournal } from "@/hooks/use-journal";
 
 // Mock server actions
 jest.mock("@/app/journal/actions");

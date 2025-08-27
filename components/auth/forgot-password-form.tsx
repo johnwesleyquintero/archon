@@ -6,12 +6,12 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { forgotPassword } from "@/app/auth/actions"; // Import the server action
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { forgotPassword } from "@/app/auth/actions"; // Import the server action
 import { loginSchema } from "@/lib/validators";
 
 type LoginFormInputs = z.infer<typeof loginSchema>;

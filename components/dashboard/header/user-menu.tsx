@@ -1,9 +1,8 @@
 "use client";
 
+import { User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-import { User } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";

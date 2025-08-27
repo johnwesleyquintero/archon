@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { getGoals } from "@/lib/database/goals";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 

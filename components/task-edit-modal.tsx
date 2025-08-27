@@ -1,14 +1,15 @@
 import React, { useEffect } from "react";
+
+import { TaskInput } from "@/components/task-input";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { TaskInput } from "@/components/task-input";
-import { TaskFormValues } from "@/lib/validators";
-import { Task } from "@/lib/types/task";
 import { useTaskMutations } from "@/hooks/use-task-mutations";
+import { Task } from "@/lib/types/task";
+import { TaskFormValues } from "@/lib/validators";
 
 interface TaskEditModalProps {
   isOpen: boolean;

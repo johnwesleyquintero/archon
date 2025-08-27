@@ -2,6 +2,8 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 import {
@@ -11,9 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
 
 function AuthCodeErrorContent() {
   const searchParams = useSearchParams();

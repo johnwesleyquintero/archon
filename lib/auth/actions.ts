@@ -1,7 +1,8 @@
 "use server";
 
-import { z } from "zod";
 import * as Sentry from "@sentry/nextjs";
+import { z } from "zod";
+
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { loginSchema, signupSchema } from "@/lib/validators";
 

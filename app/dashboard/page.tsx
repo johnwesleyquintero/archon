@@ -1,22 +1,22 @@
-import { Suspense } from "react";
 import * as Sentry from "@sentry/nextjs";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+
 import { CustomizableDashboardLayout } from "@/components/customizable-dashboard-layout";
 import { DashboardCriticalError } from "@/components/dashboard/dashboard-critical-error";
+import { DashboardLoadingSkeleton } from "@/components/dashboard/dashboard-loading-skeleton";
+import { getAvailableWidgets } from "@/lib/constants";
+import { mergeLayouts } from "@/lib/dashboard-utils";
 import { getDashboardSettings } from "@/lib/database/dashboard-settings";
 import { getGoals } from "@/lib/database/goals";
-import { getAvailableWidgets } from "@/lib/constants";
 import { DEFAULT_LAYOUT } from "@/lib/layouts";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
-import { DashboardLoadingSkeleton } from "@/components/dashboard/dashboard-loading-skeleton";
-import { redirect } from "next/navigation";
-
 import { AllWidgetConfigs, Widget } from "@/lib/types/widget-types";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
   tags: string[] | null;
 };
-import { mergeLayouts } from "@/lib/dashboard-utils";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();

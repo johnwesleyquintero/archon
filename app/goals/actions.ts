@@ -1,10 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { withErrorHandling } from "@/lib/error-utils";
-import { TablesInsert, TablesUpdate } from "@/lib/supabase/types";
+
 import { updateGoal as dbUpdateGoal } from "@/lib/database/goals";
+import { withErrorHandling } from "@/lib/error-utils";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { TablesInsert, TablesUpdate } from "@/lib/supabase/types";
 
 type GoalInsert = TablesInsert<"goals">;
 type GoalUpdate = TablesUpdate<"goals">;

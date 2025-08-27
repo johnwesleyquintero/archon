@@ -1,9 +1,16 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Save, Paperclip, ImageIcon, X, BrainCircuit, Tag } from "lucide-react";
+import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useForm, UseFormReturn } from "react-hook-form";
+
+import { analyzeJournalEntry } from "@/app/journal/actions";
+import { FileUpload } from "@/components/file-upload";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import {
   Form,
   FormControl,
@@ -11,21 +18,17 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Save, Paperclip, ImageIcon, X, BrainCircuit, Tag } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { FileUpload } from "@/components/file-upload";
-import { uploadFile } from "@/lib/blob";
-import { analyzeJournalEntry } from "@/app/journal/actions";
+import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
-import { useForm, UseFormReturn } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { uploadFile } from "@/lib/blob";
 import { journalEntrySchema } from "@/lib/validators";
+
 import type { z } from "zod";
+
 import type { Database } from "@/lib/supabase/types";
-import Image from "next/image";
 import { Spinner } from "@/components/ui/spinner";
-import dynamic from "next/dynamic";
-import { Badge } from "@/components/ui/badge";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { useTasks } from "@/hooks/use-tasks";
 import { useGoals } from "@/hooks/use-goals";

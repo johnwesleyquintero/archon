@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import { Task } from "@/lib/types/task";
-import { Column } from "@/lib/types/kanban";
-import { updateTask } from "@/app/tasks/actions";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner"; // Import toast for user feedback
+
+import { updateTask } from "@/app/tasks/actions";
+import { Column } from "@/lib/types/kanban";
+import { Task } from "@/lib/types/task";
 
 export const useKanban = (initialTasks: Task[]) => {
   const [columns, setColumns] = useState<Column[]>(() => [

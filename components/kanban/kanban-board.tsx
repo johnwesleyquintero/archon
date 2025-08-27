@@ -1,6 +1,8 @@
 import React from "react";
-import { KanbanColumn } from "./kanban-column";
+
 import { Column } from "@/lib/types/kanban";
+
+import { KanbanColumn } from "./kanban-column";
 
 interface KanbanBoardProps {
   columns: Column[];

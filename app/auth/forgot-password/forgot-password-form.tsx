@@ -1,8 +1,8 @@
 "use client";
 
+import { Mail } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Mail } from "lucide-react";
 
 import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { cn } from "@/lib/utils";
+
 import { forgotPassword } from "./actions";
 
 export function ForgotPasswordForm() {

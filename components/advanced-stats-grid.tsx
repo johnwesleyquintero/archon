@@ -1,11 +1,11 @@
 "use client";
 
-import type React from "react";
-
 import { CheckCircle, Clock, Target, TrendingUp, Zap } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+
+import type React from "react";
 
 interface AdvancedStatCardProps {
   title: string;

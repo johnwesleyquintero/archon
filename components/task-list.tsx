@@ -1,13 +1,3 @@
-import { TaskItem } from "./task-item";
-import { EmptyState } from "./empty-state";
-import { useTasks } from "@/hooks/use-tasks";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ListTodo } from "lucide-react";
-import { Database } from "@/lib/supabase/types";
-import { useState, useCallback } from "react";
-import { TaskDetailsModal } from "./task-details-modal";
-import { Task } from "@/lib/types/task";
-import { Goal } from "@/lib/types/goal"; // Import Goal type
 import { TaskDependency } from "@/lib/types/task-dependency"; // Import TaskDependency type
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +30,19 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
+import { ListTodo } from "lucide-react";
+import { useState, useCallback } from "react";
 import { createPortal } from "react-dom"; // Import createPortal for DragOverlay
+
+import { Skeleton } from "@/components/ui/skeleton";
+import { useTasks } from "@/hooks/use-tasks";
+import { Database } from "@/lib/supabase/types";
+import { Goal } from "@/lib/types/goal"; // Import Goal type
+import { Task } from "@/lib/types/task";
+
+import { EmptyState } from "./empty-state";
+import { TaskDetailsModal } from "./task-details-modal";
+import { TaskItem } from "./task-item";
 
 interface TaskListProps {
   tasks: Task[];
