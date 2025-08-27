@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
+
 import { TaskList } from "@/components/task-list";
-import { useTasks } from "@/hooks/use-tasks";
 import { useTaskFiltersAndSort } from "@/hooks/use-task-filters-and-sort";
+import { useTasks } from "@/hooks/use-tasks";
 
 // Mock the hooks
 jest.mock("@/hooks/use-tasks");

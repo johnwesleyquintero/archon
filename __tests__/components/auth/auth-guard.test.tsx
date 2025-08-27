@@ -56,7 +56,7 @@ describe("AuthGuard", () => {
     expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
   });
 
-  it("does not redirect immediately when authentication status is loading", async () => {
+  it("does not redirect immediately when authentication status is loading", () => {
     (useAuth as jest.Mock).mockReturnValue({ user: null, loading: true });
 
     act(() => {

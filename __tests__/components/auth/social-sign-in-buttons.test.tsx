@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "@supabase/supabase-js";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { SocialSignInButtons } from "@/components/auth/social-sign-in-buttons";
 import { useToast } from "@/components/ui/use-toast";
@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 // Mock the entire component's implementation to avoid window.location issues
 jest.mock("@/components/auth/social-sign-in-buttons", () => ({
   SocialSignInButtons: jest.fn(({ isLoading, setIsLoading }) => {
-    const { toast } = useToast(); // Move useToast outside handleSocialSignIn
+    const { toast } = useToast();
 
     const handleSocialSignIn = async (provider: Provider) => {
       setIsLoading(true);
@@ -27,12 +27,15 @@ jest.mock("@/components/auth/social-sign-in-buttons", () => ({
             description: error.message,
           });
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("Social sign in error:", err);
         toast({
           variant: "destructive",
           title: "Sign In Error",
-          description: "An unexpected error occurred. Please try again.",
+          description:
+            err instanceof Error
+              ? err.message
+              : "An unexpected error occurred. Please try again.",
         });
       } finally {
         setIsLoading(false);

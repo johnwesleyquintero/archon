@@ -8,13 +8,7 @@ import { useAuth } from "@/contexts/auth-context";
 // Mock the components used by AuthForm
 jest.mock("@/components/auth/email-sign-in-form", () => ({
   EmailSignInForm: jest.fn(
-    ({
-      mode,
-      isLoading: _isLoading,
-      setIsLoading: _setIsLoading,
-      onForgotPasswordClick,
-      onSignUpSuccess,
-    }) => (
+    ({ mode, onForgotPasswordClick, onSignUpSuccess }) => (
       <div data-testid="email-sign-in-form">
         <h2>{mode === "signIn" ? "Sign In" : "Sign Up"}</h2>
         <label htmlFor="email">Email</label>
@@ -49,35 +43,31 @@ jest.mock("@/components/auth/email-sign-in-form", () => ({
 }));
 
 jest.mock("@/components/auth/forgot-password-form", () => ({
-  ForgotPasswordForm: jest.fn(
-    ({ isLoading: _isLoading, setIsLoading: _setIsLoading, onCancel }) => (
-      <div data-testid="forgot-password-form">
-        <h2>Reset Password</h2>
-        <label htmlFor="email">Email</label>
-        <input id="email" type="email" />
-        <button
-          onClick={() => {
-            const mockAuth = useAuth() as any; // Cast to any to avoid unsafe call
-            void mockAuth.sendPasswordResetEmail("test@example.com"); // Use void to ignore promise
-          }}
-        >
-          Send Reset Link
-        </button>
-        <button onClick={onCancel}>Cancel</button>
-      </div>
-    ),
-  ),
+  ForgotPasswordForm: jest.fn(({ onCancel }) => (
+    <div data-testid="forgot-password-form">
+      <h2>Reset Password</h2>
+      <label htmlFor="email">Email</label>
+      <input id="email" type="email" />
+      <button
+        onClick={() => {
+          const mockAuth = useAuth();
+          void mockAuth.sendPasswordResetEmail("test@example.com");
+        }}
+      >
+        Send Reset Link
+      </button>
+      <button onClick={onCancel}>Cancel</button>
+    </div>
+  )),
 }));
 
 jest.mock("@/components/auth/social-sign-in-buttons", () => ({
-  SocialSignInButtons: jest.fn(
-    ({ isLoading: _isLoading, setIsLoading: _setIsLoading }) => (
-      <div data-testid="social-sign-in-buttons">
-        <button>Continue with GitHub</button>
-        <button>Continue with Google</button>
-      </div>
-    ),
-  ),
+  SocialSignInButtons: jest.fn(() => (
+    <div data-testid="social-sign-in-buttons">
+      <button>Continue with GitHub</button>
+      <button>Continue with Google</button>
+    </div>
+  )),
 }));
 
 // Mock the useAuth hook
@@ -141,11 +131,7 @@ describe("AuthForm", () => {
     expect(
       screen.getByRole("heading", { name: /Sign Up/i }),
     ).toBeInTheDocument();
-
-    // Check for the presence of the email-sign-in-form testid instead of specific elements
     expect(screen.getByTestId("email-sign-in-form")).toBeInTheDocument();
-
-    // Check for the button directly
     expect(
       screen.getByRole("button", { name: /Sign Up/i }),
     ).toBeInTheDocument();
@@ -191,7 +177,6 @@ describe("AuthForm", () => {
 
   it("calls signUp with correct credentials on sign-up form submission", async () => {
     render(<AuthForm mode="signUp" />);
-    // Simulate form submission with dummy values for email and password
     fireEvent.change(screen.getByLabelText(/Email/i), {
       target: { value: "test@example.com" },
     });
