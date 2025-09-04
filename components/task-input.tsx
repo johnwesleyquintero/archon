@@ -76,7 +76,8 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
       isSubtaskInput = false,
       goals = [],
     },
-    _ref,
+    // No ref is currently used, so it's removed to resolve the lint error.
+    // If a ref is needed in the future, it can be reintroduced.
   ) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -467,6 +468,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") {
                                     e.preventDefault();
+                                    // eslint-disable-next-line no-unused-vars
                                     const input = e.currentTarget;
                                     const value = input.value.trim();
                                     if (

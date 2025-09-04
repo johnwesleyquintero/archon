@@ -54,9 +54,9 @@ describe("handleError", () => {
   });
 
   beforeEach(() => {
-    sentryCaptureExceptionMock.mockClear.call(sentryCaptureExceptionMock);
+    sentryCaptureExceptionMock.mockClear();
     // Temporarily store original console.error
-    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(console.error.bind(console));
   });
 
   afterEach(() => {

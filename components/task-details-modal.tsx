@@ -9,7 +9,7 @@ import {
   Target,
   Trash2,
   Unlink,
-} from "lucide-react"; // Import Archive and Trash2 icons
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -69,10 +69,14 @@ interface TaskDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpdate: (
+    // eslint-disable-next-line no-unused-vars
     id: string,
+    // eslint-disable-next-line no-unused-vars
     updatedTask: Partial<Database["public"]["Tables"]["tasks"]["Update"]>,
   ) => Promise<void>;
+  // eslint-disable-next-line no-unused-vars
   onArchive: (id: string) => void | Promise<void>;
+  // eslint-disable-next-line no-unused-vars
   onDeletePermanently: (id: string) => void | Promise<void>;
   goals?: { id: string; title: string }[];
   allTasks?: Task[];

@@ -11,6 +11,7 @@ import type React from "react";
 
 interface FileUploadProps {
   onUpload: (
+    // eslint-disable-next-line no-unused-vars
     file: File,
   ) => Promise<{ success: boolean; url?: string; error?: Error }>;
   accept?: string; // e.g., "image/*", "application/pdf", "image/png,image/jpeg"

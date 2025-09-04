@@ -4,11 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BrainCircuit, ImageIcon, Paperclip, Save, Tag, X } from "lucide-react";
 
 import { analyzeJournalEntry } from "@/app/journal/actions";
+
 import { FileUpload } from "@/components/file-upload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,6 @@ import { uploadFile } from "@/lib/blob";
 import type { Database } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
 import { journalEntrySchema } from "@/lib/validators";
-
 import type { z } from "zod";
 
 const TipTapEditor = dynamic(

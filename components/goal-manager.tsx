@@ -1,8 +1,7 @@
 "use client";
 
-import { Plus, Edit3, Calendar, Target } from "lucide-react";
 import { useMemo, useState } from "react";
-
+import { Plus, Edit3, Calendar, Target } from "lucide-react";
 import { z } from "zod";
 
 import { CreateGoalModal } from "@/components/create-goal-modal";

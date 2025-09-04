@@ -13,13 +13,17 @@ import { TaskFilterState } from "@/hooks/use-task-filters-and-sort"; // Import T
 
 interface TaskFilterBarProps {
   currentFilter: TaskFilterState["status"];
+  // eslint-disable-next-line no-unused-vars
   onFilterChange: (filter: TaskFilterState["status"]) => void;
 
   dueDateFilter: TaskFilterState["dueDate"];
+  // eslint-disable-next-line no-unused-vars
   onDueDateFilterChange: (dueDate: TaskFilterState["dueDate"]) => void;
   categoryFilter: TaskFilterState["category"]; // New prop for category filter
+  // eslint-disable-next-line no-unused-vars
   onCategoryFilterChange: (category: TaskFilterState["category"]) => void; // New prop for category filter change
   tagFilter: string | null; // New prop for single tag filter (for now)
+  // eslint-disable-next-line no-unused-vars
   onTagFilterChange: (tag: string | null) => void; // New prop for tag filter change
   allAvailableTags: string[]; // New prop to pass all unique tags
   onClearFilters: () => void; // New prop for clearing all filters

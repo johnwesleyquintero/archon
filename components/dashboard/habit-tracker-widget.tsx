@@ -1,29 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
 import { DashboardWidget } from "@/components/dashboard/dashboard-widget";
+import { HabitItem } from "./habit-item";
 
 import { useHabits } from "@/hooks/use-habits";
 
-import { HabitItem } from "./habit-item";
-
-interface HabitTrackerWidgetProps {
-  isCustomizing?: boolean;
-  onRemove?: () => void;
-  onSaveConfig?: (_config: { title: string }) => void;
-}
-
-export const HabitTrackerWidget: React.FC<HabitTrackerWidgetProps> = ({
-  isCustomizing = false,
-  onRemove = () => {},
-  onSaveConfig = () => {},
-}) => {
+export const HabitTrackerWidget: React.FC = () => {
   const { habits, addHabit, completeHabit } = useHabits();
   const [newHabitName, setNewHabitName] = useState("");
 
@@ -37,9 +24,6 @@ export const HabitTrackerWidget: React.FC<HabitTrackerWidgetProps> = ({
   return (
     <DashboardWidget
       title="Habit Tracker"
-      isCustomizing={isCustomizing}
-      onRemove={onRemove}
-      onSaveConfig={onSaveConfig}
     >
       <div className="space-y-2">
         {habits.map((habit) => (

@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type React from "react";
 
 import {
@@ -17,13 +24,6 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface DashboardWidgetProps {
   title: string;
@@ -35,7 +35,6 @@ interface DashboardWidgetProps {
   onConfigure?: () => void; // New prop for opening config
   _isVisible?: boolean;
   className?: string;
-  _widgetId?: string;
 }
 
 export function DashboardWidget({
@@ -48,7 +47,6 @@ export function DashboardWidget({
   onConfigure,
   _isVisible = true, // Changed from isVisible to _isVisible
   className = "",
-  _widgetId, // Prefix with underscore to mark as intentionally unused
 }: DashboardWidgetProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);

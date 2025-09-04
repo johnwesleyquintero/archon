@@ -37,10 +37,10 @@ jest.mock("@/contexts/auth-context", () => ({
 }));
 
 jest.mock("@/lib/database/goals", () => ({
-  getGoals: jest.fn(() => Promise.resolve([])),
-  addGoal: jest.fn(() => Promise.resolve(null)),
-  updateGoal: jest.fn(() => Promise.resolve(null)),
-  deleteGoal: jest.fn(() => Promise.resolve(undefined)),
+  getGoals: jest.fn(function(this: void) { return Promise.resolve([]); }),
+  addGoal: jest.fn(function(this: void) { return Promise.resolve(null); }),
+  updateGoal: jest.fn(function(this: void) { return Promise.resolve(null); }),
+  deleteGoal: jest.fn(function(this: void) { return Promise.resolve(undefined); }),
 }));
 
 const mockGoals = [
@@ -92,68 +92,100 @@ describe("useGoals", () => {
     mockedCreateClient.mockClear();
 
     mockedCreateClient.mockReturnValue({
-      from: jest.fn(() => ({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            order: jest.fn(() => ({
-              data: [],
-              error: null,
-            })),
-          })),
-          order: jest.fn(() => ({
-            data: [],
-            error: null,
-          })),
-        })),
-        insert: jest.fn(() => ({
-          select: jest.fn(() => ({
-            single: jest.fn(() => ({
-              data: {
-                id: "new-goal-id",
-                title: "New Goal",
-                description: null,
-                target_date: null,
-                status: "pending",
-                attachments: [],
-              },
-              error: null,
-            })),
-          })),
-        })),
-        update: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            select: jest.fn(() => ({
-              single: jest.fn(() => ({
-                data: {
-                  id: "goal-1",
-                  title: "Updated Goal",
-                  description: "Updated",
-                  target_date: null,
-                  status: "completed",
-                  attachments: [],
-                },
-                error: null,
-              })),
-            })),
-          })),
-        })),
-        delete: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            data: {},
-            error: null,
-          })),
-        })),
-      })),
-      channel: jest.fn(() => ({
-        on: jest.fn(() => ({
-          subscribe: jest.fn(),
-        })),
-        subscribe: jest.fn(),
-      })),
-      removeChannel: jest.fn(),
+      from: jest.fn(function(this: void) {
+        return {
+          select: jest.fn(function(this: void) {
+            return {
+              eq: jest.fn(function(this: void) {
+                return {
+                  order: jest.fn(function(this: void) {
+                    return {
+                      data: [],
+                      error: null,
+                    };
+                  }),
+                };
+              }),
+              order: jest.fn(function(this: void) {
+                return {
+                  data: [],
+                  error: null,
+                };
+              }),
+            };
+          }),
+          insert: jest.fn(function(this: void) {
+            return {
+              select: jest.fn(function(this: void) {
+                return {
+                  single: jest.fn(function(this: void) {
+                    return {
+                      data: {
+                        id: "new-goal-id",
+                        title: "New Goal",
+                        description: null,
+                        target_date: null,
+                        status: "pending",
+                        attachments: [],
+                      },
+                      error: null,
+                    };
+                  }),
+                };
+              }),
+            };
+          }),
+          update: jest.fn(function(this: void) {
+            return {
+              eq: jest.fn(function(this: void) {
+                return {
+                  select: jest.fn(function(this: void) {
+                    return {
+                      single: jest.fn(function(this: void) {
+                        return {
+                          data: {
+                            id: "goal-1",
+                            title: "Updated Goal",
+                            description: "Updated",
+                            target_date: null,
+                            status: "completed",
+                            attachments: [],
+                          },
+                          error: null,
+                        };
+                      }),
+                    };
+                  }),
+                };
+              }),
+            };
+          }),
+          delete: jest.fn(function(this: void) {
+            return {
+              eq: jest.fn(function(this: void) {
+                return {
+                  data: {},
+                  error: null,
+                };
+              }),
+            };
+          }),
+        };
+      }),
+      channel: jest.fn(function(this: void) {
+        return {
+          on: jest.fn(function(this: void) {
+            return {
+              subscribe: jest.fn(function(this: void) {}),
+            };
+          }),
+          subscribe: jest.fn(function(this: void) {}),
+        };
+      }),
+      removeChannel: jest.fn(function(this: void) {}),
     } as unknown as SupabaseClient<Database>);
 
-    mockSupabaseFrom = mockedCreateClient().from as jest.Mock; // Cast to jest.Mock
+    mockSupabaseFrom = mockedCreateClient().from.bind(mockedCreateClient()) as jest.Mock; // Cast to jest.Mock and bind
     mockSupabaseFrom.mockClear();
 
     (getGoals as jest.Mock).mockClear();

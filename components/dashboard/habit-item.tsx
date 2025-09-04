@@ -1,6 +1,5 @@
-import React from "react";
-
 import { CheckCircle, Flame } from "lucide-react";
+import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Habit } from "@/lib/types/habits";
