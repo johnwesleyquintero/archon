@@ -1,21 +1,17 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import {
-  CalendarIcon,
-  Target,
   Archive,
-  Trash2,
+  CalendarIcon,
   Link,
-  Unlink,
   Plus,
+  Target,
+  Trash2,
+  Unlink,
 } from "lucide-react"; // Import Archive and Trash2 icons
-import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 
-import {
-  addTaskDependency,
-  removeTaskDependency,
-} from "@/app/tasks/dependencies/actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,9 +28,9 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -49,11 +45,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Database } from "@/lib/supabase/types";
-import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
 
-import { TaskDependency } from "@/lib/types/task-dependency";
 import { TipTapEditor } from "./quill-editor";
+
+import {
+  addTaskDependency,
+  removeTaskDependency,
+} from "@/app/tasks/dependencies/actions";
+import type { Database } from "@/lib/supabase/types";
+import { Task, TaskPriority, TaskStatus } from "@/lib/types/task";
+import { TaskDependency } from "@/lib/types/task-dependency";
 
 const recurrencePatterns = [
   { value: "none", label: "None" },

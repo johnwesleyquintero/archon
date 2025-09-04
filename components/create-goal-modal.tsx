@@ -41,8 +41,8 @@ interface CreateGoalModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSaveOrUpdate: (
-    goalData: z.infer<typeof goalSchema>,
-    goalId?: string,
+    _goalData: z.infer<typeof goalSchema>,
+    _goalId?: string,
   ) => Promise<void>;
   isSaving: boolean;
   initialData?: Goal | null;

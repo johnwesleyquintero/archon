@@ -32,9 +32,9 @@ type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"] & {
 export interface JournalListProps extends Record<string, unknown> {
   entries?: JournalEntry[];
   selectedEntryId?: string | null;
-  onSelectEntry?: (id: string) => void;
+  onSelectEntry?: (_id: string) => void;
   onCreateEntry?: () => void;
-  onDeleteEntry?: (id: string) => void;
+  onDeleteEntry?: (_id: string) => void;
   isMutating?: boolean;
 }
 

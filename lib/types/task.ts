@@ -20,6 +20,7 @@ export type RawTask = BaseTask & {
   original_task_id?: string | null;
   shared_with_user_ids?: string[] | null;
   priority?: TaskPriority | null;
+  progress?: number | null; // Add progress to RawTask
 };
 
 // Define TaskPriority enum for client-side use

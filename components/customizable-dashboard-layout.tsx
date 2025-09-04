@@ -33,13 +33,12 @@ import { AdvancedWidgetConfigForm } from "./advanced-widget-config-form";
 import { DashboardCustomizationControls } from "./dashboard/controls/dashboard-customization-controls";
 import { DailyFocusWidget } from "./dashboard/daily-focus-widget";
 import { DashboardGrid } from "./dashboard/dashboard-grid";
+import { HabitTrackerWidget } from "./dashboard/habit-tracker-widget";
 import { WelcomeWidget } from "./dashboard/welcome-widget";
 import { GoalManager } from "./goal-manager";
 import { JournalList } from "./journal-list";
 import { StatsGrid } from "./stats-grid";
-import { PlaceholderInfographics } from "./placeholder-infographics";
 import { TodoList } from "./todo-list";
-
 import { WeatherWidget } from "./weather-widget";
 
 // Define a type that extends Layout with isVisible
@@ -247,8 +246,8 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
       "journal-list": JournalList,
       "stats-grid": StatsGrid,
       "advanced-stats-grid": AdvancedStatsGrid,
-      "placeholder-infographics": PlaceholderInfographics,
       "weather-widget": WeatherWidget,
+      "habit-tracker-widget": HabitTrackerWidget,
       "daily-focus-widget": (props) => (
         <DailyFocusWidget {...props} {...dailyFocusData} />
       ),
@@ -326,6 +325,16 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
         componentId: "daily-focus-widget",
         minW: 4,
         minH: 2,
+        defaultProps: {},
+      },
+      {
+        id: "habit-tracker-widget",
+        type: "habit-tracker",
+        title: "Habit Tracker",
+        description: "Track your daily habits and streaks.",
+        componentId: "habit-tracker-widget",
+        minW: 2,
+        minH: 3,
         defaultProps: {},
       },
     ] as Widget<P>[];

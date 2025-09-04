@@ -20,12 +20,12 @@ type DashboardLayoutItem = Layout & {
 interface DashboardGridProps<P extends Record<string, unknown>> {
   visibleWidgets: DashboardLayoutItem[];
   isCustomizing: boolean;
-  onLayoutChange: (layout: Layout[]) => void;
+  onLayoutChange: (_layout: Layout[]) => void; // Prefix with underscore
   widgetComponentsMap: Record<string, ComponentType<P>>;
   availableWidgets: Widget<P>[];
   widgetConfigs: AllWidgetConfigs;
-  onToggleWidgetVisibility: (id: string) => void;
-  onConfigureWidget: (widgetId: string) => void;
+  onToggleWidgetVisibility: (_id: string) => void; // Prefix with underscore
+  onConfigureWidget: (_widgetId: string) => void; // Prefix with underscore
 }
 
 export function DashboardGrid<P extends Record<string, unknown>>({

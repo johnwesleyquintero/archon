@@ -1,102 +1,47 @@
-import { Provider } from "@supabase/supabase-js";
+import {
+  AuthResponse,
+  AuthError,
+  SignInWithOAuthCredentials,
+} from "@supabase/supabase-js";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { SocialSignInButtons } from "@/components/auth/social-sign-in-buttons";
-import { useToast } from "@/components/ui/use-toast";
-import { createClient } from "@/lib/supabase/client";
+// No need to import useToast here just for its type, as the mock factory handles it.
 
-// Mock the entire component's implementation to avoid window.location issues
-jest.mock("@/components/auth/social-sign-in-buttons", () => ({
-  SocialSignInButtons: jest.fn(({ isLoading, setIsLoading }) => {
-    const { toast } = useToast();
+// --- Define global mock functions ---
+const mockSignInWithOAuth = jest.fn<
+  Promise<AuthResponse>,
+  [SignInWithOAuthCredentials]
+>();
+// Simplified mockToastFn - no need for _props or complex type inference here
+const mockToastFn = jest.fn(() => ({ id: "mock-toast-id" }));
 
-    const handleSocialSignIn = async (provider: Provider) => {
-      setIsLoading(true);
-      try {
-        const mockSupabase = createClient();
-        const { error } = await mockSupabase.auth.signInWithOAuth({
-          provider,
-          options: {
-            redirectTo: "http://localhost:3000/auth/callback",
-          },
-        });
-        if (error) {
-          toast({
-            variant: "destructive",
-            title: "Sign In Error",
-            description: error.message,
-          });
-        }
-      } catch (err: unknown) {
-        console.error("Social sign in error:", err);
-        toast({
-          variant: "destructive",
-          title: "Sign In Error",
-          description:
-            err instanceof Error
-              ? err.message
-              : "An unexpected error occurred. Please try again.",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    return (
-      <div className="space-y-3">
-        <button
-          type="button"
-          className="w-full"
-          disabled={isLoading}
-          onClick={() => void handleSocialSignIn("github")}
-        >
-          {isLoading && "Loading..."}
-          Continue with GitHub
-        </button>
-        <button
-          type="button"
-          className="w-full"
-          disabled={isLoading}
-          onClick={() => void handleSocialSignIn("google")}
-        >
-          {isLoading && "Loading..."}
-          Continue with Google
-        </button>
-      </div>
-    );
-  }),
-}));
-
-// Mock the Supabase client
+// --- Mock modules using the global mock functions ---
 jest.mock("@/lib/supabase/client", () => ({
-  createClient: jest.fn(),
+  createClient: jest.fn(() => ({
+    auth: {
+      signInWithOAuth: mockSignInWithOAuth, // Use the global mock
+    },
+  })),
 }));
 
-// Mock the useToast hook
 jest.mock("@/components/ui/use-toast", () => ({
-  useToast: jest.fn(),
+  useToast: jest.fn(() => ({
+    toast: mockToastFn, // Use the global mock
+    toasts: [],
+  })),
 }));
+
+// No mock for SocialSignInButtons component itself
 
 describe("SocialSignInButtons", () => {
-  const mockSignInWithOAuth = jest.fn();
   const mockSetIsLoading = jest.fn();
-  let mockToast: jest.Mock;
 
   beforeEach(() => {
-    // Mock Supabase auth methods
-    (createClient as jest.Mock).mockReturnValue({
-      auth: {
-        signInWithOAuth: mockSignInWithOAuth,
-      },
-    });
-
-    // Mock toast
-    mockToast = jest.fn();
-    (useToast as jest.Mock).mockReturnValue({ toast: mockToast });
-
+    // Clear mocks directly
     mockSignInWithOAuth.mockClear();
+    mockToastFn.mockClear();
     mockSetIsLoading.mockClear();
-    mockToast.mockClear();
   });
 
   it("renders Google and GitHub sign-in buttons", () => {
@@ -113,7 +58,10 @@ describe("SocialSignInButtons", () => {
   });
 
   it("calls signInWithOAuth with 'google' when Google button is clicked", async () => {
-    mockSignInWithOAuth.mockResolvedValueOnce({ error: null });
+    mockSignInWithOAuth.mockResolvedValueOnce({
+      data: { user: null, session: null },
+      error: null,
+    });
 
     render(
       <SocialSignInButtons isLoading={false} setIsLoading={mockSetIsLoading} />,
@@ -140,11 +88,14 @@ describe("SocialSignInButtons", () => {
       expect(mockSetIsLoading).toHaveBeenCalledWith(false);
     });
 
-    expect(mockToast).not.toHaveBeenCalled();
+    expect(mockToastFn).not.toHaveBeenCalled();
   });
 
   it("calls signInWithOAuth with 'github' when GitHub button is clicked", async () => {
-    mockSignInWithOAuth.mockResolvedValueOnce({ error: null });
+    mockSignInWithOAuth.mockResolvedValueOnce({
+      data: { user: null, session: null },
+      error: null,
+    });
 
     render(
       <SocialSignInButtons isLoading={false} setIsLoading={mockSetIsLoading} />,
@@ -171,12 +122,18 @@ describe("SocialSignInButtons", () => {
       expect(mockSetIsLoading).toHaveBeenCalledWith(false);
     });
 
-    expect(mockToast).not.toHaveBeenCalled();
+    expect(mockToastFn).not.toHaveBeenCalled();
   });
 
   it("handles OAuth sign-in error", async () => {
+    const mockError = {
+      name: "AuthApiError",
+      message: "OAuth failed",
+    };
+
     mockSignInWithOAuth.mockResolvedValueOnce({
-      error: { message: "OAuth failed" },
+      data: { user: null, session: null },
+      error: mockError as AuthError,
     });
 
     render(
@@ -201,7 +158,7 @@ describe("SocialSignInButtons", () => {
     });
 
     await waitFor(() => {
-      expect(mockToast).toHaveBeenCalledWith({
+      expect(mockToastFn).toHaveBeenCalledWith({
         variant: "destructive",
         title: "Sign In Error",
         description: "OAuth failed",

@@ -104,21 +104,6 @@ export const getAvailableWidgets = (initialGoals: Goal[]): Widget[] => [
     defaultProps: {},
   },
   {
-    id: "productivity-chart",
-    type: "charts",
-    title: "Productivity Insights",
-    description:
-      "Charts and graphs detailing your productivity trends will be available here soon.",
-    componentId: "placeholder-infographics",
-    minW: 6,
-    minH: 4,
-    defaultProps: {
-      title: "Productivity Insights",
-      description:
-        "Charts and graphs detailing your productivity trends will be available here soon.",
-    },
-  },
-  {
     id: "welcome-message",
     type: "utility",
     title: "Welcome Message",

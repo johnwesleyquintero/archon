@@ -43,18 +43,18 @@ describe("handleError", () => {
   // Mock Sentry for testing purposes
   let sentryCaptureExceptionMock: jest.Mock;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     // Mock the entire @sentry/nextjs module
     jest.mock("@sentry/nextjs", () => ({
-      captureException: jest.fn(),
+      captureException: jest.fn(() => {}),
     }));
     // Dynamically import Sentry after mocking
-    const Sentry = require("@sentry/nextjs");
-    sentryCaptureExceptionMock = Sentry.captureException;
+    const Sentry = await import("@sentry/nextjs");
+    sentryCaptureExceptionMock = Sentry.captureException as jest.Mock;
   });
 
   beforeEach(() => {
-    sentryCaptureExceptionMock.mockClear();
+    sentryCaptureExceptionMock.mockClear.call(sentryCaptureExceptionMock);
     // Temporarily store original console.error
     jest.spyOn(console, "error").mockImplementation(() => {});
   });

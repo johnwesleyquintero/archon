@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 interface QuickTasksConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (config: { title: string }) => void;
+  onSave: (_config: { title: string }) => void;
   currentTitle: string;
 }
 

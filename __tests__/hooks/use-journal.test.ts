@@ -5,7 +5,6 @@ import {
   updateJournalEntry,
   deleteJournalEntry,
 } from "@/app/journal/actions";
-import { useToast } from "@/components/ui/use-toast";
 import { useJournal } from "@/hooks/use-journal";
 
 // Mock server actions
@@ -28,6 +27,7 @@ const mockToast = jest.fn();
 jest.mock("@/components/ui/use-toast", () => ({
   useToast: () => ({
     toast: mockToast,
+    toasts: [], // Add toasts property
   }),
 }));
 
@@ -69,7 +69,7 @@ describe("useJournal", () => {
 
     const { result } = renderHook(() => useJournal([], "user-123"));
 
-    await act(async () => {
+    act(() => {
       result.current.handleCreateEntry();
     });
 
@@ -88,7 +88,7 @@ describe("useJournal", () => {
 
     const { result } = renderHook(() => useJournal([], "user-123"));
 
-    await act(async () => {
+    act(() => {
       result.current.handleCreateEntry();
     });
 
@@ -116,7 +116,7 @@ describe("useJournal", () => {
       result.current.setHasUnsavedChanges(true);
     });
 
-    await act(async () => {
+    act(() => {
       result.current.handleSaveEntry();
     });
 
@@ -140,7 +140,7 @@ describe("useJournal", () => {
       result.current.setHasUnsavedChanges(true);
     });
 
-    await act(async () => {
+    act(() => {
       result.current.handleSaveEntry();
     });
 
@@ -160,8 +160,8 @@ describe("useJournal", () => {
       useJournal(mockJournalEntries, "user-123"),
     );
 
-    await act(async () => {
-      await result.current.handleDeleteEntry("entry-1");
+    act(() => {
+      result.current.handleDeleteEntry("entry-1");
     });
 
     await waitFor(() => {
@@ -181,8 +181,8 @@ describe("useJournal", () => {
       useJournal(mockJournalEntries, "user-123"),
     );
 
-    await act(async () => {
-      await result.current.handleDeleteEntry("entry-1");
+    act(() => {
+      result.current.handleDeleteEntry("entry-1");
     });
 
     await waitFor(() => {

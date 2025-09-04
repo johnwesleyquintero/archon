@@ -59,19 +59,12 @@ const ChartContainer = React.forwardRef<HTMLDivElement, ChartContainerProps>(
 );
 ChartContainer.displayName = "Chart";
 
-// Define ChartTooltip and ChartLegend (simplified placeholders)
-export const ChartTooltip = ({ children }: { children: React.ReactNode }) => (
-  <div className="rounded-md border bg-popover p-2 text-popover-foreground shadow-md">
-    {children}
-  </div>
-);
-export const ChartLegend = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex items-center justify-center gap-4 p-2 text-sm">
-    {children}
-  </div>
-);
+// Define ChartTooltip and ChartLegend
+const ChartTooltip = RechartsPrimitive.Tooltip;
 
-// Define ChartTooltipContent and ChartLegendContent (simplified placeholders)
+const ChartLegend = RechartsPrimitive.Legend;
+
+// Define ChartTooltipContent and ChartLegendContent
 interface ChartTooltipContentProps {
   payload?: Array<{
     value: number | string;
@@ -152,4 +145,4 @@ export const ChartLegendContent = ({
 
 const ChartPrimitive = RechartsPrimitive;
 
-export { ChartContainer, ChartPrimitive };
+export { ChartContainer, ChartTooltip, ChartLegend, ChartPrimitive };

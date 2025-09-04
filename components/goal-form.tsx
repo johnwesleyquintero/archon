@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 interface GoalFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (goal: {
+  onSave: (_goal: {
     id?: string;
     title: string;
     description: string;

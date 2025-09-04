@@ -1,10 +1,10 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 
-import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/auth-context";
 import { useTasks } from "@/hooks/use-tasks";
 import { getTasks } from "@/lib/database/tasks";
-import { createClient } from "@/lib/supabase/client";
+import { Task, TaskPriority } from "@/lib/types/task";
+// Removed unused import: import { createClient } from "@/lib/supabase/client";
 
 // Mock server actions
 jest.mock("@/lib/database/tasks");
@@ -32,6 +32,7 @@ const mockToast = jest.fn();
 jest.mock("@/components/ui/use-toast", () => ({
   useToast: () => ({
     toast: mockToast,
+    toasts: [], // Add toasts property
   }),
 }));
 
@@ -49,14 +50,50 @@ describe("useTasks", () => {
   });
 
   it("fetches tasks on initial render", async () => {
-    const mockTasks = [
-      { id: "1", title: "Task 1", is_completed: false, tags: [] },
-      { id: "2", title: "Task 2", is_completed: true, tags: [] },
+    const mockTasks: Task[] = [
+      {
+        id: "1",
+        title: "Task 1",
+        is_completed: false,
+        tags: [],
+        category: null,
+        created_at: new Date().toISOString(),
+        description: null,
+        due_date: null,
+        goal_id: null,
+        parent_id: null,
+        priority: TaskPriority.Medium,
+        progress: 0,
+        status: "todo",
+        updated_at: new Date().toISOString(),
+        user_id: "user-123",
+        position: 0,
+        sort_order: 0,
+      },
+      {
+        id: "2",
+        title: "Task 2",
+        is_completed: true,
+        tags: [],
+        category: null,
+        created_at: new Date().toISOString(),
+        description: null,
+        due_date: null,
+        goal_id: null,
+        parent_id: null,
+        priority: TaskPriority.Medium,
+        progress: 100,
+        status: "done",
+        updated_at: new Date().toISOString(),
+        user_id: "user-123",
+        position: 0,
+        sort_order: 0,
+      },
     ];
 
-    let resolveGetTasks: (value: any) => void;
+    let resolveGetTasks: (_value: Task[]) => void;
     (getTasks as jest.Mock).mockImplementation(
-      () => new Promise((resolve) => (resolveGetTasks = resolve)),
+      () => new Promise<Task[]>((resolve) => (resolveGetTasks = resolve)),
     );
 
     const { result } = renderHook(() => useTasks());
@@ -68,7 +105,7 @@ describe("useTasks", () => {
     expect(result.current.tasks).toEqual([]);
 
     // Resolve the promise to simulate fetch completion
-    await act(async () => {
+    act(() => {
       resolveGetTasks(mockTasks);
     });
 

@@ -21,7 +21,7 @@ import { Widget } from "@/lib/types/widget-types";
 
 interface AddWidgetDialogProps<P extends Record<string, unknown>> {
   availableWidgets: Widget<P>[];
-  onAddWidget: (widgetId: string) => void;
+  onAddWidget: (_widgetId: string) => void;
 }
 
 export function AddWidgetDialog<P extends Record<string, unknown>>({

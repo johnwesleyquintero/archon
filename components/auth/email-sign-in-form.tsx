@@ -20,7 +20,7 @@ type FormInputs = z.infer<typeof loginSchema> | z.infer<typeof signupSchema>;
 interface EmailSignInFormProps {
   mode?: "signIn" | "signUp";
   isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
+  setIsLoading: (_loading: boolean) => void;
   onForgotPasswordClick: () => void;
   onSignUpSuccess?: () => void;
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { Plus, Edit3, Calendar, Target } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+
 import { z } from "zod";
 
 import { CreateGoalModal } from "@/components/create-goal-modal";
@@ -10,9 +11,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartPrimitive } from "@/components/ui/chart";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+
 import { useGoals } from "@/hooks/use-goals";
 import { useTasks } from "@/hooks/use-tasks"; // Import useTasks hook
+
 import type { Database } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
 import { goalSchema } from "@/lib/validators";
@@ -25,15 +37,6 @@ type GoalUpdate = Omit<
   Database["public"]["Tables"]["goals"]["Update"],
   "user_id" | "id" | "created_at" | "updated_at"
 >;
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
   tags: string[] | null;

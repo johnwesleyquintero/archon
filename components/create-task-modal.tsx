@@ -40,8 +40,8 @@ interface CreateTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSaveOrUpdate: (
-    taskData: z.infer<typeof taskSchema>,
-    taskId?: string,
+    _taskData: z.infer<typeof taskSchema>,
+    _taskId?: string,
   ) => Promise<void>;
   isSaving: boolean;
   initialData?: Task | null;

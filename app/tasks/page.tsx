@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useCallback, useEffect, useState, Suspense } from "react";
 import { toast } from "sonner";
 
 import {
@@ -10,10 +10,6 @@ import {
 } from "@/app/tasks/actions";
 import { CreateTaskModal } from "@/components/create-task-modal";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import type { TaskFormValues } from "@/lib/validators";
-
-import { getGoals } from "@/lib/database/goals";
-import { getTasks, TaskSortOptions, getUniqueTags } from "@/lib/database/tasks";
 import { ErrorState } from "@/components/error-state";
 import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { TaskFilterBar } from "@/components/task-filter-bar";
@@ -21,14 +17,17 @@ import { TaskList } from "@/components/task-list";
 import { TaskSort } from "@/components/task-sort";
 import { useAuth } from "@/contexts/auth-context";
 import {
-  useTaskFiltersAndSort,
   TaskFilters,
+  useTaskFiltersAndSort,
 } from "@/hooks/use-task-filters-and-sort";
+import { getGoals } from "@/lib/database/goals";
+import { getTasks, TaskSortOptions, getUniqueTags } from "@/lib/database/tasks";
 import { Goal } from "@/lib/types/goal";
 import { Task, TaskStatus, TaskPriority } from "@/lib/types/task";
-import { TaskDependency } from "@/lib/types/task-dependency"; // Import TaskDependency type
+import { TaskDependency } from "@/lib/types/task-dependency";
+import type { TaskFormValues } from "@/lib/validators";
 
-import { getTaskDependencies } from "../../lib/database/task-dependencies"; // Import getTaskDependencies
+import { getTaskDependencies } from "../../lib/database/task-dependencies";
 
 // Helper function to parse search params into filter and sort options
 const parseSearchParams = (searchParams: {

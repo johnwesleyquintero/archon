@@ -26,7 +26,7 @@ interface FormField {
 
 interface AdvancedWidgetConfigFormProps {
   config: WidgetConfig;
-  onSave: (newConfig: WidgetConfig) => void;
+  onSave: (_newConfig: WidgetConfig) => void;
   onCancel: () => void;
   formFields: FormField[];
 }

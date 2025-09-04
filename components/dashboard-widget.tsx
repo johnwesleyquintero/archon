@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import {
   Eye,
   EyeOff,
@@ -23,17 +25,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import type React from "react";
-
 interface DashboardWidgetProps {
   title: string;
   children: React.ReactNode;
   isCustomizing?: boolean;
   onRemove?: () => void;
   onRefresh?: () => Promise<void>; // Changed to return Promise<void>
-  onToggleVisibility?: (isVisible: boolean) => void; // Updated to pass visibility state
+  onToggleVisibility?: (_isVisible: boolean) => void; // Updated to pass visibility state
   onConfigure?: () => void; // New prop for opening config
-  isVisible?: boolean;
+  _isVisible?: boolean;
   className?: string;
   _widgetId?: string;
 }
@@ -46,16 +46,16 @@ export function DashboardWidget({
   onRefresh,
   onToggleVisibility,
   onConfigure,
-  isVisible = true,
+  _isVisible = true, // Changed from isVisible to _isVisible
   className = "",
-  _widgetId,
+  _widgetId, // Prefix with underscore to mark as intentionally unused
 }: DashboardWidgetProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleToggleVisibility = () => {
     if (onToggleVisibility) {
-      onToggleVisibility(!isVisible); // Pass the new visibility state
+      onToggleVisibility(!_isVisible); // Pass the new visibility state using _isVisible
     }
   };
 
@@ -74,18 +74,19 @@ export function DashboardWidget({
     setIsExpanded(!isExpanded);
   };
 
-  if (!isVisible && !isCustomizing) {
+  if (!_isVisible && !isCustomizing) {
+    // Use _isVisible here
     return null;
   }
 
   return (
     <Card
-      className={`h-full flex flex-col ${!isVisible ? "opacity-50" : ""} ${className}`}
+      className={`h-full flex flex-col ${!_isVisible ? "opacity-50" : ""} ${className}`} // Use _isVisible here
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 flex-shrink-0">
         <CardTitle className="text-sm font-medium flex items-center space-x-2">
           <span>{title}</span>
-          {!isVisible && (
+          {!_isVisible && ( // Use _isVisible here
             <Badge variant="secondary" className="text-xs">
               Hidden
             </Badge>
@@ -136,7 +137,7 @@ export function DashboardWidget({
 
               {onToggleVisibility && (
                 <DropdownMenuItem onClick={handleToggleVisibility}>
-                  {isVisible ? (
+                  {_isVisible ? ( // Use _isVisible here
                     <>
                       <EyeOff className="mr-2 h-4 w-4" />
                       Hide
@@ -175,7 +176,7 @@ export function DashboardWidget({
       </CardHeader>
 
       <CardContent className={`flex-1 ${isExpanded ? "p-6" : "p-4"}`}>
-        {isVisible ? (
+        {_isVisible ? ( // Use _isVisible here
           children
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground">

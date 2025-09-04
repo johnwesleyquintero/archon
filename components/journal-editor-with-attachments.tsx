@@ -1,11 +1,12 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Save, Paperclip, ImageIcon, X, BrainCircuit, Tag } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useForm, UseFormReturn } from "react-hook-form";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { BrainCircuit, ImageIcon, Paperclip, Save, Tag, X } from "lucide-react";
 
 import { analyzeJournalEntry } from "@/app/journal/actions";
 import { FileUpload } from "@/components/file-upload";
@@ -20,18 +21,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
+
+import { useGoals } from "@/hooks/use-goals";
+import { useTasks } from "@/hooks/use-tasks";
+
 import { uploadFile } from "@/lib/blob";
+import type { Database } from "@/lib/supabase/types";
+import { cn } from "@/lib/utils";
 import { journalEntrySchema } from "@/lib/validators";
 
 import type { z } from "zod";
-
-import type { Database } from "@/lib/supabase/types";
-import { Spinner } from "@/components/ui/spinner";
-import { MultiSelect } from "@/components/ui/multi-select";
-import { useTasks } from "@/hooks/use-tasks";
-import { useGoals } from "@/hooks/use-goals";
 
 const TipTapEditor = dynamic(
   () => import("./quill-editor").then((mod) => mod.TipTapEditor),
@@ -61,8 +63,8 @@ interface JournalEditorProps {
   onSaveEntry: () => void;
   hasUnsavedChanges: boolean;
   updateEntry: (
-    id: string,
-    patch: JournalUpdate,
+    _id: string, // Prefix with underscore
+    _patch: JournalUpdate, // Prefix with underscore
   ) => Promise<JournalEntry | null>;
   isMutating?: boolean;
 }

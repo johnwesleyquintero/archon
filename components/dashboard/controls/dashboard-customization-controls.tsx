@@ -19,7 +19,7 @@ interface DashboardCustomizationControlsProps<
   onResetLayout: () => void;
   userName?: string;
   availableWidgets: Widget<P>[];
-  onAddWidget: (widgetId: string) => void;
+  onAddWidget: (_widgetId: string) => void;
 }
 
 export function DashboardCustomizationControls<

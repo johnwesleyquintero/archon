@@ -25,7 +25,7 @@ export interface TipTapEditorRef {
 
 interface TipTapEditorProps {
   value: string;
-  onChange: (newContent: string) => void;
+  onChange: (_newContent: string) => void;
   placeholder?: string;
   className?: string;
   editable?: boolean;
