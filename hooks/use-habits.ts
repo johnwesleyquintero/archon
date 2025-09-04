@@ -21,8 +21,10 @@ const MOCK_HABITS: Habit[] = [
 
 export const useHabits = () => {
   const [habits, setHabits] = useState<Habit[]>(MOCK_HABITS);
-  const [loading, _setLoading] = useState(false);
-  const [error, _setError] = useState<Error | null>(null);
+  // Removed setLoading and setError as they are not currently used in the mock implementation.
+  // If actual loading/error handling is added, these can be reintroduced.
+  const loading = false;
+  const error = null;
 
   const addHabit = useCallback((name: string) => {
     const newHabit: Habit = {

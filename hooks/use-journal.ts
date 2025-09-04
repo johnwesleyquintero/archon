@@ -7,8 +7,7 @@ import {
 } from "@/app/journal/actions";
 import { useToast } from "@/components/ui/use-toast";
 import { createClient } from "@/lib/supabase/client";
-import type { Database } from "@/lib/supabase/types";
-import type { JournalEntry } from "@/lib/types/journal";
+import type { JournalEntry } from "@/lib/types/journal"; // Removed Database, Json
 
 type JournalInsert = Omit<
   JournalEntry,
@@ -91,22 +90,24 @@ export function useJournal(
         tags: [],
         user_id: userId,
       };
-      const result = await addJournalEntry(newEntryData);
-      if (result && "error" in result) {
-        toast({
-          title: "Error",
-          description: result.error,
-          variant: "destructive",
-        });
-      } else {
-        setEntries((prev) => [result, ...prev]);
-        setSelectedEntryId(result.id);
-        toast({
-          title: "Success!",
-          description: "New journal entry created.",
-        });
-        setHasUnsavedChanges(false);
-      }
+      // Explicitly mark the promise as ignored with void
+      void addJournalEntry(newEntryData).then((result) => {
+        if (result && "error" in result) {
+          toast({
+            title: "Error",
+            description: result.error,
+            variant: "destructive",
+          });
+        } else {
+          setEntries((prev) => [result, ...prev]);
+          setSelectedEntryId(result.id);
+          toast({
+            title: "Success!",
+            description: "New journal entry created.",
+          });
+          setHasUnsavedChanges(false);
+        }
+      });
     });
   }, [userId, toast]);
 

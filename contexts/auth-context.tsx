@@ -4,11 +4,10 @@ import {
   User,
   Session,
   AuthError as SupabaseAuthError,
-  AuthChangeEvent,
   SignInWithPasswordCredentials,
   SignUpWithPasswordCredentials,
 } from "@supabase/supabase-js";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
@@ -53,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isSigningOut, setIsSigningOut] = useState(false); // Add isSigningOut state
   const supabase = createClient();
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
       // First, try to get existing profile
       const { data: existingProfile, error: fetchError } = await supabase
@@ -82,9 +81,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Create profile with only the columns that exist in the database
       const newProfile = {
         id: userId,
-        full_name: userData.user.user_metadata?.full_name || "", // Provide empty string default
+        full_name: (userData.user.user_metadata?.full_name as string) || "", // Safely access and cast
         avatar_url:
-          userData.user.user_metadata?.avatar_url || "/placeholder-user.svg", // Provide a default avatar
+          (userData.user.user_metadata?.avatar_url as string) || "/placeholder-user.svg", // Safely access and cast
         username: null, // Will be set later if user wants to customize
       };
 
@@ -104,12 +103,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Error in fetchProfile:", error);
       return null;
     }
-  };
+  }, [supabase]);
 
-  const refreshProfile = async () => {
+  const refreshProfile = async (): Promise<void> => { // Re-added async and explicit return type
     if (user) {
-      const profileData = await fetchProfile(user.id);
-      setProfile(profileData);
+      await fetchProfile(user.id).then(setProfile); // Await the promise
     }
   };
 
@@ -230,7 +228,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       if (currentUser) {
-        fetchProfile(currentUser.id).then(setProfile);
+        void fetchProfile(currentUser.id).then(setProfile);
       } else {
         setProfile(null);
       }
@@ -240,7 +238,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase.auth]);
+  }, [supabase.auth, fetchProfile]);
 
   const value = {
     user,

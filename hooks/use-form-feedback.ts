@@ -1,10 +1,5 @@
 import { useToast } from "@/components/ui/use-toast";
 
-interface FormFeedbackOptions {
-  successMessage?: string;
-  errorMessage?: string;
-}
-
 export function useFormFeedback() {
   const { toast } = useToast();
 

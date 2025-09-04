@@ -88,8 +88,8 @@ export const useKanban = (initialTasks: Task[]) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const activeColumnId = active.data.current?.sortable.containerId as string;
-    const overColumnId = over.data.current?.sortable.containerId as string;
+    const activeColumnId = (active.data.current?.sortable as { containerId: string })?.containerId; // Added type assertion
+    const overColumnId = (over.data.current?.sortable as { containerId: string })?.containerId; // Added type assertion
 
     if (!activeColumnId || !overColumnId) return;
 

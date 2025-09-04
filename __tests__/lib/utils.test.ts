@@ -42,6 +42,7 @@ describe("AppError", () => {
 describe("handleError", () => {
   // Mock Sentry for testing purposes
   let sentryCaptureExceptionMock: jest.Mock;
+  let consoleErrorSpy: jest.Mock; // Declare mock function instance
 
   beforeAll(async () => {
     // Mock the entire @sentry/nextjs module
@@ -55,10 +56,9 @@ describe("handleError", () => {
 
   beforeEach(() => {
     sentryCaptureExceptionMock.mockClear();
-    // Temporarily store original console.error
-    jest
-      .spyOn(console, "error")
-      .mockImplementation(console.error.bind(console)); // Re-adding bind to see if it helps
+    // Mock console.error directly
+    consoleErrorSpy = jest.fn();
+    jest.spyOn(console, "error").mockImplementation(consoleErrorSpy);
   });
 
   afterEach(() => {
@@ -71,7 +71,7 @@ describe("handleError", () => {
     const result = handleError(originalError);
     expect(result).toBeInstanceOf(AppError);
     expect(result).toBe(originalError);
-    expect(console.error).toHaveBeenCalledWith(
+    expect(consoleErrorSpy).toHaveBeenCalledWith( // Use the mock function directly
       "[Application Error] Code: SPECIFIC_CODE, Message: Specific error",
       "",
     );
@@ -84,7 +84,7 @@ describe("handleError", () => {
     expect(result.message).toBe("Standard error message");
     expect(result.code).toBe("UNEXPECTED_ERROR");
     expect(result.details).toHaveProperty("originalStack");
-    expect(console.error).toHaveBeenCalledWith(
+    expect(consoleErrorSpy).toHaveBeenCalledWith( // Use the mock function directly
       "[Data Fetching Error] Code: UNEXPECTED_ERROR, Message: Standard error message",
       expect.any(Object),
     );
@@ -97,7 +97,7 @@ describe("handleError", () => {
     expect(result.message).toBe("An unknown error occurred.");
     expect(result.code).toBe("UNKNOWN_ERROR");
     expect(result.details).toEqual({ originalError: unknownError });
-    expect(console.error).toHaveBeenCalledWith(
+    expect(consoleErrorSpy).toHaveBeenCalledWith( // Use the mock function directly
       "[Application Error] Code: UNKNOWN_ERROR, Message: An unknown error occurred.",
       expect.any(Object),
     );
