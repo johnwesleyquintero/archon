@@ -4,6 +4,7 @@ import { type Layout } from "react-grid-layout";
 export interface CustomLayout extends Layout {
   isVisible: boolean;
   title: string; // Add title to custom layout
+  widgetType: string; // Add widgetType to custom layout
 }
 
 export function mergeLayouts(
@@ -19,6 +20,8 @@ export function mergeLayouts(
       isVisible: storedWidget?.isVisible ?? defaultWidget.isVisible ?? true,
       // Ensure title is preserved from stored layout, or fallback to default
       title: storedWidget?.title ?? defaultWidget.title,
+      // Ensure widgetType is preserved from stored layout, or fallback to default
+      widgetType: storedWidget?.widgetType ?? defaultWidget.widgetType,
     };
   });
 }

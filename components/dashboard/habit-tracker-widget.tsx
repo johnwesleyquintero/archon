@@ -22,9 +22,7 @@ export const HabitTrackerWidget: React.FC = () => {
   };
 
   return (
-    <DashboardWidget
-      title="Habit Tracker"
-    >
+    <DashboardWidget title="Habit Tracker">
       <div className="space-y-2">
         {habits.map((habit) => (
           <HabitItem key={habit.id} habit={habit} onComplete={completeHabit} />

@@ -294,6 +294,10 @@ function TaskControls({
           onTagFilterChange={(tag) =>
             setFilter("tags", tag ? [tag] : undefined)
           }
+          priorityFilter={filters.priority || "all"}
+          onPriorityFilterChange={(priority) =>
+            setFilter("priority", priority as TaskPriority | "all")
+          }
           allAvailableTags={allAvailableTags}
           onClearFilters={clearFilters}
         />

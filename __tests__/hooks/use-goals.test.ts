@@ -37,10 +37,18 @@ jest.mock("@/contexts/auth-context", () => ({
 }));
 
 jest.mock("@/lib/database/goals", () => ({
-  getGoals: jest.fn(function(this: void) { return Promise.resolve([]); }),
-  addGoal: jest.fn(function(this: void) { return Promise.resolve(null); }),
-  updateGoal: jest.fn(function(this: void) { return Promise.resolve(null); }),
-  deleteGoal: jest.fn(function(this: void) { return Promise.resolve(undefined); }),
+  getGoals: jest.fn(function () {
+    return Promise.resolve([]);
+  }),
+  addGoal: jest.fn(function () {
+    return Promise.resolve(null);
+  }),
+  updateGoal: jest.fn(function () {
+    return Promise.resolve(null);
+  }),
+  deleteGoal: jest.fn(function () {
+    return Promise.resolve(undefined);
+  }),
 }));
 
 const mockGoals = [
@@ -92,13 +100,13 @@ describe("useGoals", () => {
     mockedCreateClient.mockClear();
 
     mockedCreateClient.mockReturnValue({
-      from: jest.fn(function(this: void) {
+      from: jest.fn(function () {
         return {
-          select: jest.fn(function(this: void) {
+          select: jest.fn(function () {
             return {
-              eq: jest.fn(function(this: void) {
+              eq: jest.fn(function () {
                 return {
-                  order: jest.fn(function(this: void) {
+                  order: jest.fn(function () {
                     return {
                       data: [],
                       error: null,
@@ -106,7 +114,7 @@ describe("useGoals", () => {
                   }),
                 };
               }),
-              order: jest.fn(function(this: void) {
+              order: jest.fn(function () {
                 return {
                   data: [],
                   error: null,
@@ -114,11 +122,11 @@ describe("useGoals", () => {
               }),
             };
           }),
-          insert: jest.fn(function(this: void) {
+          insert: jest.fn(function () {
             return {
-              select: jest.fn(function(this: void) {
+              select: jest.fn(function () {
                 return {
-                  single: jest.fn(function(this: void) {
+                  single: jest.fn(function () {
                     return {
                       data: {
                         id: "new-goal-id",
@@ -135,13 +143,13 @@ describe("useGoals", () => {
               }),
             };
           }),
-          update: jest.fn(function(this: void) {
+          update: jest.fn(function () {
             return {
-              eq: jest.fn(function(this: void) {
+              eq: jest.fn(function () {
                 return {
-                  select: jest.fn(function(this: void) {
+                  select: jest.fn(function () {
                     return {
-                      single: jest.fn(function(this: void) {
+                      single: jest.fn(function () {
                         return {
                           data: {
                             id: "goal-1",
@@ -160,9 +168,9 @@ describe("useGoals", () => {
               }),
             };
           }),
-          delete: jest.fn(function(this: void) {
+          delete: jest.fn(function () {
             return {
-              eq: jest.fn(function(this: void) {
+              eq: jest.fn(function () {
                 return {
                   data: {},
                   error: null,
@@ -172,20 +180,22 @@ describe("useGoals", () => {
           }),
         };
       }),
-      channel: jest.fn(function(this: void) {
+      channel: jest.fn(function () {
         return {
-          on: jest.fn(function(this: void) {
+          on: jest.fn(function () {
             return {
-              subscribe: jest.fn(function(this: void) {}),
+              subscribe: jest.fn(function () {}),
             };
           }),
-          subscribe: jest.fn(function(this: void) {}),
+          subscribe: jest.fn(function () {}),
         };
       }),
-      removeChannel: jest.fn(function(this: void) {}),
+      removeChannel: jest.fn(function () {}),
     } as unknown as SupabaseClient<Database>);
 
-    mockSupabaseFrom = mockedCreateClient().from.bind(mockedCreateClient()) as jest.Mock; // Cast to jest.Mock and bind
+    mockSupabaseFrom = mockedCreateClient().from.bind(
+      mockedCreateClient(),
+    ) as jest.Mock; // Cast to jest.Mock and bind
     mockSupabaseFrom.mockClear();
 
     (getGoals as jest.Mock).mockClear();

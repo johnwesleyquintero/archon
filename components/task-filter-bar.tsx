@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TaskFilterState } from "@/hooks/use-task-filters-and-sort"; // Import TaskFilterState
+import { TaskPriority } from "@/lib/types/task"; // Import TaskPriority
 
 interface TaskFilterBarProps {
   currentFilter: TaskFilterState["status"];
@@ -25,6 +26,9 @@ interface TaskFilterBarProps {
   tagFilter: string | null; // New prop for single tag filter (for now)
   // eslint-disable-next-line no-unused-vars
   onTagFilterChange: (tag: string | null) => void; // New prop for tag filter change
+  priorityFilter: TaskFilterState["priority"]; // New prop for priority filter
+  // eslint-disable-next-line no-unused-vars
+  onPriorityFilterChange: (priority: TaskFilterState["priority"]) => void; // New prop for priority filter change
   allAvailableTags: string[]; // New prop to pass all unique tags
   onClearFilters: () => void; // New prop for clearing all filters
 }
@@ -39,6 +43,8 @@ export function TaskFilterBar({
   onCategoryFilterChange,
   tagFilter,
   onTagFilterChange,
+  priorityFilter,
+  onPriorityFilterChange,
   allAvailableTags,
   onClearFilters,
 }: TaskFilterBarProps) {
@@ -78,6 +84,29 @@ export function TaskFilterBar({
               <SelectItem value="in_progress">In Progress</SelectItem>
               <SelectItem value="done">Done</SelectItem>
               <SelectItem value="canceled">Canceled</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Priority filter */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-slate-500">Priority:</span>
+          <Select
+            value={priorityFilter || "all"}
+            onValueChange={(value) =>
+              onPriorityFilterChange(
+                value === "all" ? undefined : (value as TaskPriority),
+              )
+            }
+          >
+            <SelectTrigger className="h-8 w-[120px]">
+              <SelectValue placeholder="Priority" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="high">High</SelectItem>
             </SelectContent>
           </Select>
         </div>

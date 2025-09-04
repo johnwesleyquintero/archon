@@ -40,7 +40,7 @@ async function createClient() {
 export interface TaskFilterOptions {
   isCompleted?: boolean;
   status?: TaskStatus | "all"; // Allow "all" for status filter
-  priority?: TaskPriority;
+  priority?: TaskPriority | "all"; // Allow "all" for priority filter
   dueDate?: "overdue" | "today" | "upcoming" | "none" | "all"; // Allow "all" for dueDate filter
   category?: string;
   tags?: string[];
@@ -88,7 +88,7 @@ export const getTasks = withErrorHandling(
         query = query.in("status", ["todo", "in_progress", "done", "canceled"]);
       }
 
-      if (filters.priority) {
+      if (filters.priority && filters.priority !== "all") {
         query = query.eq("priority", filters.priority);
       }
       if (filters.category) {

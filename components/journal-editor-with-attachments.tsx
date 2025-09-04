@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { BrainCircuit, ImageIcon, Paperclip, Save, Tag, X } from "lucide-react";
 
 import { analyzeJournalEntry } from "@/app/journal/actions";
+import { JournalTemplateSelector } from "@/components/journal-template-selector"; // Import JournalTemplateSelector
 
 import { FileUpload } from "@/components/file-upload";
 import { Badge } from "@/components/ui/badge";
@@ -83,6 +84,7 @@ export function JournalEditorWithAttachments({
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
   const [tagInput, setTagInput] = useState("");
+  const [isLoadingAiPrompt, setIsLoadingAiPrompt] = useState(false); // New state for AI prompt loading
 
   const handleAnalyze = async () => {
     if (!entry?.content) return;
@@ -103,6 +105,31 @@ export function JournalEditorWithAttachments({
       // You might want to show a toast notification here
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleGenerateAiPrompt = async (currentContent: string) => {
+    setIsLoadingAiPrompt(true);
+    try {
+      const response = await fetch("/api/groq-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userInput: `Generate a journal prompt or template based on the following existing journal content (if any) or general productivity themes. Keep it concise and actionable. Current content: "${currentContent}"`,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate AI prompt.");
+      }
+
+      const data = (await response.json()) as { response: string };
+      return data.response;
+    } catch (error) {
+      console.error("Error generating AI prompt:", error);
+      throw error;
+    } finally {
+      setIsLoadingAiPrompt(false);
     }
   };
 
@@ -223,6 +250,16 @@ export function JournalEditorWithAttachments({
       shouldDirty: true,
       shouldValidate: true,
     });
+  };
+
+  const handleSelectTemplate = (content: string) => {
+    form.setValue("content", content, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    if (editorRef.current?.commands) {
+      editorRef.current.commands.setContent(content);
+    }
   };
 
   const removeAttachment = (url: string) => {
@@ -403,6 +440,12 @@ export function JournalEditorWithAttachments({
 
           {/* Toolbar for TipTap */}
           <div className="flex items-center gap-1">
+            <JournalTemplateSelector
+              onSelectTemplate={handleSelectTemplate}
+              onGenerateAiPrompt={handleGenerateAiPrompt}
+              isLoadingAiPrompt={isLoadingAiPrompt}
+              currentJournalContent={form.watch("content") || ""}
+            />
             <Button
               variant="ghost"
               size="sm"

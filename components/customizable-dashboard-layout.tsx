@@ -40,11 +40,13 @@ import { JournalList } from "./journal-list";
 import { StatsGrid } from "./stats-grid";
 import { TodoList } from "./todo-list";
 import { WeatherWidget } from "./weather-widget";
+import { GoalProgressWidget } from "./dashboard/goal-progress-widget"; // Import GoalProgressWidget
 
 // Define a type that extends Layout with isVisible
 export type DashboardLayoutItem = Layout & {
   isVisible: boolean;
   title: string;
+  widgetType: string; // Add widgetType to DashboardLayoutItem
 };
 
 interface CustomizableDashboardLayoutProps<P extends Record<string, unknown>> {
@@ -251,6 +253,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
       "daily-focus-widget": (props) => (
         <DailyFocusWidget {...props} {...dailyFocusData} />
       ),
+      "goal-progress-widget": GoalProgressWidget, // Add GoalProgressWidget
     } as Record<string, ComponentType<P>>;
   }, [widgetConfigs, dailyFocusData]);
 
@@ -337,6 +340,16 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
         minH: 3,
         defaultProps: {},
       },
+      {
+        id: "goal-progress-widget",
+        type: "goal-progress",
+        title: "Goal Progress",
+        description: "Displays progress on your active goals.",
+        componentId: "goal-progress-widget",
+        minW: 2,
+        minH: 3,
+        defaultProps: {},
+      },
     ] as Widget<P>[];
   }, [widgets]);
 
@@ -357,13 +370,15 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
             h: widgetToAdd.minH || 2,
             isVisible: true,
             title: widgetToAdd.title,
+            widgetType: widgetToAdd.type, // Set widgetType
           };
           const updatedLayout = [...currentLayout, newLayoutItem];
           handleLayoutChange(updatedLayout);
 
           setWidgetConfigs((prevConfigs) => ({
             ...prevConfigs,
-            [widgetId]: {
+            [widgetToAdd.id]: {
+              // Use widgetToAdd.id here
               ...widgetToAdd.defaultProps,
               title: widgetToAdd.title,
             },
@@ -383,6 +398,7 @@ export function CustomizableDashboardLayout<P extends Record<string, unknown>>({
       availableWidgets,
       handleLayoutChange,
       toggleWidgetVisibility,
+      setWidgetConfigs, // Add setWidgetConfigs to dependencies
     ],
   );
 

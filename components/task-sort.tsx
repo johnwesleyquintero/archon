@@ -24,6 +24,7 @@ const sortOptions = [
   { value: "created_at", label: "Created" },
   { value: "updated_at", label: "Updated" },
   { value: "title", label: "Title" },
+  { value: "priority", label: "Priority" },
 ] as const;
 
 export function TaskSort({ sort, onSortChange }: TaskSortProps) {

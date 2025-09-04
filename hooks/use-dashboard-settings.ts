@@ -19,6 +19,7 @@ import { AllWidgetConfigs } from "@/lib/types/widget-types";
 interface DashboardLayoutItem extends Layout {
   isVisible: boolean;
   title: string;
+  widgetType: string; // Add widgetType
 }
 
 interface UseDashboardSettingsResult {
@@ -128,6 +129,7 @@ export function useDashboardSettings(
           ...item,
           isVisible: existingItem?.isVisible ?? true, // Preserve visibility
           title: existingItem?.title ?? "", // Preserve title
+          widgetType: existingItem?.widgetType ?? "", // Preserve widgetType
         };
       });
       setLayout(updatedLayoutWithVisibility);

@@ -4,6 +4,9 @@ interface DashboardWidgetProps {
   title: string;
   children: React.ReactNode;
   className?: string;
+  isCustomizing?: boolean;
+  onRemove?: () => void;
+  onSaveConfig?: () => void;
 }
 
 export function DashboardWidget({

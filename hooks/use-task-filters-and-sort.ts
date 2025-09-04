@@ -10,7 +10,7 @@ export type TaskSort = TaskSortOptions; // Renamed for import compatibility
 export type TaskFilters = {
   isCompleted?: boolean;
   status?: TaskStatus | "all";
-  priority?: TaskPriority;
+  priority?: TaskPriority | "all"; // Allow "all" for priority filter
   dueDate?: "overdue" | "today" | "upcoming" | "none" | "all";
   category?: string;
   tags?: string[];
@@ -37,7 +37,7 @@ export function useTaskFiltersAndSort(
     search: initialFilters.search || undefined,
     includeArchived: initialFilters.includeArchived || false,
     isCompleted: initialFilters.isCompleted || undefined,
-    priority: initialFilters.priority || undefined,
+    priority: initialFilters.priority || "all", // Default to "all"
   });
 
   const setFilter = <K extends keyof TaskFilterState>(
@@ -59,7 +59,7 @@ export function useTaskFiltersAndSort(
       search: undefined,
       includeArchived: false,
       isCompleted: undefined,
-      priority: undefined,
+      priority: "all", // Clear to "all"
     });
   };
 

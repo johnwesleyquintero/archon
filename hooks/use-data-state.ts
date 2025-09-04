@@ -45,7 +45,10 @@ export function useDataState<T>({
   }, [fetcher, skip, ...dependencies]); // Include dependencies for refetch to react to changes
 
   useEffect(() => {
-    fetchData();
+    fetchData().catch((err) => {
+      // Handle potential errors from fetchData if not caught internally
+      console.error("Error in useEffect fetchData:", err);
+    });
   }, [fetchData]);
 
   return { data, isLoading, error, refetch: fetchData };
