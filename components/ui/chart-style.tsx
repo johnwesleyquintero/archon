@@ -28,13 +28,12 @@ export const ChartStyle = ({
     return null;
   }
 
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            ([_theme, prefix]) => `
+  React.useEffect(() => {
+    const styleTag = document.createElement("style");
+    styleTag.setAttribute("data-chart-style", id);
+    styleTag.innerHTML = Object.entries(THEMES)
+      .map(
+        ([_theme, prefix]) => `
 ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
@@ -44,9 +43,14 @@ ${colorConfig
   .join("\n")}
 }
 `,
-          )
-          .join("\n"),
-      }}
-    />
-  );
+      )
+      .join("\n");
+    document.head.appendChild(styleTag);
+
+    return () => {
+      document.head.removeChild(styleTag);
+    };
+  }, [id, colorConfig]);
+
+  return null;
 };

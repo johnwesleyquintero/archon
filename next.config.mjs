@@ -34,6 +34,11 @@ const nextConfig = {
   },
 };
 
+// import { withSentryConfig } from "@sentry/nextjs";
+
+// Make sure adding Sentry options is the last code to run before exporting, to ensure that
+// other plugins can't change the webpack config after Sentry has moved the sourcemaps.
+
 import { withSentryConfig } from "@sentry/nextjs";
 
 // Make sure adding Sentry options is the last code to run before exporting, to ensure that
