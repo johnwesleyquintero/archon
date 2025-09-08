@@ -56,7 +56,15 @@ export function useTaskFetching(
     } finally {
       setLoading(false);
     }
-  }, [user, config, getTasks, buildTaskHierarchy, setTasks, setLoading, setError]);
+  }, [
+    user,
+    config,
+    getTasks,
+    buildTaskHierarchy,
+    setTasks,
+    setLoading,
+    setError,
+  ]);
 
   // Setup realtime subscription and initial fetch
   useEffect(() => {
@@ -93,7 +101,14 @@ export function useTaskFetching(
     return () => {
       void client.removeChannel(channel);
     };
-  }, [initialTasks, user, fetchTasks, setTasks, setLoading, buildTaskHierarchy]);
+  }, [
+    initialTasks,
+    user,
+    fetchTasks,
+    setTasks,
+    setLoading,
+    buildTaskHierarchy,
+  ]);
 
   return {
     tasks,

@@ -24,16 +24,16 @@ export const ChartStyle = ({
     ([, itemConfig]) => itemConfig.color,
   );
 
-  if (!colorConfig.length) {
-    return null;
-  }
-
   React.useEffect(() => {
+    if (!colorConfig.length) {
+      return;
+    }
+
     const styleTag = document.createElement("style");
     styleTag.setAttribute("data-chart-style", id);
     styleTag.innerHTML = Object.entries(THEMES)
       .map(
-        ([_theme, prefix]) => `
+        ([, prefix]) => `
 ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {

@@ -90,8 +90,8 @@ export function useJournal(
         tags: [],
         user_id: userId,
       };
-      // Explicitly mark the promise as ignored with void
-      void addJournalEntry(newEntryData).then((result) => {
+      try {
+        const result = await addJournalEntry(newEntryData);
         if (result && "error" in result) {
           toast({
             title: "Error",
@@ -107,40 +107,65 @@ export function useJournal(
           });
           setHasUnsavedChanges(false);
         }
-      });
+      } catch (err) {
+        const error =
+          err instanceof Error
+            ? err
+            : new Error("Failed to create journal entry.");
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     });
   }, [userId, toast]);
 
   const handleSaveEntry = useCallback(() => {
-    if (selectedEntry && hasUnsavedChanges) {
-      startTransition(async () => {
+    startTransition(async () => {
+      if (selectedEntry && hasUnsavedChanges) {
         const { id, title, content, attachments, tags, user_id } =
           selectedEntry;
-        const result = await updateJournalEntry(id, {
-          title,
-          content,
-          attachments,
-          tags,
-          user_id,
-        } as JournalUpdate);
-        if (result && "error" in result) {
+        try {
+          const result = await updateJournalEntry(id, {
+            title,
+            content,
+            attachments,
+            tags,
+            user_id,
+          } as JournalUpdate);
+          if (result && "error" in result) {
+            toast({
+              title: "Error",
+              description: result.error,
+              variant: "destructive",
+            });
+          } else {
+            setEntries((prev) =>
+              prev.map((entry) => (entry.id === result.id ? result : entry)),
+            );
+            toast({
+              title: "Success!",
+              description: "Journal entry saved.",
+            });
+            setHasUnsavedChanges(false);
+          }
+        } catch (err) {
+          const error =
+            err instanceof Error
+              ? err
+              : new Error("Failed to save journal entry.");
           toast({
             title: "Error",
-            description: result.error,
+            description: error.message,
             variant: "destructive",
           });
-        } else {
-          setEntries((prev) =>
-            prev.map((entry) => (entry.id === result.id ? result : entry)),
-          );
-          toast({
-            title: "Success!",
-            description: "Journal entry saved.",
-          });
-          setHasUnsavedChanges(false);
         }
-      });
-    }
+      } else {
+        // If no save operation is performed, return a resolved promise to satisfy require-await
+        return Promise.resolve();
+      }
+    });
   }, [selectedEntry, hasUnsavedChanges, toast]);
 
   const handleDeleteEntry = useCallback(
