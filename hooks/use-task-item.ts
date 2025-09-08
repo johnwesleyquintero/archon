@@ -6,7 +6,7 @@ import type { Task, TaskStatus } from "@/lib/types/task";
 import { handleError } from "@/lib/utils";
 
 export function useTaskItem({
-  id,
+  _id, // Prefixed as unused
   title,
   due_date,
   category,
@@ -17,16 +17,16 @@ export function useTaskItem({
   onUpdate,
   disabled = false,
 }: {
-  id: string;
+  _id: string; // Prefixed as unused
   title: string;
   due_date: string | null;
 
   category: string | null;
   tags: string[] | null;
   status: TaskStatus | null; // Added status type
-  onToggle: (id: string, is_completed: boolean) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
-  onUpdate: (id: string, updatedTask: Partial<Task>) => Promise<void>;
+  onToggle: (_id: string, _is_completed: boolean) => Promise<void>; // Prefixed as unused
+  onDelete: (_id: string) => Promise<void>; // Prefixed as unused
+  onUpdate: (_id: string, _updatedTask: Partial<Task>) => Promise<void>; // Prefixed as unused
   disabled?: boolean;
 }) {
   const [isToggling, setIsToggling] = useState(false);
@@ -43,7 +43,7 @@ export function useTaskItem({
     if (disabled) return;
     setIsToggling(true);
     try {
-      await onToggle(id, is_completed);
+      await onToggle(_id, is_completed);
     } catch (error: unknown) {
       handleError(error, "useTaskItem:toggle");
       // Optionally, show a toast notification
@@ -56,7 +56,7 @@ export function useTaskItem({
     if (disabled) return;
     setIsDeleting(true);
     try {
-      await onDelete(id);
+      await onDelete(_id);
     } catch (error: unknown) {
       handleError(error, "useTaskItem:delete");
       // Optionally, show a toast notification
@@ -95,7 +95,7 @@ export function useTaskItem({
 
     setIsEditing(false);
     try {
-      await onUpdate(id, updates);
+      await onUpdate(_id, updates);
     } catch (error: unknown) {
       handleError(error, "useTaskItem:update");
       // Optionally, show a toast notification

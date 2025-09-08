@@ -15,7 +15,8 @@ export const widgetLayoutSchema = Zod.object({
   isDraggable: Zod.boolean().optional(),
   isResizable: Zod.boolean().optional(),
   isVisible: Zod.boolean().default(true),
-  title: Zod.string(), // Add title to schema
+  title: Zod.string(),
+  widgetType: Zod.string(),
 });
 
 export const widgetLayoutsSchema = Zod.array(widgetLayoutSchema);

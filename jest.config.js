@@ -1,6 +1,3 @@
-import { createRequire } from "module";
-const _require = createRequire(import.meta.url); // Renamed to _require
-
 import nextJest from "next/jest.js";
 
 const createJestConfig = nextJest({

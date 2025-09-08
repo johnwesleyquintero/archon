@@ -41,12 +41,9 @@ export function GlobalQuickAdd() {
       toast.error("You must be logged in to add a goal.");
       return;
     }
-    const save = async () => {
-      await addGoal(data);
-      toast.success("Goal added successfully!");
-      close();
-    };
-    void save();
+    addGoal(data);
+    toast.success("Goal added successfully!");
+    close();
   };
 
   return (

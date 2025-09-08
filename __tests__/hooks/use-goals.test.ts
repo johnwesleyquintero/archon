@@ -229,7 +229,7 @@ describe("useGoals", () => {
     expect(result.current.error).toEqual(fetchError);
   });
 
-  it("adds a new goal successfully", async () => {
+  it("adds a new goal successfully", () => {
     const newGoalData = {
       title: "New Goal",
       description: "New Desc",
@@ -252,8 +252,8 @@ describe("useGoals", () => {
 
     const { result } = renderHook(() => useGoals([...mockGoals]));
 
-    await act(async () => {
-      await result.current.addGoal(newGoalData);
+    act(() => {
+      result.current.addGoal(newGoalData);
     });
 
     expect(addGoal).toHaveBeenCalledWith(newGoalData);
@@ -261,7 +261,7 @@ describe("useGoals", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("handles add goal error", async () => {
+  it("handles add goal error", () => {
     const addError = new Error("Failed to add goal");
     const badGoalData = {
       title: "Bad Goal",
@@ -276,8 +276,8 @@ describe("useGoals", () => {
 
     const { result } = renderHook(() => useGoals([...mockGoals]));
 
-    await act(async () => {
-      await result.current.addGoal(badGoalData);
+    act(() => {
+      result.current.addGoal(badGoalData);
     });
 
     expect(addGoal).toHaveBeenCalledWith(badGoalData);
@@ -285,7 +285,7 @@ describe("useGoals", () => {
     expect(result.current.goals).toEqual(mockGoals);
   });
 
-  it("updates a goal successfully", async () => {
+  it("updates a goal successfully", () => {
     const goalToUpdate = mockGoals[0];
     const updatedData = {
       title: "Updated Title",
@@ -297,8 +297,8 @@ describe("useGoals", () => {
 
     const { result } = renderHook(() => useGoals([...mockGoals]));
 
-    await act(async () => {
-      await result.current.updateGoal(goalToUpdate.id, updatedData);
+    act(() => {
+      result.current.updateGoal(goalToUpdate.id, updatedData);
     });
 
     expect(updateGoal).toHaveBeenCalledWith(goalToUpdate.id, updatedData);
@@ -306,7 +306,7 @@ describe("useGoals", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("handles update goal error", async () => {
+  it("handles update goal error", () => {
     const updateError = new Error("Failed to update goal");
     const goalId = "goal-1";
     const badUpdateData = { title: "Bad Update" };
@@ -315,8 +315,8 @@ describe("useGoals", () => {
 
     const { result } = renderHook(() => useGoals([...mockGoals]));
 
-    await act(async () => {
-      await result.current.updateGoal(goalId, badUpdateData);
+    act(() => {
+      result.current.updateGoal(goalId, badUpdateData);
     });
 
     expect(updateGoal).toHaveBeenCalledWith(goalId, badUpdateData);
@@ -324,13 +324,13 @@ describe("useGoals", () => {
     expect(result.current.goals).toEqual(mockGoals);
   });
 
-  it("deletes a goal successfully", async () => {
+  it("deletes a goal successfully", () => {
     (deleteGoal as jest.Mock).mockResolvedValue(undefined);
 
     const { result } = renderHook(() => useGoals([...mockGoals]));
 
-    await act(async () => {
-      await result.current.deleteGoal("goal-1");
+    act(() => {
+      result.current.deleteGoal("goal-1");
     });
 
     expect(deleteGoal).toHaveBeenCalledWith("goal-1");
@@ -338,14 +338,14 @@ describe("useGoals", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("handles delete goal error", async () => {
+  it("handles delete goal error", () => {
     const deleteError = new Error("Failed to delete goal");
     (deleteGoal as jest.Mock).mockRejectedValue(deleteError);
 
     const { result } = renderHook(() => useGoals([...mockGoals]));
 
-    await act(async () => {
-      await result.current.deleteGoal("non-existent-goal");
+    act(() => {
+      result.current.deleteGoal("non-existent-goal");
     });
 
     expect(deleteGoal).toHaveBeenCalledWith("non-existent-goal");

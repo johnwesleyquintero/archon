@@ -42,7 +42,7 @@ describe("AppError", () => {
 describe("handleError", () => {
   // Mock Sentry for testing purposes
   let sentryCaptureExceptionMock: jest.Mock;
-  let consoleErrorSpy: jest.Mock; // Declare mock function instance
+  let consoleErrorSpy: jest.SpyInstance; // Declare mock function instance
 
   beforeAll(async () => {
     // Mock the entire @sentry/nextjs module
@@ -56,9 +56,10 @@ describe("handleError", () => {
 
   beforeEach(() => {
     sentryCaptureExceptionMock.mockClear();
-    // Mock console.error directly
-    consoleErrorSpy = jest.fn();
-    jest.spyOn(console, "error").mockImplementation(consoleErrorSpy);
+    // Spy on console.error while preserving its original implementation
+    const consoleError = jest.spyOn(console, "error");
+    consoleError.mockImplementation(() => {}); // Mock implementation to avoid logging during tests
+    consoleErrorSpy = consoleError;
   });
 
   afterEach(() => {
@@ -71,7 +72,8 @@ describe("handleError", () => {
     const result = handleError(originalError);
     expect(result).toBeInstanceOf(AppError);
     expect(result).toBe(originalError);
-    expect(consoleErrorSpy).toHaveBeenCalledWith( // Use the mock function directly
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      // Use the mock function directly
       "[Application Error] Code: SPECIFIC_CODE, Message: Specific error",
       "",
     );
@@ -84,7 +86,8 @@ describe("handleError", () => {
     expect(result.message).toBe("Standard error message");
     expect(result.code).toBe("UNEXPECTED_ERROR");
     expect(result.details).toHaveProperty("originalStack");
-    expect(consoleErrorSpy).toHaveBeenCalledWith( // Use the mock function directly
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      // Use the mock function directly
       "[Data Fetching Error] Code: UNEXPECTED_ERROR, Message: Standard error message",
       expect.any(Object),
     );
@@ -97,7 +100,8 @@ describe("handleError", () => {
     expect(result.message).toBe("An unknown error occurred.");
     expect(result.code).toBe("UNKNOWN_ERROR");
     expect(result.details).toEqual({ originalError: unknownError });
-    expect(consoleErrorSpy).toHaveBeenCalledWith( // Use the mock function directly
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      // Use the mock function directly
       "[Application Error] Code: UNKNOWN_ERROR, Message: An unknown error occurred.",
       expect.any(Object),
     );
@@ -112,7 +116,7 @@ describe("handleError", () => {
     handleError(error);
 
     // Wait for the dynamic import to resolve and Sentry.captureException to be called
-    await new Promise(process.nextTick);
+    await new Promise(process.nextTick.bind(process));
 
     expect(sentryCaptureExceptionMock).toHaveBeenCalledTimes(1);
     expect(sentryCaptureExceptionMock).toHaveBeenCalledWith(error, {
@@ -133,7 +137,7 @@ describe("handleError", () => {
     handleError(error);
 
     // Wait for the dynamic import to resolve (even if it doesn't call Sentry)
-    await new Promise(process.nextTick);
+    await new Promise(process.nextTick.bind(process));
 
     expect(sentryCaptureExceptionMock).not.toHaveBeenCalled();
   });

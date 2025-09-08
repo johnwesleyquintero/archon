@@ -91,7 +91,8 @@ export function useGoals(initialGoals: Goal[] = []) {
   }, [fetchGoals, initialGoals, user?.id]);
 
   const addGoalMutation = useCallback(
-    ( // Removed async
+    (
+      // Removed async
       newGoalData: Omit<GoalInsert, "user_id" | "id"> & {
         current_progress?: number | null;
         target_progress?: number | null;
@@ -140,7 +141,8 @@ export function useGoals(initialGoals: Goal[] = []) {
   );
 
   const updateGoalMutation = useCallback(
-    ( // Removed async
+    (
+      // Removed async
       id: string,
       updates: GoalUpdate,
     ) => {
@@ -176,7 +178,8 @@ export function useGoals(initialGoals: Goal[] = []) {
   );
 
   const deleteGoalMutation = useCallback(
-    ( // Removed async
+    (
+      // Removed async
       id: string,
     ) => {
       startTransition(async () => {

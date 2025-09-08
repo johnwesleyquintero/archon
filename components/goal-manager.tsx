@@ -90,9 +90,9 @@ export function GoalManager() {
         associated_tasks === null ? undefined : associated_tasks,
     };
     if (goalId) {
-      await updateGoal(goalId, cleanedGoalData as GoalUpdate);
+      updateGoal(goalId, cleanedGoalData as GoalUpdate);
     } else {
-      await addGoal(cleanedGoalData as GoalInsert);
+      addGoal(cleanedGoalData as GoalInsert);
     }
     setModalOpen(false);
   };

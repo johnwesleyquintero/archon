@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom"; // For extended Jest matchers
 import { TextEncoder, TextDecoder } from "util"; // Node.js 'util' module for polyfill
-
+import nodeFetch from "node-fetch";
+import FormData from "form-data";
 import * as React from "react";
 import ResizeObserverPolyfill from "resize-observer-polyfill";
 
@@ -18,11 +19,7 @@ jest.mock("form-data", () => {
   return class FormDataMock {
     append() {}
   };
-});
-
-// Re-import after mocking to ensure the mocks are used
-import nodeFetch from "node-fetch";
-import FormData from "form-data";
+}));
 
 // Mock ResizeObserver
 global.ResizeObserver = ResizeObserverPolyfill;
@@ -39,16 +36,16 @@ global.TextDecoder = global.TextDecoder || TextDecoder;
 // They are often used by Next.js and other libraries.
 // Ensure we are using the mocked classes directly.
 if (typeof globalThis.Request === "undefined") {
-  globalThis.Request = (nodeFetch as any).Request;
+  globalThis.Request = (nodeFetch as unknown as { Request: typeof Request }).Request;
 }
 if (typeof globalThis.Response === "undefined") {
-  globalThis.Response = (nodeFetch as any).Response;
+  globalThis.Response = (nodeFetch as unknown as { Response: typeof Response }).Response;
 }
 if (typeof globalThis.Headers === "undefined") {
-  globalThis.Headers = (nodeFetch as any).Headers;
+  globalThis.Headers = (nodeFetch as unknown as { Headers: typeof Headers }).Headers;
 }
 if (typeof globalThis.FormData === "undefined") {
-  globalThis.FormData = FormData as any;
+  globalThis.FormData = FormData as unknown as typeof global.FormData;
 }
 
 // Mock environment variables for testing

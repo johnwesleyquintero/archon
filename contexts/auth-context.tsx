@@ -7,7 +7,13 @@ import {
   SignInWithPasswordCredentials,
   SignUpWithPasswordCredentials,
 } from "@supabase/supabase-js";
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
@@ -52,60 +58,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isSigningOut, setIsSigningOut] = useState(false); // Add isSigningOut state
   const supabase = createClient();
 
-  const fetchProfile = useCallback(async (userId: string) => {
-    try {
-      // First, try to get existing profile
-      const { data: existingProfile, error: fetchError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle(); // Use maybeSingle() instead of single() to handle no rows
+  const fetchProfile = useCallback(
+    async (userId: string) => {
+      try {
+        // First, try to get existing profile
+        const { data: existingProfile, error: fetchError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle(); // Use maybeSingle() instead of single() to handle no rows
 
-      if (fetchError && fetchError.code !== "PGRST116") {
-        // PGRST116 is "no rows returned" which is expected for new users
-        console.error("Error fetching profile:", fetchError);
+        if (fetchError && fetchError.code !== "PGRST116") {
+          // PGRST116 is "no rows returned" which is expected for new users
+          console.error("Error fetching profile:", fetchError);
+          return null;
+        }
+
+        if (existingProfile) {
+          return existingProfile;
+        }
+
+        // If no profile exists, create one
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) {
+          console.error("No user data available for profile creation");
+          return null;
+        }
+
+        // Create profile with only the columns that exist in the database
+        const newProfile = {
+          id: userId,
+          full_name: (userData.user.user_metadata?.full_name as string) || "", // Safely access and cast
+          avatar_url:
+            (userData.user.user_metadata?.avatar_url as string) ||
+            "/placeholder-user.svg", // Safely access and cast
+          username: null, // Will be set later if user wants to customize
+        };
+
+        const { data: createdProfile, error: createError } = await supabase
+          .from("profiles")
+          .insert(newProfile)
+          .select()
+          .single();
+
+        if (createError) {
+          console.error("Error creating profile:", createError);
+          return null;
+        }
+
+        return createdProfile;
+      } catch (error) {
+        console.error("Error in fetchProfile:", error);
         return null;
       }
+    },
+    [supabase],
+  );
 
-      if (existingProfile) {
-        return existingProfile;
-      }
-
-      // If no profile exists, create one
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        console.error("No user data available for profile creation");
-        return null;
-      }
-
-      // Create profile with only the columns that exist in the database
-      const newProfile = {
-        id: userId,
-        full_name: (userData.user.user_metadata?.full_name as string) || "", // Safely access and cast
-        avatar_url:
-          (userData.user.user_metadata?.avatar_url as string) || "/placeholder-user.svg", // Safely access and cast
-        username: null, // Will be set later if user wants to customize
-      };
-
-      const { data: createdProfile, error: createError } = await supabase
-        .from("profiles")
-        .insert(newProfile)
-        .select()
-        .single();
-
-      if (createError) {
-        console.error("Error creating profile:", createError);
-        return null;
-      }
-
-      return createdProfile;
-    } catch (error) {
-      console.error("Error in fetchProfile:", error);
-      return null;
-    }
-  }, [supabase]);
-
-  const refreshProfile = async (): Promise<void> => { // Re-added async and explicit return type
+  const refreshProfile = async (): Promise<void> => {
+    // Re-added async and explicit return type
     if (user) {
       await fetchProfile(user.id).then(setProfile); // Await the promise
     }

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"; // Moved Sentry import to the top
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -131,8 +132,6 @@ export class AppError extends Error {
     Object.setPrototypeOf(this, AppError.prototype); // Restore prototype chain
   }
 }
-
-import * as Sentry from "@sentry/nextjs";
 
 /**
  * Extracts a user-friendly error message from an unknown error type.

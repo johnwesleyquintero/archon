@@ -43,7 +43,9 @@ export async function getDashboardSettings(
       layout: WidgetLayout[];
       widget_configs: AllWidgetConfigs;
     };
-    const parsedLayout = widgetLayoutsSchema.parse(storedLayout.layout);
+    const parsedLayout = widgetLayoutsSchema.parse(
+      storedLayout.layout,
+    ) as WidgetLayout[];
     const parsedWidgetConfigs = storedLayout.widget_configs || {};
 
     Sentry.logger.debug(

@@ -2,21 +2,16 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/auth-context";
 import {
   getTasks,
   TaskFilterOptions,
   TaskSortOptions,
 } from "@/lib/database/tasks";
-import { createClient } from "@/lib/supabase/client";
-import { Database } from "@/lib/supabase/types";
 import { Task } from "@/lib/types/task";
 import { TodoWidgetConfig } from "@/lib/types/widget-types";
 import { buildTaskHierarchy } from "@/lib/utils";
-
-// Define the raw task type from the database
-type RawTask = Database["public"]["Tables"]["tasks"]["Row"];
+import { createClient } from "@/lib/supabase/client"; // Keep createClient for the subscription
 
 export function useTaskFetching(
   initialTasks: Task[] = [],
@@ -26,8 +21,8 @@ export function useTaskFetching(
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
-  const supabase = createClient();
+  // Removed useToast and createClient as they are not directly used in fetchTasks logic
+  // and createClient is used within useEffect for subscription.
 
   const fetchTasks = useCallback(async () => {
     if (!user) {
@@ -61,7 +56,7 @@ export function useTaskFetching(
     } finally {
       setLoading(false);
     }
-  }, [user, toast, config]);
+  }, [user, config, getTasks, buildTaskHierarchy, setTasks, setLoading, setError]);
 
   // Setup realtime subscription and initial fetch
   useEffect(() => {
@@ -74,7 +69,7 @@ export function useTaskFetching(
       setLoading(false);
       setTasks(buildTaskHierarchy(initialTasks)); // Build hierarchy for initial tasks too
     } else {
-      fetchTasks();
+      void fetchTasks();
     }
 
     const client = createClient();
@@ -88,9 +83,8 @@ export function useTaskFetching(
           table: "tasks",
           filter: `user_id=eq.${user?.id}`,
         },
-        (payload) => {
-          // Re-fetch all tasks to rebuild the hierarchy on any change
-          // This is simpler than trying to incrementally update the nested structure
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        (_payload) => {
           void fetchTasks();
         },
       )
@@ -99,7 +93,7 @@ export function useTaskFetching(
     return () => {
       void client.removeChannel(channel);
     };
-  }, [initialTasks, user?.id, fetchTasks]);
+  }, [initialTasks, user, fetchTasks, setTasks, setLoading, buildTaskHierarchy]);
 
   return {
     tasks,

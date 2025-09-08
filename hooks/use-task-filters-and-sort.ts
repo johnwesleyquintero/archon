@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { TaskFilterOptions, TaskSortOptions } from "@/lib/database/tasks";
+import { TaskSortOptions } from "@/lib/database/tasks"; // Removed TaskFilterOptions
 import { TaskStatus, TaskPriority } from "@/lib/types/task";
 
 export type TaskSort = TaskSortOptions; // Renamed for import compatibility
@@ -36,8 +36,8 @@ export function useTaskFiltersAndSort(
     tags: initialFilters.tags || [],
     search: initialFilters.search || undefined,
     includeArchived: initialFilters.includeArchived || false,
-    isCompleted: initialFilters.isCompleted || undefined,
     priority: initialFilters.priority || "all", // Default to "all"
+    isCompleted: initialFilters.isCompleted || undefined, // Ensure isCompleted is handled
   });
 
   const setFilter = <K extends keyof TaskFilterState>(

@@ -5,15 +5,15 @@ export type QuickAddTab = "task" | "goal" | "journal";
 type GlobalQuickAddState = {
   isOpen: boolean;
   activeTab: QuickAddTab;
-  open: (tab?: QuickAddTab) => void;
+  open: (_tab?: QuickAddTab) => void;
   close: () => void;
-  setActiveTab: (tab: QuickAddTab) => void;
+  setActiveTab: (_tab: QuickAddTab) => void;
 };
 
 export const useGlobalQuickAdd = create<GlobalQuickAddState>((set) => ({
   isOpen: false,
   activeTab: "task",
-  open: (tab = "task") => set({ isOpen: true, activeTab: tab }),
+  open: (_tab = "task") => set({ isOpen: true, activeTab: _tab }),
   close: () => set({ isOpen: false }),
-  setActiveTab: (tab) => set({ activeTab: tab }),
+  setActiveTab: (_tab) => set({ activeTab: _tab }),
 }));
