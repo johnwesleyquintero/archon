@@ -74,7 +74,7 @@ export function GlobalQuickAdd() {
             <GoalForm
               isOpen={activeTab === "goal" && isOpen}
               onClose={close}
-              onSave={handleGoalSave}
+              onSave={(data) => void handleGoalSave(data)}
               initialGoal={null}
               isDialog={false} // Prop to render as a form, not a dialog
             />

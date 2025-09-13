@@ -35,41 +35,39 @@ export function useJournal(
 
   useEffect(() => {
     const client = createClient();
-    const channel = client
-      .channel("realtime-journal")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "journal_entries",
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            const newEntry = payload.new as JournalEntry;
-            setEntries((prev) => [newEntry, ...prev]);
-          }
-          if (payload.eventType === "UPDATE") {
-            const updatedEntry = payload.new as JournalEntry;
-            setEntries((prev) =>
-              prev.map((entry) =>
-                entry.id === updatedEntry.id ? updatedEntry : entry,
-              ),
-            );
-          }
-          if (payload.eventType === "DELETE") {
-            const deletedEntry = payload.old as { id: string };
-            setEntries((prev) =>
-              prev.filter((entry) => entry.id !== deletedEntry.id),
-            );
-          }
-        },
-      )
-      .subscribe();
+    const channel = client.channel("realtime-journal").on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "journal_entries",
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload) => {
+        if (payload.eventType === "INSERT") {
+          const newEntry = payload.new as JournalEntry;
+          setEntries((prev) => [newEntry, ...prev]);
+        }
+        if (payload.eventType === "UPDATE") {
+          const updatedEntry = payload.new as JournalEntry;
+          setEntries((prev) =>
+            prev.map((entry) =>
+              entry.id === updatedEntry.id ? updatedEntry : entry,
+            ),
+          );
+        }
+        if (payload.eventType === "DELETE") {
+          const deletedEntry = payload.old as { id: string };
+          setEntries((prev) =>
+            prev.filter((entry) => entry.id !== deletedEntry.id),
+          );
+        }
+      },
+    );
+    const subscription = channel.subscribe();
 
     return () => {
-      client.removeChannel(channel);
+      void client.removeChannel(subscription);
     };
   }, [userId]);
 
@@ -82,48 +80,54 @@ export function useJournal(
   };
 
   const handleCreateEntry = useCallback(() => {
-    startTransition(async () => {
-      const newEntryData: JournalInsert = {
-        title: "New Entry",
-        content: "",
-        attachments: [],
-        tags: [],
-        user_id: userId,
-      };
-      try {
-        const result = await addJournalEntry(newEntryData);
-        if (result && "error" in result) {
+    startTransition(() => {
+      void (async () => {
+        const newEntryData: JournalInsert = {
+          title: "New Entry",
+          content: "",
+          attachments: [],
+          tags: [],
+          user_id: userId,
+        };
+        try {
+          const result = await addJournalEntry(newEntryData);
+          if (result && "error" in result) {
+            toast({
+              title: "Error",
+              description: result.error,
+              variant: "destructive",
+            });
+          } else {
+            setEntries((prev) => [result, ...prev]);
+            setSelectedEntryId(result.id);
+            toast({
+              title: "Success!",
+              description: "New journal entry created.",
+            });
+            setHasUnsavedChanges(false);
+          }
+        } catch (err) {
+          const error =
+            err instanceof Error
+              ? err
+              : new Error("Failed to create journal entry.");
           toast({
             title: "Error",
-            description: result.error,
+            description: error.message,
             variant: "destructive",
           });
-        } else {
-          setEntries((prev) => [result, ...prev]);
-          setSelectedEntryId(result.id);
-          toast({
-            title: "Success!",
-            description: "New journal entry created.",
-          });
-          setHasUnsavedChanges(false);
         }
-      } catch (err) {
-        const error =
-          err instanceof Error
-            ? err
-            : new Error("Failed to create journal entry.");
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
+      })();
     });
   }, [userId, toast]);
 
   const handleSaveEntry = useCallback(() => {
-    startTransition(async () => {
-      if (selectedEntry && hasUnsavedChanges) {
+    startTransition(() => {
+      void (async () => {
+        if (!selectedEntry || !hasUnsavedChanges) {
+          return; // No changes to save or no entry selected
+        }
+
         const { id, title, content, attachments, tags, user_id } =
           selectedEntry;
         try {
@@ -161,10 +165,7 @@ export function useJournal(
             variant: "destructive",
           });
         }
-      } else {
-        // If no save operation is performed, return a resolved promise to satisfy require-await
-        return Promise.resolve();
-      }
+      })();
     });
   }, [selectedEntry, hasUnsavedChanges, toast]);
 
@@ -173,24 +174,40 @@ export function useJournal(
       if (
         window.confirm("Are you sure you want to delete this journal entry?")
       ) {
-        startTransition(async () => {
-          const result = await deleteJournalEntry(entryId);
-          if (result && "error" in result) {
-            toast({
-              title: "Error",
-              description: result.error,
-              variant: "destructive",
-            });
-          } else if (result?.success) {
-            setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
-            if (selectedEntryId === entryId) {
-              setSelectedEntryId(null);
+        startTransition(() => {
+          void (async () => {
+            try {
+              const result = await deleteJournalEntry(entryId);
+              if (result && "error" in result) {
+                toast({
+                  title: "Error",
+                  description: result.error,
+                  variant: "destructive",
+                });
+              } else if (result?.success) {
+                setEntries((prev) =>
+                  prev.filter((entry) => entry.id !== entryId),
+                );
+                if (selectedEntryId === entryId) {
+                  setSelectedEntryId(null);
+                }
+                toast({
+                  title: "Success!",
+                  description: "Journal entry deleted.",
+                });
+              }
+            } catch (err) {
+              const error =
+                err instanceof Error
+                  ? err
+                  : new Error("Failed to delete journal entry.");
+              toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+              });
             }
-            toast({
-              title: "Success!",
-              description: "Journal entry deleted.",
-            });
-          }
+          })();
         });
       }
     },

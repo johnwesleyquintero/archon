@@ -33,6 +33,7 @@ import { AdvancedWidgetConfigForm } from "./advanced-widget-config-form";
 import { DashboardCustomizationControls } from "./dashboard/controls/dashboard-customization-controls";
 import { DailyFocusWidget } from "./dashboard/daily-focus-widget";
 import { DashboardGrid } from "./dashboard/dashboard-grid";
+import { GoalProgressWidget } from "./dashboard/goal-progress-widget"; // Import GoalProgressWidget
 import { HabitTrackerWidget } from "./dashboard/habit-tracker-widget";
 import { WelcomeWidget } from "./dashboard/welcome-widget";
 import { GoalManager } from "./goal-manager";
@@ -40,7 +41,6 @@ import { JournalList } from "./journal-list";
 import { StatsGrid } from "./stats-grid";
 import { TodoList } from "./todo-list";
 import { WeatherWidget } from "./weather-widget";
-import { GoalProgressWidget } from "./dashboard/goal-progress-widget"; // Import GoalProgressWidget
 
 // Define a type that extends Layout with isVisible
 export type DashboardLayoutItem = Layout & {

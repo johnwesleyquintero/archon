@@ -51,102 +51,94 @@ export function useGoals(initialGoals: Goal[] = []) {
   useEffect(() => {
     if (initialGoals.length === 0 || user?.id) {
       // Fetch if no initial goals or user changes
-      fetchGoals();
+      void fetchGoals();
     }
 
     const client = createClient();
-    const channel = client
-      .channel("realtime-goals")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "goals",
-          filter: `user_id=eq.${user?.id}`,
-        },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            setGoals((prev) => [...prev, payload.new as Goal]);
-          }
-          if (payload.eventType === "UPDATE") {
-            setGoals((prev) =>
-              prev.map((goal) =>
-                goal.id === payload.new.id ? (payload.new as Goal) : goal,
-              ),
-            );
-          }
-          if (payload.eventType === "DELETE") {
-            setGoals((prev) =>
-              prev.filter((goal) => goal.id !== payload.old.id),
-            );
-          }
-        },
-      )
-      .subscribe();
+    const channel = client.channel("realtime-goals").on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "goals",
+        filter: `user_id=eq.${user?.id}`,
+      },
+      (payload) => {
+        if (payload.eventType === "INSERT") {
+          setGoals((prev) => [...prev, payload.new as Goal]);
+        }
+        if (payload.eventType === "UPDATE") {
+          setGoals((prev) =>
+            prev.map((goal) =>
+              goal.id === payload.new.id ? (payload.new as Goal) : goal,
+            ),
+          );
+        }
+        if (payload.eventType === "DELETE") {
+          setGoals((prev) => prev.filter((goal) => goal.id !== payload.old.id));
+        }
+      },
+    );
+    const subscription = channel.subscribe();
 
     return () => {
-      client.removeChannel(channel);
+      void client.removeChannel(subscription);
     };
   }, [fetchGoals, initialGoals, user?.id]);
 
   const addGoalMutation = useCallback(
     (
-      // Removed async
       newGoalData: Omit<GoalInsert, "user_id" | "id"> & {
         current_progress?: number | null;
         target_progress?: number | null;
       },
     ) => {
-      startTransition(async () => {
+      startTransition(() => {
         setError(null);
-        try {
-          // Optimistic update
-          const tempId = `temp-${Date.now()}`;
-          const optimisticGoal: Goal = {
-            id: tempId,
-            user_id: "optimistic_user", // Placeholder, will be replaced by server
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            title: newGoalData.title,
-            description: newGoalData.description || null,
-            target_date: newGoalData.target_date || null,
-            status: newGoalData.status || "todo", // Default to "todo"
-            attachments: (newGoalData.attachments || null) as Json,
-            current_progress: newGoalData.current_progress ?? 0,
-            target_progress: newGoalData.target_progress ?? 100,
-            tags: newGoalData.tags || null,
-            progress: 0,
-          };
-          setGoals((prev) => [optimisticGoal, ...prev]);
+        // Optimistic update
+        const tempId = `temp-${Date.now()}`;
+        const optimisticGoal: Goal = {
+          id: tempId,
+          user_id: "optimistic_user", // Placeholder, will be replaced by server
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          title: newGoalData.title,
+          description: newGoalData.description || null,
+          target_date: newGoalData.target_date || null,
+          status: newGoalData.status || "todo", // Default to "todo"
+          attachments: (newGoalData.attachments || null) as Json,
+          current_progress: newGoalData.current_progress ?? 0,
+          target_progress: newGoalData.target_progress ?? 100,
+          tags: newGoalData.tags || null,
+          progress: 0,
+        };
+        setGoals((prev) => [optimisticGoal, ...prev]);
 
-          const data = await addGoal({
-            ...newGoalData,
-          });
-
-          setGoals((prev) =>
-            prev.map((goal) => (goal.id === tempId ? data! : goal)),
-          );
-        } catch (err) {
-          const error =
-            err instanceof Error ? err : new Error("Failed to add goal.");
-          setError(error);
-          setGoals((prev) =>
-            prev.filter((goal) => !goal.id.startsWith("temp-")),
-          ); // Rollback optimistic update
-        }
+        void (async () => {
+          try {
+            const data = await addGoal({
+              ...newGoalData,
+            });
+            setGoals((prev) =>
+              prev.map((goal) => (goal.id === tempId ? data! : goal)),
+            );
+          } catch (err) {
+            const error =
+              err instanceof Error ? err : new Error("Failed to add goal.");
+            setError(error);
+            setGoals((prev) =>
+              prev.filter((goal) => !goal.id.startsWith("temp-")),
+            ); // Rollback optimistic update
+          }
+        })();
       });
     },
     [],
   );
 
   const updateGoalMutation = useCallback(
-    (
-      // Removed async
-      id: string,
-      updates: GoalUpdate,
-    ) => {
-      startTransition(async () => {
+    (id: string, updates: GoalUpdate) => {
+      startTransition(() => {
         setError(null);
         const originalGoals = goals; // Snapshot for rollback
         setGoals((prev) =>
@@ -160,40 +152,41 @@ export function useGoals(initialGoals: Goal[] = []) {
               : goal,
           ),
         );
-        try {
-          const data = await updateGoal(id, updates);
-          // If data is returned, update with actual server data
-          setGoals((prev) =>
-            prev.map((goal) => (goal.id === id ? data! : goal)),
-          );
-        } catch (err) {
-          const error =
-            err instanceof Error ? err : new Error("Failed to update goal.");
-          setError(error);
-          setGoals(originalGoals); // Rollback
-        }
+        void (async () => {
+          try {
+            const data = await updateGoal(id, updates);
+            // If data is returned, update with actual server data
+            setGoals((prev) =>
+              prev.map((goal) => (goal.id === id ? data! : goal)),
+            );
+          } catch (err) {
+            const error =
+              err instanceof Error ? err : new Error("Failed to update goal.");
+            setError(error);
+            setGoals(originalGoals); // Rollback
+          }
+        })();
       });
     },
     [goals],
   );
 
   const deleteGoalMutation = useCallback(
-    (
-      // Removed async
-      id: string,
-    ) => {
-      startTransition(async () => {
+    (id: string) => {
+      startTransition(() => {
         setError(null);
         const originalGoals = goals; // Snapshot for rollback
         setGoals((prev) => prev.filter((goal) => goal.id !== id)); // Optimistic delete
-        try {
-          await deleteGoal(id);
-        } catch (err) {
-          const error =
-            err instanceof Error ? err : new Error("Failed to delete goal.");
-          setError(error);
-          setGoals(originalGoals); // Rollback
-        }
+        void (async () => {
+          try {
+            await deleteGoal(id);
+          } catch (err) {
+            const error =
+              err instanceof Error ? err : new Error("Failed to delete goal.");
+            setError(error);
+            setGoals(originalGoals); // Rollback
+          }
+        })();
       });
     },
     [goals],

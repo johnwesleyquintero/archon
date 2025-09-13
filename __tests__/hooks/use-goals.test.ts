@@ -37,18 +37,10 @@ jest.mock("@/contexts/auth-context", () => ({
 }));
 
 jest.mock("@/lib/database/goals", () => ({
-  getGoals: jest.fn(function () {
-    return Promise.resolve([]);
-  }),
-  addGoal: jest.fn(function () {
-    return Promise.resolve(null);
-  }),
-  updateGoal: jest.fn(function () {
-    return Promise.resolve(null);
-  }),
-  deleteGoal: jest.fn(function () {
-    return Promise.resolve(undefined);
-  }),
+  getGoals: jest.fn().mockResolvedValue([]),
+  addGoal: jest.fn().mockResolvedValue(null),
+  updateGoal: jest.fn().mockResolvedValue(null),
+  deleteGoal: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockGoals = [
@@ -87,7 +79,6 @@ jest.setTimeout(30000);
 
 describe("useGoals", () => {
   let toast: jest.Mock;
-  let mockSupabaseFrom: jest.Mock;
   let mockedCreateClient: jest.MockedFunction<typeof createClient>;
 
   beforeEach(() => {
@@ -97,106 +88,68 @@ describe("useGoals", () => {
     toast.mockClear();
 
     mockedCreateClient = jest.mocked(createClient);
-    mockedCreateClient.mockClear();
 
     mockedCreateClient.mockReturnValue({
-      from: jest.fn(function () {
-        return {
-          select: jest.fn(function () {
-            return {
-              eq: jest.fn(function () {
-                return {
-                  order: jest.fn(function () {
-                    return {
-                      data: [],
-                      error: null,
-                    };
-                  }),
-                };
-              }),
-              order: jest.fn(function () {
-                return {
-                  data: [],
-                  error: null,
-                };
-              }),
-            };
-          }),
-          insert: jest.fn(function () {
-            return {
-              select: jest.fn(function () {
-                return {
-                  single: jest.fn(function () {
-                    return {
-                      data: {
-                        id: "new-goal-id",
-                        title: "New Goal",
-                        description: null,
-                        target_date: null,
-                        status: "pending",
-                        attachments: [],
-                      },
-                      error: null,
-                    };
-                  }),
-                };
-              }),
-            };
-          }),
-          update: jest.fn(function () {
-            return {
-              eq: jest.fn(function () {
-                return {
-                  select: jest.fn(function () {
-                    return {
-                      single: jest.fn(function () {
-                        return {
-                          data: {
-                            id: "goal-1",
-                            title: "Updated Goal",
-                            description: "Updated",
-                            target_date: null,
-                            status: "completed",
-                            attachments: [],
-                          },
-                          error: null,
-                        };
-                      }),
-                    };
-                  }),
-                };
-              }),
-            };
-          }),
-          delete: jest.fn(function () {
-            return {
-              eq: jest.fn(function () {
-                return {
-                  data: {},
-                  error: null,
-                };
-              }),
-            };
-          }),
-        };
-      }),
-      channel: jest.fn(function () {
-        return {
-          on: jest.fn(function () {
-            return {
-              subscribe: jest.fn(function () {}),
-            };
-          }),
-          subscribe: jest.fn(function () {}),
-        };
-      }),
-      removeChannel: jest.fn(function () {}),
+      from: jest.fn(() => ({
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            order: jest.fn(() => ({
+              data: [],
+              error: null,
+            })),
+          })),
+          order: jest.fn(() => ({
+            data: [],
+            error: null,
+          })),
+        })),
+        insert: jest.fn(() => ({
+          select: jest.fn(() => ({
+            single: jest.fn(() => ({
+              data: {
+                id: "new-goal-id",
+                title: "New Goal",
+                description: null,
+                target_date: null,
+                status: "pending",
+                attachments: [],
+              },
+              error: null,
+            })),
+          })),
+        })),
+        update: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            select: jest.fn(() => ({
+              single: jest.fn(() => ({
+                data: {
+                  id: "goal-1",
+                  title: "Updated Goal",
+                  description: "Updated",
+                  target_date: null,
+                  status: "completed",
+                  attachments: [],
+                },
+                error: null,
+              })),
+            })),
+          })),
+        })),
+        delete: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            data: {},
+            error: null,
+          })),
+        })),
+      })),
+      channel: jest.fn(() => ({
+        on: jest.fn(() => ({
+          subscribe: jest.fn(() => ({})),
+        })),
+        subscribe: jest.fn(() => ({})),
+      })),
+      removeChannel: jest.fn(),
     } as unknown as SupabaseClient<Database>);
-
-    mockSupabaseFrom = mockedCreateClient().from.bind(
-      mockedCreateClient(),
-    ) as jest.Mock; // Cast to jest.Mock and bind
-    mockSupabaseFrom.mockClear();
 
     (getGoals as jest.Mock).mockClear();
     (addGoal as jest.Mock).mockClear();
@@ -229,7 +182,7 @@ describe("useGoals", () => {
     expect(result.current.error).toEqual(fetchError);
   });
 
-  it("adds a new goal successfully", () => {
+  it("adds a new goal successfully", async () => {
     const newGoalData = {
       title: "New Goal",
       description: "New Desc",
@@ -255,13 +208,14 @@ describe("useGoals", () => {
     act(() => {
       result.current.addGoal(newGoalData);
     });
+    await waitFor(() => expect(result.current.isMutating).toBe(false));
 
     expect(addGoal).toHaveBeenCalledWith(newGoalData);
     expect(result.current.goals).toContainEqual(returnedGoal);
     expect(result.current.error).toBeNull();
   });
 
-  it("handles add goal error", () => {
+  it("handles add goal error", async () => {
     const addError = new Error("Failed to add goal");
     const badGoalData = {
       title: "Bad Goal",
@@ -279,13 +233,14 @@ describe("useGoals", () => {
     act(() => {
       result.current.addGoal(badGoalData);
     });
+    await waitFor(() => expect(result.current.isMutating).toBe(false));
 
     expect(addGoal).toHaveBeenCalledWith(badGoalData);
     expect(result.current.error).toEqual(addError);
     expect(result.current.goals).toEqual(mockGoals);
   });
 
-  it("updates a goal successfully", () => {
+  it("updates a goal successfully", async () => {
     const goalToUpdate = mockGoals[0];
     const updatedData = {
       title: "Updated Title",
@@ -300,13 +255,14 @@ describe("useGoals", () => {
     act(() => {
       result.current.updateGoal(goalToUpdate.id, updatedData);
     });
+    await waitFor(() => expect(result.current.isMutating).toBe(false));
 
     expect(updateGoal).toHaveBeenCalledWith(goalToUpdate.id, updatedData);
     expect(result.current.goals).toContainEqual(updatedGoal);
     expect(result.current.error).toBeNull();
   });
 
-  it("handles update goal error", () => {
+  it("handles update goal error", async () => {
     const updateError = new Error("Failed to update goal");
     const goalId = "goal-1";
     const badUpdateData = { title: "Bad Update" };
@@ -318,13 +274,14 @@ describe("useGoals", () => {
     act(() => {
       result.current.updateGoal(goalId, badUpdateData);
     });
+    await waitFor(() => expect(result.current.isMutating).toBe(false));
 
     expect(updateGoal).toHaveBeenCalledWith(goalId, badUpdateData);
     expect(result.current.error).toEqual(updateError);
     expect(result.current.goals).toEqual(mockGoals);
   });
 
-  it("deletes a goal successfully", () => {
+  it("deletes a goal successfully", async () => {
     (deleteGoal as jest.Mock).mockResolvedValue(undefined);
 
     const { result } = renderHook(() => useGoals([...mockGoals]));
@@ -332,13 +289,14 @@ describe("useGoals", () => {
     act(() => {
       result.current.deleteGoal("goal-1");
     });
+    await waitFor(() => expect(result.current.isMutating).toBe(false));
 
     expect(deleteGoal).toHaveBeenCalledWith("goal-1");
     expect(result.current.goals).toEqual([mockGoals[1]]);
     expect(result.current.error).toBeNull();
   });
 
-  it("handles delete goal error", () => {
+  it("handles delete goal error", async () => {
     const deleteError = new Error("Failed to delete goal");
     (deleteGoal as jest.Mock).mockRejectedValue(deleteError);
 
@@ -347,6 +305,7 @@ describe("useGoals", () => {
     act(() => {
       result.current.deleteGoal("non-existent-goal");
     });
+    await waitFor(() => expect(result.current.isMutating).toBe(false));
 
     expect(deleteGoal).toHaveBeenCalledWith("non-existent-goal");
     expect(result.current.error).toEqual(deleteError);

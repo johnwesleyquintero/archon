@@ -1,7 +1,6 @@
 import "@testing-library/jest-dom"; // For extended Jest matchers
+
 import { TextEncoder, TextDecoder } from "util"; // Node.js 'util' module for polyfill
-import FormData from "form-data";
-import * as React from "react";
 import ResizeObserverPolyfill from "resize-observer-polyfill";
 
 // Mock node-fetch and form-data to avoid ES module issues in Jest
@@ -27,14 +26,6 @@ global.ResizeObserver = ResizeObserverPolyfill;
 // These are global APIs expected in browser/Node.js environments but missing in JSDOM by default.
 global.TextEncoder = global.TextEncoder || TextEncoder;
 global.TextDecoder = global.TextDecoder || TextDecoder;
-
-// Polyfill Web APIs for Jest JSDOM environment
-// These are global APIs expected in browser environments but missing in JSDOM by default.
-// They are often used by Next.js and other libraries.
-// Ensure we are using the mocked classes directly.
-if (typeof globalThis.FormData === "undefined") {
-  globalThis.FormData = FormData as unknown as typeof global.FormData;
-}
 
 // Mock environment variables for testing
 process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
@@ -242,20 +233,3 @@ jest.mock("@/hooks/use-task-item", () => ({
     handleKeyDown: jest.fn(),
   })),
 }));
-
-// Mock React.act for @testing-library/react-hooks compatibility with React 19
-// This ensures that act from React is used, addressing the deprecation warning.
-// This might not be strictly necessary after removing @testing-library/react-hooks,
-// but it's good practice to ensure act is correctly handled globally.
-(
-  global as typeof global & {
-    IS_REACT_ACT_ENVIRONMENT: boolean;
-    act: typeof React.act;
-  }
-).IS_REACT_ACT_ENVIRONMENT = true;
-(
-  global as typeof global & {
-    IS_REACT_ACT_ENVIRONMENT: boolean;
-    act: typeof React.act;
-  }
-).act = React.act;
