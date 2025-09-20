@@ -5,7 +5,7 @@
 import { useRef, useState } from "react";
 
 import { TaskInput } from "@/components/task-input";
-import { TaskEditModal } from "@/components/task-item";
+import { TaskEditModal } from "@/components/task-edit-modal";
 import { TaskList } from "@/components/task-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
