@@ -3,13 +3,14 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import React, { useEffect } from "react";
 import { Suspense } from "react";
+import { toast } from "sonner";
 
 import { ArchonLogoSVG } from "@/components/archon-logo-svg";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -20,6 +21,12 @@ function AuthCodeErrorContent() {
     searchParams.get("message") ||
     "An unexpected authentication error occurred. Please try again."; // More specific default message
 
+  useEffect(() => {
+    if (message) {
+      toast.error(message);
+    }
+  }, [message]);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
@@ -28,9 +35,9 @@ function AuthCodeErrorContent() {
             <ArchonLogoSVG className="mb-4 h-12 w-12" />
           </div>
           <CardTitle>Authentication Error</CardTitle>
-          <CardDescription>
+          {/* <CardDescription>
             {message} {/* Directly use the message variable */}
-          </CardDescription>
+          {/* </CardDescription> */}
         </CardHeader>
         <CardContent className="text-center">
           <Link href="/auth/signin" className="text-blue-600 hover:underline">

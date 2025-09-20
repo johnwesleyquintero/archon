@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { Plus, Edit3, Calendar, Target } from "lucide-react";
+import { useMemo, useState } from "react";
 import { z } from "zod";
 
 import { CreateGoalModal } from "@/components/create-goal-modal";
@@ -23,7 +23,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { useGoals } from "@/hooks/use-goals";
 import { useTasks } from "@/hooks/use-tasks"; // Import useTasks hook
-
 import type { Database } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
 import { goalSchema } from "@/lib/validators";

@@ -1,5 +1,5 @@
 import Groq from "groq-sdk";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 
 import { taskSchema } from "@/lib/validators";
 
@@ -44,24 +44,25 @@ ${JSON.stringify(aiTaskParserSchema.shape, null, 2)}
 
 Do not include any extra text, explanations, or markdown formatting in your response. Only the JSON object is allowed.`;
 
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
-        {
-          role: "user",
-          content: userInput,
-        },
-      ],
-      model: "llama3-8b-8192",
-      temperature: 0,
-      max_tokens: 1024,
-      top_p: 1,
-      stream: false,
-      response_format: { type: "json_object" },
-    });
+    const chatCompletion: Groq.Chat.Completions.ChatCompletion =
+      await groq.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt,
+          },
+          {
+            role: "user",
+            content: userInput,
+          },
+        ],
+        model: "llama3-8b-8192",
+        temperature: 0,
+        max_tokens: 1024,
+        top_p: 1,
+        stream: false,
+        response_format: { type: "json_object" },
+      });
 
     const rawResponse = chatCompletion.choices[0]?.message?.content;
 

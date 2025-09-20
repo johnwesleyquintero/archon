@@ -1,16 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { BrainCircuit, ImageIcon, Paperclip, Save, Tag, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BrainCircuit, ImageIcon, Paperclip, Save, Tag, X } from "lucide-react";
 
 import { analyzeJournalEntry } from "@/app/journal/actions";
-import { JournalTemplateSelector } from "@/components/journal-template-selector"; // Import JournalTemplateSelector
-
 import { FileUpload } from "@/components/file-upload";
+import { JournalTemplateSelector } from "@/components/journal-template-selector"; // Import JournalTemplateSelector
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

@@ -65,20 +65,16 @@ interface TaskInputProps {
 }
 
 export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
-  (
-    {
-      onAddTask,
-      onSave,
-      initialData,
-      onCancel,
-      disabled = false,
-      autoFocus = false,
-      isSubtaskInput = false,
-      goals = [],
-    },
-    // No ref is currently used, so it's removed to resolve the lint error.
-    // If a ref is needed in the future, it can be reintroduced.
-  ) => {
+  ({
+    onAddTask,
+    onSave,
+    initialData,
+    onCancel,
+    disabled = false,
+    autoFocus = false,
+    isSubtaskInput = false,
+    goals = [],
+  }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm<TaskFormValues>({
@@ -468,9 +464,8 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter") {
                                     e.preventDefault();
-                                    // eslint-disable-next-line no-unused-vars
-                                    const input = e.currentTarget;
-                                    const value = input.value.trim();
+                                    const _input = e.currentTarget;
+                                    const value = _input.value.trim();
                                     if (
                                       value &&
                                       !field.value?.includes(value)
@@ -479,7 +474,7 @@ export const TaskInput = React.forwardRef<HTMLInputElement, TaskInputProps>(
                                         ...(field.value || []),
                                         value,
                                       ]);
-                                      input.value = "";
+                                      _input.value = "";
                                     }
                                   }
                                 }}

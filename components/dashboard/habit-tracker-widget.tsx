@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
 import { Plus } from "lucide-react";
+import React, { useState } from "react";
 
+import { DashboardWidget } from "@/components/dashboard/dashboard-widget";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DashboardWidget } from "@/components/dashboard/dashboard-widget";
+
 import { HabitItem } from "./habit-item";
 
 import { useHabits } from "@/hooks/use-habits";

@@ -2,10 +2,11 @@
 
 import { Mail } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import React from "react";
+import { useFormState } from "react-dom";
+import { toast } from "sonner";
 
 import { ArchonLogoSVG } from "@/components/archon-logo-svg";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Card,
   CardContent,
@@ -20,9 +21,35 @@ import { cn } from "@/lib/utils";
 
 import { forgotPassword } from "./actions";
 
+type State =
+  | {
+      error: string;
+      success?: undefined;
+    }
+  | {
+      success: string;
+      error?: undefined;
+    }
+  | null;
+
 export function ForgotPasswordForm() {
-  const searchParams = useSearchParams();
-  const message = searchParams.get("message");
+  // const searchParams = useSearchParams(); // Commented out as it's unused
+  // const message = searchParams.get("message"); // Commented out as it's unused
+  const [state, formAction] = useFormState<State, FormData>(
+    async (_prevState: State, formData: FormData) => {
+      return forgotPassword(formData);
+    },
+    null,
+  );
+
+  React.useEffect(() => {
+    if (state?.success) {
+      toast.success(state.success);
+    }
+    if (state?.error) {
+      toast.error(state.error);
+    }
+  }, [state]);
 
   return (
     <div className="flex-1 flex flex-col w-full px-8 sm:max-w-md justify-center gap-2">
@@ -65,7 +92,7 @@ export function ForgotPasswordForm() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          <form className="space-y-4">
+          <form className="space-y-4" action={formAction}>
             <div className="space-y-2">
               <Label
                 htmlFor="email"
@@ -87,7 +114,7 @@ export function ForgotPasswordForm() {
               </div>
             </div>
 
-            {message && (
+            {/* {message && (
               <Alert
                 variant={
                   message.includes("Password reset email sent")
@@ -99,10 +126,10 @@ export function ForgotPasswordForm() {
                   {message}
                 </AlertDescription>
               </Alert>
-            )}
+            )} */}
 
             <SubmitButton
-              formAction={forgotPassword}
+              // formAction={forgotPassword}
               className={cn(
                 "w-full h-11 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-700",
                 "text-primary-foreground font-medium transition-all duration-200 shadow-lg hover:shadow-xl",

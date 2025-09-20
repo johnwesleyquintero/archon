@@ -219,17 +219,29 @@ jest.mock("@/hooks/use-task-filters-and-sort", () => ({
   })),
 }));
 
-jest.mock("@/hooks/use-task-item", () => ({
-  useTaskItem: jest.fn(({ id, title, onToggle, onDelete, onUpdate }) => ({
-    isToggling: false,
-    isDeleting: false,
-    isEditing: false,
-    newTitle: title,
-    setNewTitle: jest.fn(),
-    setIsEditing: jest.fn(),
-    handleToggle: jest.fn((checked) => onToggle(id, checked)),
-    handleDelete: jest.fn(() => onDelete(id)),
-    handleUpdate: jest.fn(() => onUpdate(id, title)),
-    handleKeyDown: jest.fn(),
-  })),
-}));
+jest.mock("@/hooks/use-task-item", () => {
+  interface UseTaskItemProps {
+    id: string;
+    title: string;
+    onToggle: (id: string, checked: boolean) => void;
+    onDelete: (id: string) => void;
+    onUpdate: (id: string, title: string) => void;
+  }
+
+  return {
+    useTaskItem: jest.fn(
+      ({ id, title, onToggle, onDelete, onUpdate }: UseTaskItemProps) => ({
+        isToggling: false,
+        isDeleting: false,
+        isEditing: false,
+        newTitle: title,
+        setNewTitle: jest.fn(),
+        setIsEditing: jest.fn(),
+        handleToggle: jest.fn((checked: boolean) => onToggle(id, checked)),
+        handleDelete: jest.fn(() => onDelete(id)),
+        handleUpdate: jest.fn(() => onUpdate(id, title)),
+        handleKeyDown: jest.fn(),
+      }),
+    ),
+  };
+});

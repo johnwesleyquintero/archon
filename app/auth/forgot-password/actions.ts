@@ -2,7 +2,6 @@
 
 import { AuthError } from "@supabase/supabase-js";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -17,12 +16,8 @@ export async function forgotPassword(formData: FormData) {
     });
 
   if (error) {
-    return redirect(
-      `/auth/forgot-password?message=${encodeURIComponent(error.message)}`,
-    );
+    return { error: error.message };
   }
 
-  return redirect(
-    "/auth/forgot-password?message=Password reset email sent. Please check your inbox.",
-  ); // More explicit success message
+  return { success: "Password reset email sent. Please check your inbox." };
 }

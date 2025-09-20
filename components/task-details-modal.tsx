@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import {
   Archive,
   CalendarIcon,
@@ -10,8 +9,13 @@ import {
   Trash2,
   Unlink,
 } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  addTaskDependency,
+  removeTaskDependency,
+} from "@/app/tasks/dependencies/actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,11 +51,6 @@ import {
 } from "@/components/ui/select";
 
 import { TipTapEditor } from "./quill-editor";
-
-import {
-  addTaskDependency,
-  removeTaskDependency,
-} from "@/app/tasks/dependencies/actions";
 import type { Database } from "@/lib/supabase/types";
 import { Task, TaskPriority, TaskStatus } from "@/lib/types/task";
 import { TaskDependency } from "@/lib/types/task-dependency";
@@ -371,7 +370,7 @@ export function TaskDetailsModal({
                   );
                 })}
               <Select
-                onValueChange={(value) => void handleAddDependency(value)}
+                onValueChange={(_value) => void handleAddDependency(_value)}
                 value=""
               >
                 <SelectTrigger>

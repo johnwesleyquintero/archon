@@ -3,11 +3,9 @@
 import { JournalEditorWithAttachments } from "@/components/journal-editor-with-attachments";
 import { JournalList } from "@/components/journal-list";
 import { Skeleton } from "@/components/ui/skeleton";
-
 import { updateJournalEntry } from "@/app/journal/actions";
 
 import { useJournal } from "@/hooks/use-journal";
-
 import type { Database } from "@/lib/supabase/types";
 
 type JournalEntry = Database["public"]["Tables"]["journal_entries"]["Row"] & {

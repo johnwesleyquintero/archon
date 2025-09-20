@@ -37,7 +37,6 @@ export function WidgetConfigModal({
   currentConfig,
   widgetType,
 }: WidgetConfigModalProps) {
-  // eslint-disable-next-line no-unused-vars
   const [config, setConfig] = useState(currentConfig);
 
   useEffect(() => {

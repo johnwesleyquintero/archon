@@ -16,8 +16,8 @@ import {
 import { JournalTemplate } from "@/lib/types/journal";
 
 interface JournalTemplateSelectorProps {
-  onSelectTemplate: (content: string) => void;
-  onGenerateAiPrompt: (currentContent: string) => Promise<string>;
+  onSelectTemplate: (_content: string) => void;
+  onGenerateAiPrompt: (_currentContent: string) => Promise<string>;
   isLoadingAiPrompt: boolean;
   currentJournalContent: string;
 }
