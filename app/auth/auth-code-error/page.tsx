@@ -8,12 +8,7 @@ import { Suspense } from "react";
 import { toast } from "sonner";
 
 import { ArchonLogoSVG } from "@/components/archon-logo-svg";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function AuthCodeErrorContent() {
   const searchParams = useSearchParams();
